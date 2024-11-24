@@ -2,11 +2,14 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
     namespace = "lv.yumm"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "lv.yumm"
@@ -37,6 +40,10 @@ android {
     buildFeatures {
         compose = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.9.3"
+    }
+
 }
 
 dependencies {
@@ -49,11 +56,34 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.espresso.core)
     testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.work.testing)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    implementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.room.ktx)
+    implementation(libs.room.runtime)
+    androidTestImplementation(libs.room.testing)
+    ksp(libs.room.compiler)
+    implementation(libs.hilt.android.core)
+    implementation(libs.hilt.android.testing)
+    kapt(libs.hilt.compiler)
+    implementation(libs.hilt.ext.compiler)
+    implementation(libs.hilt.ext.work)
+    implementation(libs.gson)
+    implementation (libs.androidx.work.runtime)
+}
+
+configurations.all {
+    exclude(group = "com.intellij", module = "annotations")
+}
+
+kapt {
+    correctErrorTypes = true
 }
