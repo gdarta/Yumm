@@ -12,6 +12,7 @@ import lv.yumm.recipes.data.di.ApplicationScope
 import lv.yumm.recipes.data.di.DefaultDispatcher
 import lv.yumm.recipes.data.source.RecipeDao
 import lv.yumm.recipes.data.source.network.RecipeNetworkDataSource
+import lv.yumm.recipes.data.source.network.RecipeNetworkDataSourceImpl
 import lv.yumm.recipes.data.source.toExternal
 import lv.yumm.recipes.data.source.toLocal
 import lv.yumm.recipes.data.source.toNetwork
@@ -62,7 +63,7 @@ class DefaultRecipeRepository @Inject constructor(
         val localRecipes = withContext(dispatcher) {
             networkRecipes.toLocal()
         }
-        localDataSource.upsertAll(networkRecipes.toLocal())
+        localDataSource.upsertAll(localRecipes)
     }
 
     private suspend fun saveRecipesToNetwork() {

@@ -1,3 +1,5 @@
+@file:JvmName("RecipeNetworkDataSourceKt")
+
 package lv.yumm.recipes.data.source.network
 
 import jakarta.inject.Inject
@@ -8,12 +10,13 @@ import lv.yumm.recipes.data.Amount
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.Unit
+import lv.yumm.recipes.data.source.network.RecipeNetworkDataSource.Companion.SERVICE_LATENCY_IN_MILLIS
 
-class RecipeNetworkDataSource @Inject constructor() {
+class RecipeNetworkDataSourceImpl @Inject constructor() : RecipeNetworkDataSource {
 
     // A mutex is used to ensure that reads and writes are thread-safe.
-    private val accessMutex = Mutex()
-    private var recipes = listOf(
+    override val accessMutex = Mutex()
+    override var recipes = listOf(
         NetworkRecipe(
             id = "LENTILS",
             title = "Best Lentil Soup Recipe",
@@ -66,15 +69,13 @@ class RecipeNetworkDataSource @Inject constructor() {
         )
     )
 
-    suspend fun loadRecipes(): List<NetworkRecipe> = accessMutex.withLock {
+    override suspend fun loadRecipes(): List<NetworkRecipe> = accessMutex.withLock {
         delay(SERVICE_LATENCY_IN_MILLIS)
         return recipes
     }
 
-    suspend fun saveRecipes(newRecipes: List<NetworkRecipe>) = accessMutex.withLock {
+    override suspend fun saveRecipes(newRecipes: List<NetworkRecipe>) = accessMutex.withLock {
         delay(SERVICE_LATENCY_IN_MILLIS)
         recipes = recipes + newRecipes
     }
 }
-
-private const val SERVICE_LATENCY_IN_MILLIS = 2000L

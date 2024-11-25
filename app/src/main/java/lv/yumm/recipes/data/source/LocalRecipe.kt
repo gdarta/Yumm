@@ -63,8 +63,6 @@ fun LocalRecipe.toNetwork() = NetworkRecipe(
 
 fun List<LocalRecipe>.toNetwork() = map { it.toNetwork() }
 
-fun List<Recipe>.toLocal() = map { it.toLocal() }
-
 fun NetworkRecipe.toLocal() = LocalRecipe(
     id = id,
     title = title,
