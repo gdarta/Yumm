@@ -1,7 +1,7 @@
 package lv.yumm.source
 
 
-import junit.framework.Assert.assertEquals
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
@@ -10,7 +10,6 @@ import kotlinx.coroutines.test.runTest
 import lv.yumm.recipes.data.DefaultRecipeRepository
 import lv.yumm.recipes.data.source.LocalRecipe
 import lv.yumm.recipes.data.source.network.NetworkRecipe
-import lv.yumm.recipes.data.source.network.RecipeNetworkDataSource
 import lv.yumm.recipes.data.source.toExternal
 import lv.yumm.recipes.data.source.toLocal
 import lv.yumm.source.local.FakeRecipeDao
