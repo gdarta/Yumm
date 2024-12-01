@@ -5,6 +5,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 android {
@@ -56,13 +57,16 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("androidx.compose.material3:material3:1.4.0-alpha02")
+    implementation(libs.material3)
+    implementation (libs.coil.compose)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.espresso.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.work.testing)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
+    implementation(libs.kotlinx.serialization.json)
     androidTestImplementation(libs.androidx.ui.test.junit4)
     implementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.ui.tooling)

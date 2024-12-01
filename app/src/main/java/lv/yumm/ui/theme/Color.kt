@@ -9,3 +9,16 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+val DarkGray = Color(0xFF222222)
+val White100 = Color(0xFFFFFFFF)
+val BabyPowder = Color(0xfffffffc)
+
+val DarkViolet = Color(0xFF3F334D)
+val LightViolet = Color(0xff574b60)
+val RaisinBlack = Color(0xff211b29)
+val RoseQuartz = Color(0xffa88fac)
+
+val SlateGray = Color(0xff7d8491)
+
+val ImperialRed = Color(0xfff71735)

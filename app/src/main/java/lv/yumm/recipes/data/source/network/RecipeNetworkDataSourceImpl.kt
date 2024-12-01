@@ -6,10 +6,13 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import lv.yumm.recipes.data.Amount
 import lv.yumm.recipes.data.Ingredient
+import lv.yumm.recipes.data.Ingredient.Companion.GRAM
+import lv.yumm.recipes.data.Ingredient.Companion.MILLIGRAM
+import lv.yumm.recipes.data.Ingredient.Companion.PIECE
+import lv.yumm.recipes.data.Ingredient.Companion.TBS
+import lv.yumm.recipes.data.Ingredient.Companion.TSP
 import lv.yumm.recipes.data.RecipeType
-import lv.yumm.recipes.data.Unit
 import lv.yumm.recipes.data.source.network.RecipeNetworkDataSource.Companion.SERVICE_LATENCY_IN_MILLIS
 
 class RecipeNetworkDataSourceImpl @Inject constructor() : RecipeNetworkDataSource {
@@ -32,12 +35,12 @@ class RecipeNetworkDataSourceImpl @Inject constructor() : RecipeNetworkDataSourc
             imageUrl = "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.connoisseurusveg.com%2Fmediterranean-red-lentil-soup%2F&psig=AOvVaw3hSo_uoOQDfjvKj4YnXAa6&ust=1732561864115000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCODMtIfW9YkDFQAAAAAdAAAAABAE",
             type = RecipeType.DINNER,
             ingredients = listOf(
-                Ingredient("garlic cloves", Amount(3f, Unit.PIECE)),
-                Ingredient("onions", Amount(2f, Unit.PIECE)),
-                Ingredient("canned tomatoes", Amount(800f, Unit.MILLIGRAM)),
-                Ingredient("lentils", Amount(100f, Unit.MILLIGRAM)),
-                Ingredient("curry", Amount(2f, Unit.TBS)),
-                Ingredient("chilli flakes", Amount(1f, Unit.TSP))
+                Ingredient("garlic cloves", 3f, PIECE),
+                Ingredient("onions", 2f, PIECE),
+                Ingredient("canned tomatoes", 800f, MILLIGRAM),
+                Ingredient("lentils", 100f, MILLIGRAM),
+                Ingredient("curry", 2f, TBS),
+                Ingredient("chilli flakes", 1f, TSP)
             ),
             portions = 4,
         ),
@@ -56,15 +59,15 @@ class RecipeNetworkDataSourceImpl @Inject constructor() : RecipeNetworkDataSourc
             portions = 4,
             type = RecipeType.SALAD,
             ingredients = listOf(
-                Ingredient("cucumber", Amount(1f, Unit.PIECE)),
-                Ingredient("tomatoes", Amount(4f, Unit.PIECE)),
-                Ingredient("red onion", Amount(1f, Unit.PIECE)),
-                Ingredient("olives", Amount(200f, Unit.GRAM)),
-                Ingredient("salad cheese", Amount(150f, Unit.GRAM)),
-                Ingredient("greek yogurt", Amount(400f, Unit.GRAM)),
-                Ingredient("parsley", Amount(1f, Unit.TSP)),
-                Ingredient("salt and pepper", Amount(1f, Unit.TSP)),
-                Ingredient("basil", Amount(1f, Unit.TSP))
+                Ingredient("cucumber", 1f, PIECE),
+                Ingredient("tomatoes", 4f, PIECE),
+                Ingredient("red onion", 1f, PIECE),
+                Ingredient("olives", 200f, GRAM),
+                Ingredient("salad cheese", 150f, GRAM),
+                Ingredient("greek yogurt", 400f, GRAM),
+                Ingredient("parsley", 1f, TSP),
+                Ingredient("salt and pepper", 1f, TSP),
+                Ingredient("basil", 1f, TSP)
             )
         )
     )

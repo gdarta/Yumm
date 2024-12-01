@@ -35,7 +35,7 @@ class DefaultRecipeRepository @Inject constructor(
         description: String = "",
         directions: List<String> = emptyList(),
         complexity: Int = -1,
-        duration: Int = 0,
+        duration: Long = 0,
         imageUrl: String = "",
         type: RecipeType? = null,
         ingredients: List<Ingredient> = emptyList(),

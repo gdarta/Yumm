@@ -10,7 +10,7 @@ data class NetworkRecipe (
     val description: String = "",
     val directions: List<String> = emptyList(),
     val complexity: Int = -1,
-    val duration: Int = 0,
+    val duration: Long = 0,
     val portions: Int = 0,
     val imageUrl: String = "",
     val type: RecipeType? = null,

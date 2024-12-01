@@ -8,7 +8,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import dagger.hilt.android.AndroidEntryPoint
 import lv.yumm.recipes.RecipeViewModel
-import lv.yumm.recipes.ui.CreateRecipeScreen
+import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.YummTheme
 
 @AndroidEntryPoint
@@ -19,8 +19,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             YummTheme {
-                val recipeState = recipeViewModel.recipeUiState.collectAsState()
-                CreateRecipeScreen(recipeState.value)
+                YummNavHost(recipeViewModel)
             }
         }
     }

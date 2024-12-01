@@ -6,7 +6,7 @@ data class Recipe (
     val description: String = "",
     val directions: List<String> = emptyList(),
     val complexity: Int = -1,
-    val duration: Int = 0, // in milliseconds
+    val duration: Long = 0, // in milliseconds
     val portions: Int = 0,
     val imageUrl: String = "",
     val type: RecipeType? = null,
@@ -20,4 +20,16 @@ enum class RecipeType {
     SALAD,
     DESSERT,
     SNACK
+}
+
+fun Long.toTimestamp(): String {
+    val hours = this / (1000 * 60 * 60)
+    val minutes = (this / (1000 * 60)) % 60
+    return if (hours > 0 && minutes == 0L) {
+        "${hours}h"
+    } else if (hours > 0) {
+        "${hours}h${minutes}min"
+    } else {
+        "${minutes}min"
+    }
 }
