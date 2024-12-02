@@ -1,11 +1,24 @@
 package lv.yumm.ui.theme
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.tappableElementIgnoringVisibility
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -16,11 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import lv.yumm.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +50,65 @@ fun TopBar(title: String) {
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
-        )
+        ),
+        modifier = Modifier.height(50.dp),
+    )
+}
+
+@Composable
+fun BottomNavBar(
+    toHome: () -> Unit,
+    toLists: () -> Unit,
+    toCalendar: () -> Unit,
+    toRecipes: () -> Unit,
+    toProfile:() -> Unit,
+) {
+    BottomAppBar(
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentPadding = PaddingValues(horizontal = 10.dp),
+        modifier = Modifier.height(80.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ){
+            NavIcon(
+                id = R.drawable.ic_home,
+                description = "Home",
+                { toHome() }
+            )
+            NavIcon(
+                id = R.drawable.ic_recipes,
+                description = "Home",
+                { toRecipes() }
+            )
+            NavIcon(
+                id = R.drawable.ic_list,
+                description = "Home",
+                { toLists() }
+            )
+            NavIcon(
+                id = R.drawable.ic_calendar,
+                description = "Home",
+                { toCalendar() }
+            )
+            NavIcon(
+                id = R.drawable.ic_profile,
+                description = "Home",
+                { toProfile() }
+            )
+        }
+    }
+}
+
+@Composable
+fun NavIcon(id: Int, description: String, onClick: () -> Unit) {
+    Icon(
+        painter = painterResource(id),
+        contentDescription = description,
+        modifier = Modifier
+            .size(40.dp)
+            .clickable { onClick() }
     )
 }
 
@@ -83,4 +157,10 @@ fun LoadImageWithStates(url: String, modifier: Modifier) {
 @Composable
 fun TopBarPreview() {
     YummTheme { TopBar("Yumm") }
+}
+
+@Preview
+@Composable
+fun BottomNavBarPreview() {
+    YummTheme { BottomNavBar({},{},{},{},{}) }
 }

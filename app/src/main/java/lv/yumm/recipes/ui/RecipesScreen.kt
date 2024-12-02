@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.toTimestamp
+import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.LoadImageWithStates
 import lv.yumm.ui.theme.TopBar
 import lv.yumm.ui.theme.YummTheme
@@ -35,19 +36,15 @@ import lv.yumm.ui.theme.YummTheme
 @Composable
 fun RecipesScreen(recipes: StateFlow<List<Recipe>>, navigateToCreateScreen: () -> Unit) {
     val state = recipes.collectAsStateWithLifecycle()
-    Scaffold(
-        topBar = { TopBar(title = "Recipes") },
-        floatingActionButton = { Button(content = { Text("Add recipe") }, onClick = { navigateToCreateScreen() }) }
-    ) { innerPadding ->
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier
-                .padding(innerPadding)
-        ) {
-            itemsIndexed(state.value) { index, recipe ->
-                RecipeCard(recipe, Modifier
-                    .padding(horizontal = 10.dp, vertical = 5.dp))
-            }
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier
+    ) {
+        itemsIndexed(state.value) { index, recipe ->
+            RecipeCard(
+                recipe, Modifier
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+            )
         }
     }
 }
@@ -63,12 +60,14 @@ fun RecipeCard(recipe: Recipe, modifier: Modifier) {
         ),
         onClick = {}
     ) {
-        Row(){
+        Row() {
             LoadImageWithStates(
                 url = recipe.imageUrl,
-                modifier = Modifier.weight(1f).height(100.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(100.dp),
             )
-            Column(modifier = Modifier.weight(1f)){
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = recipe.title
                 )
