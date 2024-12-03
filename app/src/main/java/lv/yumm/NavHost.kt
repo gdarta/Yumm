@@ -1,5 +1,6 @@
 package lv.yumm
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,7 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
+import timber.log.Timber
 
 @Serializable
 object RecipesScreen
@@ -38,7 +40,7 @@ fun YummNavHost(viewModel: RecipeViewModel) {
     var shouldShowActionButton by remember { mutableStateOf(false) }
 
     navBackStackEntry?.destination?.let { currentDestination ->
-        shouldShowActionButton = !currentDestination.hasRoute(RecipesScreen::class)
+        shouldShowActionButton = currentDestination.hasRoute(route = RecipesScreen::class)
     }
 
     Scaffold(

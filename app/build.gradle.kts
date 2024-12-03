@@ -30,6 +30,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            isDebuggable = true
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -40,6 +43,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.9.3"
@@ -58,6 +62,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.material3)
+    implementation ("com.jakewharton.timber:timber:5.0.1")
     implementation (libs.coil.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.espresso.core)
