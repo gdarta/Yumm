@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -25,6 +26,7 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
+import lv.yumm.recipes.toRecipeCardUiState
 import timber.log.Timber
 
 @Serializable
@@ -32,6 +34,14 @@ object RecipesScreen
 
 @Serializable
 object CreateRecipe
+
+fun getTitle(screen: NavDestination?) : String{
+    return when {
+        screen?.hasRoute(route = RecipesScreen::class) == true -> "My recipes"
+        screen?.hasRoute(route = CreateRecipe::class) == true -> "Create a recipe"
+        else -> "Yumm"
+    }
+}
 
 @Composable
 fun YummNavHost(viewModel: RecipeViewModel) {
@@ -44,8 +54,15 @@ fun YummNavHost(viewModel: RecipeViewModel) {
     }
 
     Scaffold(
-        topBar = { TopBar("") },
-        bottomBar = { BottomNavBar({}, {}, {}, {}, {}) },
+        topBar = { TopBar(title = getTitle(navBackStackEntry?.destination)) },
+        bottomBar = { BottomNavBar(
+            toRecipes = {
+                navController.navigate(RecipesScreen)
+            },
+            toHome = {},
+            toLists = {},
+            toProfile = {},
+            toCalendar = {}) },
         floatingActionButton = {
             if (shouldShowActionButton) {
                 Button(
@@ -64,7 +81,8 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                 startDestination = RecipesScreen
             ) {
                 composable<RecipesScreen> {
-                    RecipesScreen(viewModel.recipeStream, { navController.navigate(CreateRecipe) })
+                    val state = viewModel.recipeStream.collectAsStateWithLifecycle()
+                    RecipesScreen(state.value.toRecipeCardUiState(), { navController.navigate(CreateRecipe) })
                 }
                 composable<CreateRecipe> {
                     val recipeUiState = viewModel.recipeUiState.collectAsStateWithLifecycle()

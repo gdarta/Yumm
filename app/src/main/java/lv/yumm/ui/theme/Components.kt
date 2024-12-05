@@ -7,21 +7,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.tappableElementIgnoringVisibility
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
@@ -51,7 +47,7 @@ fun TopBar(title: String) {
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
         ),
-        modifier = Modifier.height(50.dp),
+        modifier = Modifier.height(70.dp),
     )
 }
 
@@ -65,11 +61,10 @@ fun BottomNavBar(
 ) {
     BottomAppBar(
         containerColor = MaterialTheme.colorScheme.primary,
-        contentPadding = PaddingValues(horizontal = 10.dp),
-        modifier = Modifier.height(80.dp)
+        modifier = Modifier.height(100.dp)
     ) {
         Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceAround,
             modifier = Modifier.fillMaxWidth()
         ){
             NavIcon(
@@ -107,7 +102,8 @@ fun NavIcon(id: Int, description: String, onClick: () -> Unit) {
         painter = painterResource(id),
         contentDescription = description,
         modifier = Modifier
-            .size(40.dp)
+            .padding(all = 10.dp)
+            .size(30.dp)
             .clickable { onClick() }
     )
 }
