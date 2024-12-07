@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -29,12 +30,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -54,48 +57,48 @@ import kotlin.math.roundToInt
 
 @Composable
 fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToCreateScreen: () -> Unit) {
-    var cardWidth by remember { mutableStateOf(0) }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier
+        modifier = Modifier.padding(10.dp)
     ) {
         itemsIndexed(items = recipes, key = {_, recipe -> recipe.id}) { index, recipe ->
             SwipeableItemWithActions(
                 isLeftRevealed = recipe.isDeleteRevealed,
                 isRightRevealed = recipe.isEditRevealed,
                 leftAction = {
-                    Button(
+                    Surface(
                         onClick = {},
-                        content = { Icon(painter = painterResource(R.drawable.ic_launcher_foreground), contentDescription = null) },
                         modifier = Modifier
                             .fillMaxHeight()
-                            .width((cardWidth/6).dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        ),
-                        shape = RoundedCornerShape(3.dp)
-                    )
+                            .width(80.dp),
+                        color = Color.Red,
+                        shape = RoundedCornerShape(18.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_launcher_foreground),
+                            contentDescription = null
+                        )
+                    }
                 },
                 rightAction = {
-                    Button(
+                    Surface(
                         onClick = {},
-                        content = { Icon(painter = painterResource(R.drawable.ic_launcher_foreground), contentDescription = null) },
                         modifier = Modifier
                             .fillMaxHeight()
-                            .width((cardWidth/6).dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Green
-                        ),
-                        shape = RoundedCornerShape(3.dp)
-                    )
+                            .width(80.dp),
+                        color = Color.Green,
+                        shape = RoundedCornerShape(18.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_launcher_foreground),
+                            contentDescription = null
+                        )
+                    }
                 },
-            ){
+            ) {
                 RecipeCard(
-                    recipe, Modifier
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .onGloballyPositioned {
-                            cardWidth = it.size.width
-                        }
+                    recipe,
+                    Modifier
                 )
             }
         }
@@ -106,9 +109,8 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToCreateScreen: () -
 fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier) {
     Card(
         modifier = modifier
-            .height(80.dp),
-        shape = RoundedCornerShape(3.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+            .height(intrinsicSize = IntrinsicSize.Max),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
@@ -118,8 +120,10 @@ fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier) {
             LoadImageWithStates(
                 url = recipe.imageUrl,
                 modifier = Modifier
+                    .padding(10.dp)
                     .weight(1f)
-                    .height(100.dp),
+                    .height(100.dp)
+                    .clip(RoundedCornerShape(16.dp)),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -181,17 +185,21 @@ fun SwipeableItemWithActions(
     ) {
         Row(
             modifier = Modifier
-                .onSizeChanged {
-                    actionWidth = (it.width / 6).toFloat()
-                }
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            leftAction()
+            Box(
+                modifier = Modifier.onSizeChanged { actionWidth = (it.width + 20).toFloat() }
+            ) {
+                leftAction()
+            }
             rightAction()
         }
         Surface(
+            color = Color.Transparent,
+            shape = RoundedCornerShape(16.dp),
+            shadowElevation = 3.dp,
             modifier = Modifier
                 .fillMaxSize()
                 .offset { IntOffset(offset.value.roundToInt(), 0) }
@@ -206,7 +214,7 @@ fun SwipeableItemWithActions(
                         },
                         onDragEnd = {
                             when {
-                                offset.value <= -actionWidth / 2f -> {
+                                offset.value <= -actionWidth * 3f / 4f -> {
                                     scope.launch {
                                         offset.animateTo(-actionWidth)
                                         onRightExpanded()
@@ -214,7 +222,7 @@ fun SwipeableItemWithActions(
                                     }
                                 }
 
-                                offset.value >= -actionWidth / 2f && offset.value <= actionWidth / 2f -> {
+                                offset.value >= -actionWidth * 3f / 4f && offset.value <= actionWidth * 3f / 4f -> {
                                     scope.launch {
                                         offset.animateTo(0f)
                                         onRightCollapsed()
