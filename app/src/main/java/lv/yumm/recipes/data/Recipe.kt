@@ -1,7 +1,7 @@
 package lv.yumm.recipes.data
 
 data class Recipe (
-    val id: String,
+    val id: Long,
     val title: String = "",
     val description: String = "",
     val directions: List<String> = emptyList(),

@@ -26,6 +26,7 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
+import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.toRecipeCardUiState
 import timber.log.Timber
 
@@ -67,7 +68,10 @@ fun YummNavHost(viewModel: RecipeViewModel) {
             if (shouldShowActionButton) {
                 Button(
                     content = { Text("Add recipe") },
-                    onClick = { navController.navigate(CreateRecipe) })
+                    onClick = {
+                        navController.navigate(CreateRecipe)
+                        viewModel.onEvent(RecipeEvent.CreateRecipe())
+                    })
             }
         }
     ) { innerPadding ->
@@ -89,7 +93,8 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                     CreateRecipeScreen(
                         recipeUiState.value,
                         onEvent = { viewModel.onEvent(it) },
-                        navigateToRecipesScreen = { navController.navigate(RecipesScreen) })
+                        navigateToRecipesScreen = { navController.navigate(RecipesScreen) },
+                        navigateToEditIngredientsScreen = {})
                 }
             }
         }

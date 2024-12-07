@@ -6,6 +6,7 @@ import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.unitStrings
 
 data class RecipeUiState (
+    val id: Long = -1,
     val isLoading: Boolean = false,
     val uploadLink: String = "",
     val title: String = "",
@@ -24,7 +25,7 @@ data class RecipeUiState (
 }
 
 data class RecipeCardUiState (
-    val id: String,
+    val id: Long,
     val title: String = "",
     val description: String = "",
     val complexity: Int = -1,

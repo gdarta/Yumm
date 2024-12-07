@@ -255,7 +255,7 @@ fun RecipeCardPreview() {
         RecipeCard(
             modifier = Modifier,
             recipe = RecipeCardUiState(
-                id = "id",
+                id = 0,
                 title = "Recipe title",
                 description = "Some very very very very very very long description",
                 complexity = 2,

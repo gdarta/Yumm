@@ -11,7 +11,8 @@ import lv.yumm.recipes.data.source.network.NetworkRecipe
     tableName = "recipe"
 )
 data class LocalRecipe (
-    @PrimaryKey val id: String,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val title: String = "",
     val description: String = "",
     val directions: List<String> = emptyList(),

@@ -5,7 +5,8 @@ import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.RecipeType
 
 data class NetworkRecipe (
-    @PrimaryKey val id: String,
+    @PrimaryKey
+    val id: Long,
     val title: String = "",
     val description: String = "",
     val directions: List<String> = emptyList(),

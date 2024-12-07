@@ -23,7 +23,9 @@ class DataModules {
                 context.applicationContext,
                 RecipeDatabase::class.java,
                 "Recipes.db"
-            ).build()
+            )
+                .fallbackToDestructiveMigration()
+                .build()
         }
 
         @Provides

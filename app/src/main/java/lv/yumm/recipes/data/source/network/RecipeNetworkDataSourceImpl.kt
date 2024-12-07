@@ -21,7 +21,7 @@ class RecipeNetworkDataSourceImpl @Inject constructor() : RecipeNetworkDataSourc
     override val accessMutex = Mutex()
     override var recipes = listOf(
         NetworkRecipe(
-            id = "LENTILS",
+            id = 1,
             title = "Best Lentil Soup Recipe",
             description = "I got this recipe from my mother. She got it from her mother.",
             directions = listOf(
@@ -45,7 +45,7 @@ class RecipeNetworkDataSourceImpl @Inject constructor() : RecipeNetworkDataSourc
             portions = 4,
         ),
         NetworkRecipe(
-            id = "GREEK",
+            id = 2,
             title = "Greek Salad Yum Yummy",
             description = "I would love to go to Greece someday! Alas, I can make this salad at home.",
             directions = listOf(

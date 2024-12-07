@@ -2,17 +2,12 @@ package lv.yumm.recipes
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -20,6 +15,7 @@ import lv.yumm.recipes.data.DefaultRecipeRepository
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.RecipeType
+import javax.inject.Inject
 
 @HiltViewModel
 class RecipeViewModel @Inject constructor(
@@ -37,10 +33,11 @@ class RecipeViewModel @Inject constructor(
     private val _recipeUiState = MutableStateFlow(RecipeUiState())
     val recipeUiState = _recipeUiState.asStateFlow()
 
-    fun createRecipe() {
+    fun updateRecipe() {
         val recipeState = recipeUiState.value
         viewModelScope.launch {
-            recipeRepository.create(
+            recipeRepository.upsert(
+                id = recipeState.id,
                 title = recipeState.title,
                 description = recipeState.description,
                 directions = emptyList(), //todo
@@ -53,12 +50,18 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
+    fun createRecipe() {
+        viewModelScope.launch {
+            val newId = recipeRepository.createNew()
+            _recipeUiState.update {
+                RecipeUiState(id = newId)
+            }
+        }
+    }
+
     fun onEvent(event: RecipeEvent) {
         when (event) {
             is RecipeEvent.CreateRecipe -> {
-                _recipeUiState.update {
-                    it.copy(title = event.title, description = event.description)
-                }
                 createRecipe()
             }
             is RecipeEvent.AddIngredient -> {
@@ -72,6 +75,15 @@ class RecipeViewModel @Inject constructor(
                 _recipeUiState.update {
                     it.copy(ingredients = updatedIngredients)
                 }
+            }
+            is RecipeEvent.SaveRecipe -> {
+                _recipeUiState.update {
+                    it.copy(
+                        title = event.title,
+                        description = event.description
+                    )
+                }
+                updateRecipe()
             }
         }
     }

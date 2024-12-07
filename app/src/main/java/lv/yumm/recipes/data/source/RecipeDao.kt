@@ -1,7 +1,11 @@
 package lv.yumm.recipes.data.source
 
 import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
@@ -10,14 +14,20 @@ interface RecipeDao {
     @Query("SELECT * FROM recipe")
     fun observeAll(): Flow<List<LocalRecipe>>
 
-    @Upsert
-    suspend fun upsert(task: LocalRecipe)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(recipe: LocalRecipe) : Long
+
+    @Delete
+    suspend fun delete(recipe: LocalRecipe)
 
     @Upsert
-    suspend fun upsertAll(tasks: List<LocalRecipe>)
+    suspend fun upsert(recipe: LocalRecipe)
 
-//    @Query("UPDATE recipe SET isCompleted = :completed WHERE id = :taskId")
-//    suspend fun updateCompleted(taskId: String, completed: Boolean)
+    @Upsert
+    suspend fun upsertAll(recipes: List<LocalRecipe>)
+
+    @Query("SELECT * from recipe WHERE id = :id")
+    fun getRecipe(id: Int): Flow<LocalRecipe>
 
     @Query("DELETE FROM recipe")
     suspend fun deleteAll()

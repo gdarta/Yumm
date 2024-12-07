@@ -10,7 +10,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lv.yumm.recipes.data.di.ApplicationScope
 import lv.yumm.recipes.data.di.DefaultDispatcher
+import lv.yumm.recipes.data.source.LocalRecipe
 import lv.yumm.recipes.data.source.RecipeDao
+import lv.yumm.recipes.data.source.RecipeDatabase
 import lv.yumm.recipes.data.source.network.RecipeNetworkDataSource
 import lv.yumm.recipes.data.source.network.RecipeNetworkDataSourceImpl
 import lv.yumm.recipes.data.source.toExternal
@@ -30,7 +32,12 @@ class DefaultRecipeRepository @Inject constructor(
         }
     }
 
-    suspend fun create(
+    suspend fun createNew(): Long {
+        return localDataSource.insert(LocalRecipe())
+    }
+
+    suspend fun upsert(
+        id: Long,
         title: String,
         description: String = "",
         directions: List<String> = emptyList(),
@@ -39,10 +46,9 @@ class DefaultRecipeRepository @Inject constructor(
         imageUrl: String = "",
         type: RecipeType? = null,
         ingredients: List<Ingredient> = emptyList(),
-    ): String {
-        val recipeId = withContext(dispatcher) { createId() }
+    ) {
         val recipe = Recipe(
-            id = recipeId,
+            id = id,
             title = title,
             description = description,
             directions = directions,
@@ -54,7 +60,6 @@ class DefaultRecipeRepository @Inject constructor(
         )
         localDataSource.upsert(recipe.toLocal())
         saveRecipesToNetwork()
-        return recipeId
     }
 
     suspend fun refresh() {
@@ -74,9 +79,5 @@ class DefaultRecipeRepository @Inject constructor(
             }
             networkDataSource.saveRecipes(networkRecipes)
         }
-    }
-
-    private fun createId() : String {
-        return UUID.randomUUID().toString()
     }
 }
