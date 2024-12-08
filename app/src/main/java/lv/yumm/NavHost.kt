@@ -29,6 +29,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.toRecipeCardUiState
+import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
 
 @Serializable
@@ -40,11 +41,15 @@ object CreateRecipe
 @Serializable
 object EditIngredients
 
+@Serializable
+object EditDirections
+
 fun getTitle(screen: NavDestination?) : String{
     return when {
         screen?.hasRoute(route = RecipesScreen::class) == true -> "My Recipes"
         screen?.hasRoute(route = CreateRecipe::class) == true -> "Create a Recipe"
         screen?.hasRoute(route = EditIngredients::class) == true -> "Edit Ingredients"
+        screen?.hasRoute(route = EditDirections::class) == true -> "Edit Directions"
         else -> "Yumm"
     }
 }
@@ -101,11 +106,21 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                         recipeUiState.value,
                         onEvent = { viewModel.onEvent(it) },
                         navigateToRecipesScreen = { navController.navigate(RecipesScreen) },
-                        navigateToEditIngredientsScreen = {navController.navigate(EditIngredients)})
+                        navigateToEditIngredientsScreen = {navController.navigate(EditIngredients)},
+                        navigateToEditDirectionsScreen = { navController.navigate(EditDirections)})
                 }
                 composable<EditIngredients> {
                     val recipeUiState = viewModel.recipeUiState.collectAsStateWithLifecycle()
                     EditIngredientsScreen(
+                        uiState = recipeUiState.value,
+                        onEvent = { viewModel.onEvent(it) }
+                    ) {
+                        navController.popBackStack()
+                    }
+                }
+                composable<EditDirections> {
+                    val recipeUiState = viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    EditDirectionsScreen(
                         uiState = recipeUiState.value,
                         onEvent = { viewModel.onEvent(it) }
                     ) {

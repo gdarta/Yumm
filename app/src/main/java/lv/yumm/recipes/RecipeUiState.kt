@@ -14,7 +14,9 @@ data class RecipeUiState (
     val description: String = "",
     val ingredients: List<Ingredient> = emptyList(),
     val amountOptionValues: List<String> = listOf("1/2", "1", "2", "3", "4", "5", "6"),
-    val msrOptionValues: List<String> = unitStrings
+    val msrOptionValues: List<String> = unitStrings,
+    val directions: List<String> = emptyList(),
+    val difficulty: Float = 0f,
 ) {
     fun filteredAmountValues(input: String): List<String> {
         return amountOptionValues.filter { it.startsWith(input) }
@@ -31,7 +33,9 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         imageUrl = this.imageUrl,
         title = this.title,
         description = this.description,
-        ingredients = this.ingredients
+        ingredients = this.ingredients,
+        directions = this.directions,
+        difficulty = this.complexity.toFloat()
     )
 }
 

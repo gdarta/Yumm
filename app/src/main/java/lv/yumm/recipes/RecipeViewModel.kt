@@ -17,6 +17,7 @@ import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.source.LocalRecipe
 import lv.yumm.recipes.data.source.toExternal
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,8 +43,8 @@ class RecipeViewModel @Inject constructor(
                 id = recipeState.id,
                 title = recipeState.title,
                 description = recipeState.description,
-                directions = emptyList(), //todo
-                complexity = 1, //todo
+                directions = recipeState.directions,
+                complexity = recipeState.difficulty.toInt(),
                 duration = 3600000L, //todo
                 imageUrl = "https://images.squarespace-cdn.com/content/v1/57879a6cbebafb879f256735/1712832754805-I7IJ7FRXF629FN3PIS3O/KC310124-27.jpg", //todo
                 type = RecipeType.LUNCH, //todo
@@ -104,7 +105,20 @@ class RecipeViewModel @Inject constructor(
                     it.copy(ingredients = updatedIngredients)
                 }
             }
+            is RecipeEvent.AddDirection -> {
+                _recipeUiState.update {
+                    it.copy(directions = it.directions + "")
+                }
+            }
+            is RecipeEvent.UpdateDirection -> {
+                val updatedDirections = _recipeUiState.value.directions.toMutableList()
+                updatedDirections[event.index] = event.direction
+                _recipeUiState.update {
+                    it.copy(directions = updatedDirections)
+                }
+            }
             is RecipeEvent.SaveRecipe -> {
+                Timber.d("Directions before update: ${_recipeUiState.value.directions}")
                 updateRecipe()
             }
             is RecipeEvent.DeleteRecipe -> {
@@ -112,6 +126,11 @@ class RecipeViewModel @Inject constructor(
             }
             is RecipeEvent.SetRecipeToUi -> {
                 setRecipeUiState(event.id)
+            }
+            is RecipeEvent.UpdateDifficulty -> {
+                _recipeUiState.update {
+                    it.copy(difficulty = event.difficulty)
+                }
             }
         }
     }

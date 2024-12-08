@@ -34,6 +34,7 @@ fun LocalRecipe.toExternal() = Recipe(
     imageUrl = imageUrl,
     type = type,
     ingredients = ingredients,
+    directions = directions,
 )
 
 fun List<LocalRecipe>.toExternal() = map { it.toExternal() }
@@ -48,6 +49,7 @@ fun Recipe.toLocal() = LocalRecipe(
     imageUrl = imageUrl,
     type = type,
     ingredients = ingredients,
+    directions = directions,
 )
 
 fun LocalRecipe.toNetwork() = NetworkRecipe(
@@ -60,6 +62,7 @@ fun LocalRecipe.toNetwork() = NetworkRecipe(
     imageUrl = imageUrl,
     type = type,
     ingredients = ingredients,
+    directions = directions,
 )
 
 fun List<LocalRecipe>.toNetwork() = map { it.toNetwork() }
@@ -74,6 +77,7 @@ fun NetworkRecipe.toLocal() = LocalRecipe(
     imageUrl = imageUrl,
     type = type,
     ingredients = ingredients,
+    directions = directions,
 )
 
 fun List<NetworkRecipe>.toLocal() = map { it.toLocal() }

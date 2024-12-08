@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.hilt.ext.work)
     implementation(libs.gson)
     implementation (libs.androidx.work.runtime)
+    implementation(libs.androidx.material)
 }
 
 configurations.all {
