@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -13,11 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -40,6 +43,7 @@ fun TopBar(title: String) {
     CenterAlignedTopAppBar(
         title = {
             Text(
+                modifier = Modifier.padding(vertical = 10.dp),
                 text = title,
                 color = MaterialTheme.colorScheme.onPrimary,
             )
@@ -47,7 +51,6 @@ fun TopBar(title: String) {
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
         ),
-        modifier = Modifier.height(70.dp),
     )
 }
 
@@ -61,51 +64,53 @@ fun BottomNavBar(
 ) {
     BottomAppBar(
         containerColor = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.height(100.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .padding(vertical = 10.dp)
+                .fillMaxWidth()
         ){
             NavIcon(
                 id = R.drawable.ic_home,
-                description = "Home",
-                { toHome() }
-            )
+                description = "Home"
+            ) { toHome() }
             NavIcon(
                 id = R.drawable.ic_recipes,
-                description = "Home",
-                { toRecipes() }
-            )
+                description = "Home"
+            ) { toRecipes() }
             NavIcon(
                 id = R.drawable.ic_list,
-                description = "Home",
-                { toLists() }
-            )
+                description = "Home"
+            ) { toLists() }
             NavIcon(
                 id = R.drawable.ic_calendar,
-                description = "Home",
-                { toCalendar() }
-            )
+                description = "Home"
+            ) { toCalendar() }
             NavIcon(
                 id = R.drawable.ic_profile,
-                description = "Home",
-                { toProfile() }
-            )
+                description = "Home"
+            ) { toProfile() }
         }
     }
 }
 
 @Composable
 fun NavIcon(id: Int, description: String, onClick: () -> Unit) {
-    Icon(
-        painter = painterResource(id),
-        contentDescription = description,
-        modifier = Modifier
-            .padding(all = 10.dp)
-            .size(30.dp)
-            .clickable { onClick() }
-    )
+    Surface(
+        color = Color.Transparent,
+        shape = CircleShape,
+        onClick = { onClick() }
+    ) {
+        Icon(
+            painter = painterResource(id),
+            contentDescription = description,
+            tint = Color.White,
+            modifier = Modifier
+                .padding(10.dp)
+                .size(40.dp)
+        )
+    }
 }
 
 @Composable

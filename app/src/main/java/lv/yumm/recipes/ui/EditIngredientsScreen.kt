@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
+import lv.yumm.recipes.data.Ingredient
 import lv.yumm.ui.theme.recipeTextFieldColors
 
 @Composable
@@ -48,6 +49,7 @@ fun EditIngredientsScreen(
     ) {
         itemsIndexed(uiState.ingredients) { index, ingredient ->
             IngredientCard(uiState,
+                ingredient,
                 onNameChange = {
                     onEvent(
                         RecipeEvent.UpdateIngredient(
@@ -83,7 +85,7 @@ fun EditIngredientsScreen(
         }
         item {
             Button(
-                content = { Text(text = "Save recipe") },
+                content = { Text(text = "Return to recipe") },
                 shape = RoundedCornerShape(3.dp),
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
@@ -98,29 +100,27 @@ fun EditIngredientsScreen(
 @Composable
 fun IngredientCard(
     uiState: RecipeUiState,
+    ingredient: Ingredient,
     onNameChange: (String) -> Unit,
     onAmountChange: (String) -> Unit,
     onMeasurementChange: (String) -> Unit
 ) {
-    var ingredient by remember { mutableStateOf("") }
     var ingredientField by remember { mutableStateOf(
         TextFieldValue(
-            text = ingredient,
-            selection = TextRange(ingredient.length)
+            text = ingredient.name,
+            selection = TextRange(ingredient.name.length)
         )
     ) }
-    var amount by remember { mutableStateOf("") }
     var amountField by remember { mutableStateOf(
         TextFieldValue(
-            text = amount,
-            selection = TextRange(amount.length)
+            text = ingredient.amount?.toString() ?: "",
+            selection = TextRange(ingredient.amount.toString().length)
         )
     ) }
-    var unit by remember { mutableStateOf("") }
     var unitField by remember { mutableStateOf(
         TextFieldValue(
-            text = unit,
-            selection = TextRange(unit.length)
+            text = ingredient.unit,
+            selection = TextRange(ingredient.unit.length)
         )
     ) }
     Surface(

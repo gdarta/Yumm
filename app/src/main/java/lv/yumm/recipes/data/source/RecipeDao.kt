@@ -27,7 +27,7 @@ interface RecipeDao {
     suspend fun upsertAll(recipes: List<LocalRecipe>)
 
     @Query("SELECT * from recipe WHERE id = :id")
-    fun getRecipe(id: Int): Flow<LocalRecipe>
+    suspend fun getRecipe(id: Long): LocalRecipe
 
     @Query("DELETE FROM recipe")
     suspend fun deleteAll()

@@ -15,6 +15,8 @@ import lv.yumm.recipes.data.DefaultRecipeRepository
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.RecipeType
+import lv.yumm.recipes.data.source.LocalRecipe
+import lv.yumm.recipes.data.source.toExternal
 import javax.inject.Inject
 
 @HiltViewModel
@@ -59,6 +61,22 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
+    fun deleteRecipe(id: Long) {
+        viewModelScope.launch {
+            val recipe = recipeRepository.getLocalRecipe(id)
+            recipeRepository.deleteRecipe(recipe)
+        }
+    }
+
+    fun setRecipeUiState(id: Long) {
+        viewModelScope.launch {
+            val recipe = recipeRepository.getLocalRecipe(id)
+            _recipeUiState.update {
+                recipe.toExternal().toRecipeUiState()
+            }
+        }
+    }
+
     fun onEvent(event: RecipeEvent) {
         when (event) {
             is RecipeEvent.CreateRecipe -> {
@@ -69,6 +87,16 @@ class RecipeViewModel @Inject constructor(
                     uiState.copy(ingredients = uiState.ingredients + Ingredient())
                 }
             }
+            is RecipeEvent.UpdateTitle -> {
+                _recipeUiState.update {
+                    it.copy(title = event.title)
+                }
+            }
+            is RecipeEvent.UpdateDescription -> {
+                _recipeUiState.update {
+                    it.copy(description = event.description)
+                }
+            }
             is RecipeEvent.UpdateIngredient -> {
                 val updatedIngredients = _recipeUiState.value.ingredients.toMutableList()
                 updatedIngredients[event.index] = event.ingredient
@@ -77,13 +105,13 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.SaveRecipe -> {
-                _recipeUiState.update {
-                    it.copy(
-                        title = event.title,
-                        description = event.description
-                    )
-                }
                 updateRecipe()
+            }
+            is RecipeEvent.DeleteRecipe -> {
+                deleteRecipe(event.id)
+            }
+            is RecipeEvent.SetRecipeToUi -> {
+                setRecipeUiState(event.id)
             }
         }
     }

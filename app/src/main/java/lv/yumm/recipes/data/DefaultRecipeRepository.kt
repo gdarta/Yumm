@@ -32,6 +32,14 @@ class DefaultRecipeRepository @Inject constructor(
         }
     }
 
+    suspend fun deleteRecipe(recipe: LocalRecipe) {
+        localDataSource.delete(recipe)
+    }
+
+    suspend fun getLocalRecipe(id: Long): LocalRecipe {
+        return localDataSource.getRecipe(id)
+    }
+
     suspend fun createNew(): Long {
         return localDataSource.insert(LocalRecipe())
     }

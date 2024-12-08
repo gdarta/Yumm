@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -32,20 +33,18 @@ fun CreateRecipeScreen(
     navigateToRecipesScreen: () -> Unit,
     navigateToEditIngredientsScreen: (Long) -> Unit,
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
     LazyColumn(
         modifier = Modifier
             .padding(all = 10.dp)
             .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
             TextField(
-                value = title,
+                value = uiState.title,
                 onValueChange = {
-                    title = it
+                    onEvent(RecipeEvent.UpdateTitle(it))
                 },
                 textStyle = Typography.titleLarge,
                 label = { Text(text = "Recipe Title") },
@@ -56,9 +55,9 @@ fun CreateRecipeScreen(
         }
         item {
             TextField(
-                value = description,
+                value = uiState.description,
                 onValueChange = {
-                    description = it
+                    onEvent(RecipeEvent.UpdateDescription(it))
                 },
                 label = { Text(text = "Recipe Description") },
                 maxLines = 5,
@@ -83,7 +82,7 @@ fun CreateRecipeScreen(
                 shape = RoundedCornerShape(3.dp),
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    onEvent(RecipeEvent.SaveRecipe(title, description))
+                    onEvent(RecipeEvent.SaveRecipe())
                     navigateToRecipesScreen()
                 }
             )
@@ -94,7 +93,8 @@ fun CreateRecipeScreen(
 @Composable
 fun IngredientText(ingredient: Ingredient) {
     Text(
-        text = "${ingredient.name}, ${ingredient.amount} ${ingredient.unit}"
+        text = "${ingredient.name}, ${ingredient.amount} ${ingredient.unit}",
+        color = MaterialTheme.colorScheme.onBackground
     )
 }
 

@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import lv.yumm.R
 import lv.yumm.recipes.RecipeCardUiState
+import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.toTimestamp
 import lv.yumm.ui.theme.LoadImageWithStates
@@ -56,7 +57,7 @@ import lv.yumm.ui.theme.YummTheme
 import kotlin.math.roundToInt
 
 @Composable
-fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToCreateScreen: () -> Unit) {
+fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, onEvent: (RecipeEvent) -> Unit) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.padding(horizontal = 10.dp)
@@ -68,31 +69,36 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToCreateScreen: () -
                 isRightRevealed = recipe.isEditRevealed,
                 leftAction = {
                     Surface(
-                        onClick = {},
+                        onClick = { onEvent(RecipeEvent.DeleteRecipe(recipe.id))},
                         modifier = Modifier
                             .fillMaxHeight()
                             .width(80.dp),
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.errorContainer,
                         shape = RoundedCornerShape(18.dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_launcher_foreground),
-                            contentDescription = null
+                            painter = painterResource(R.drawable.ic_delete),
+                            tint = Color.White,
+                            contentDescription = "delete item"
                         )
                     }
                 },
                 rightAction = {
                     Surface(
-                        onClick = {},
+                        onClick = {
+                            onEvent(RecipeEvent.SetRecipeToUi(recipe.id))
+                            navigateToEdit() }
+                        ,
                         modifier = Modifier
                             .fillMaxHeight()
                             .width(80.dp),
-                        color = Color.Green,
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
                         shape = RoundedCornerShape(18.dp)
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_launcher_foreground),
-                            contentDescription = null
+                            painter = painterResource(R.drawable.ic_edit),
+                            tint = Color.White,
+                            contentDescription = "edit item"
                         )
                     }
                 },

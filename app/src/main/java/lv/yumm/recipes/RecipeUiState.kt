@@ -8,10 +8,11 @@ import lv.yumm.recipes.data.unitStrings
 data class RecipeUiState (
     val id: Long = -1,
     val isLoading: Boolean = false,
+    val imageUrl: String = "",
     val uploadLink: String = "",
     val title: String = "",
     val description: String = "",
-    val ingredients: List<Ingredient> = listOf(Ingredient()),
+    val ingredients: List<Ingredient> = emptyList(),
     val amountOptionValues: List<String> = listOf("1/2", "1", "2", "3", "4", "5", "6"),
     val msrOptionValues: List<String> = unitStrings
 ) {
@@ -22,6 +23,16 @@ data class RecipeUiState (
     fun filteredMsrValues(input: String): List<String> {
         return msrOptionValues.filter { it.startsWith(input) }
     }
+}
+
+fun Recipe.toRecipeUiState(): RecipeUiState {
+    return RecipeUiState(
+        id = this.id,
+        imageUrl = this.imageUrl,
+        title = this.title,
+        description = this.description,
+        ingredients = this.ingredients
+    )
 }
 
 data class RecipeCardUiState (
