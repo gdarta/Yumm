@@ -6,7 +6,7 @@ data class Recipe (
     val description: String = "",
     val directions: List<String> = emptyList(),
     val complexity: Int = -1,
-    val duration: Long = 0, // in milliseconds
+    val duration: Long = 0, // in minutes
     val portions: Int = 0,
     val imageUrl: String = "",
     val type: RecipeType? = null,
@@ -23,13 +23,15 @@ enum class RecipeType {
 }
 
 fun Long.toTimestamp(): String {
-    val hours = this / (1000 * 60 * 60)
-    val minutes = (this / (1000 * 60)) % 60
-    return if (hours > 0 && minutes == 0L) {
-        "${hours}h"
-    } else if (hours > 0) {
-        "${hours}h${minutes}min"
-    } else {
-        "${minutes}min"
+    val days = this / (24 * 60)
+    val hours = (this % (24 * 60)) / 60
+    val minutes = this % 60
+
+    val result = buildString {
+        if (days > 0) append("${days}d")
+        if (hours > 0) append("${hours}h")
+        if (minutes > 0 || (days == 0L && hours == 0L)) append("${minutes}min")
     }
+
+    return result
 }

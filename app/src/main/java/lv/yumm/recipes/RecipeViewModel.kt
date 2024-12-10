@@ -45,7 +45,7 @@ class RecipeViewModel @Inject constructor(
                 description = recipeState.description,
                 directions = recipeState.directions,
                 complexity = recipeState.difficulty.toInt(),
-                duration = 3600000L, //todo
+                duration = recipeState.duration,
                 imageUrl = "https://images.squarespace-cdn.com/content/v1/57879a6cbebafb879f256735/1712832754805-I7IJ7FRXF629FN3PIS3O/KC310124-27.jpg", //todo
                 type = RecipeType.LUNCH, //todo
                 ingredients = recipeState.ingredients
@@ -118,7 +118,6 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.SaveRecipe -> {
-                Timber.d("Directions before update: ${_recipeUiState.value.directions}")
                 updateRecipe()
             }
             is RecipeEvent.DeleteRecipe -> {
@@ -130,6 +129,12 @@ class RecipeViewModel @Inject constructor(
             is RecipeEvent.UpdateDifficulty -> {
                 _recipeUiState.update {
                     it.copy(difficulty = event.difficulty)
+                }
+            }
+            is RecipeEvent.UpdateDuration -> {
+                val newDuration = (event.duration[0] * 24 * 60) + (event.duration[1] * 60) + event.duration[2]
+                _recipeUiState.update {
+                    it.copy(duration = newDuration.toLong())
                 }
             }
         }

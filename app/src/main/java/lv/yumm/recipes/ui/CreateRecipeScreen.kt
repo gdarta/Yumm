@@ -1,14 +1,16 @@
 package lv.yumm.recipes.ui
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -16,27 +18,33 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import lv.yumm.R
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.ui.theme.RatingBar
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
-import lv.yumm.R
 import lv.yumm.ui.theme.recipeTextFieldColors
+import timber.log.Timber
 
 @Composable
 fun CreateRecipeScreen(
@@ -114,6 +122,9 @@ fun CreateRecipeScreen(
             }
         }
         item {
+            DurationPicker(uiState.duration) { onEvent(RecipeEvent.UpdateDuration(it)) }
+        }
+        item {
             EditRow {
                 Text(
                     text = "Ingredients:",
@@ -183,6 +194,79 @@ fun IngredientText(ingredient: Ingredient) {
         text = "${ingredient.name}, ${ingredient.amount} ${ingredient.unit}",
         color = MaterialTheme.colorScheme.onBackground
     )
+}
+
+@Composable
+fun DurationPicker(initialDuration: Long, setTime: (List<Long>) -> Unit) {
+    val minutes = remember { (0..59).toList() }
+    val hours = remember { (0..23).toList() }
+    val days = remember { (0..99).toList() }
+    var selectedTime by remember { mutableStateOf(listOf(initialDuration / (24 * 60), (initialDuration % (24 * 60)) / 60, initialDuration % 60)) } // indexes for lists
+    LaunchedEffect(selectedTime) {
+        setTime(selectedTime)
+    }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier
+    ) {
+        TimePickerLazyColumn(days, selectedTime[0].toInt()) {
+            selectedTime = selectedTime.toMutableList().apply { this[0] = it }
+        }
+        TimePickerLazyColumn(hours, selectedTime[1].toInt()) {
+            selectedTime = selectedTime.toMutableList().apply { this[1] = it }
+        }
+        TimePickerLazyColumn(minutes, selectedTime[2].toInt()) {
+            selectedTime = selectedTime.toMutableList().apply { this[2] = it }
+        }
+    }
+}
+
+@Composable
+fun TimePickerLazyColumn(items: List<Int>, initialIndex: Int, updateState: (Long) -> Unit) {
+    val scope = rememberCoroutineScope()
+    val itemHeightPixels = remember { mutableIntStateOf(0) }
+    val listState = rememberLazyListState()
+    var chosenNumber by remember { mutableStateOf(initialIndex) }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect {
+                chosenNumber = items[(it + 1) % items.size]
+                updateState(chosenNumber.toLong())
+            }
+    }
+    LaunchedEffect(Unit) {
+        scope.launch {
+            listState.scrollToItem(initialIndex - 1 + items.size)
+        }
+    }
+    LazyColumn(
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+        flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
+        modifier = Modifier
+            .height(pixelsToDp(pixels = itemHeightPixels.intValue * 3) + 10.dp)
+    ) {
+        items(count = Int.MAX_VALUE / 2, itemContent = { item ->
+            val index = item % items.size
+            Text(
+                text = if (items[index] > 9) "${items[index]}" else "0${items[index]}",
+                style = Typography.bodyLarge,
+                modifier = Modifier.onSizeChanged { size ->
+                    itemHeightPixels.intValue = size.height
+                }
+            )
+        })
+    }
+}
+
+
+@Composable
+private fun pixelsToDp(pixels: Int) = with(LocalDensity.current) { pixels.toDp() }
+
+@Preview
+@Composable
+fun DurationPickerPreview() {
+    DurationPicker(2000L, {})
 }
 
 @Preview(showBackground = true)

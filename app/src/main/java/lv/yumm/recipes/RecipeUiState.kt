@@ -17,6 +17,7 @@ data class RecipeUiState (
     val msrOptionValues: List<String> = unitStrings,
     val directions: List<String> = emptyList(),
     val difficulty: Float = 0f,
+    val duration: Long = 0
 ) {
     fun filteredAmountValues(input: String): List<String> {
         return amountOptionValues.filter { it.startsWith(input) }
@@ -35,7 +36,8 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         description = this.description,
         ingredients = this.ingredients,
         directions = this.directions,
-        difficulty = this.complexity.toFloat()
+        difficulty = this.complexity.toFloat(),
+        duration = this.duration
     )
 }
 
