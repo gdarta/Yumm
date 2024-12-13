@@ -1,12 +1,21 @@
 package lv.yumm.recipes.ui
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -30,16 +39,24 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.launch
 import lv.yumm.R
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
+import lv.yumm.recipes.data.toTimestamp
 import lv.yumm.ui.theme.RatingBar
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
@@ -56,6 +73,13 @@ fun CreateRecipeScreen(
 ) {
     var difficulty by remember { mutableFloatStateOf(0f) }
     val diffColor = MaterialTheme.colorScheme.tertiaryContainer
+    if (uiState.editDurationDialog) {
+        EditDurationDialog(
+            uiState.duration,
+            { onEvent(RecipeEvent.UpdateDuration(it)) },
+            { onEvent(RecipeEvent.SetDurationDialog(false)) }
+        )
+    }
     LazyColumn(
         modifier = Modifier
             .padding(all = 10.dp)
@@ -122,7 +146,19 @@ fun CreateRecipeScreen(
             }
         }
         item {
-            DurationPicker(uiState.duration) { onEvent(RecipeEvent.UpdateDuration(it)) }
+            EditRow {
+                Text(
+                    text = "Duration: ${uiState.duration.toTimestamp()}",
+                    style = Typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Button(
+                    content = { Text(text = "Edit duration") },
+                    shape = RoundedCornerShape(3.dp),
+                    modifier = Modifier.wrapContentWidth(),
+                    onClick = { onEvent(RecipeEvent.SetDurationDialog(true)) }
+                )
+            }
         }
         item {
             EditRow {
@@ -197,32 +233,73 @@ fun IngredientText(ingredient: Ingredient) {
 }
 
 @Composable
-fun DurationPicker(initialDuration: Long, setTime: (List<Long>) -> Unit) {
+fun EditDurationDialog(
+    initialDuration: Long,
+    setTime: (List<Long>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = { onDismiss() }
+    ) {
+        DurationPicker(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .height(200.dp)
+                .background(color = MaterialTheme.colorScheme.secondaryContainer)
+                .padding(20.dp), initialDuration
+        ) { setTime(it) }
+    }
+}
+
+@Composable
+fun DurationPicker(modifier: Modifier, initialDuration: Long, setTime: (List<Long>) -> Unit) {
     val minutes = remember { (0..59).toList() }
     val hours = remember { (0..23).toList() }
     val days = remember { (0..99).toList() }
-    var selectedTime by remember { mutableStateOf(listOf(initialDuration / (24 * 60), (initialDuration % (24 * 60)) / 60, initialDuration % 60)) } // indexes for lists
+    var selectedTime by remember {
+        mutableStateOf(
+            listOf(
+                initialDuration / (24 * 60),
+                (initialDuration % (24 * 60)) / 60,
+                initialDuration % 60
+            )
+        )
+    }
     LaunchedEffect(selectedTime) {
         setTime(selectedTime)
     }
     Row(
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
-        modifier = Modifier
+        modifier = modifier.fillMaxWidth()
     ) {
-        TimePickerLazyColumn(days, selectedTime[0].toInt()) {
+        TimePickerLazyColumn(
+            Modifier
+                .weight(1f), "Days", days, selectedTime[0].toInt()
+        ) {
             selectedTime = selectedTime.toMutableList().apply { this[0] = it }
         }
-        TimePickerLazyColumn(hours, selectedTime[1].toInt()) {
+        TimePickerLazyColumn(
+            Modifier
+                .weight(1f), "Hours", hours, selectedTime[1].toInt()
+        ) {
             selectedTime = selectedTime.toMutableList().apply { this[1] = it }
         }
-        TimePickerLazyColumn(minutes, selectedTime[2].toInt()) {
+        TimePickerLazyColumn(
+            Modifier
+                .weight(1f), "Minutes", minutes, selectedTime[2].toInt()
+        ) {
             selectedTime = selectedTime.toMutableList().apply { this[2] = it }
         }
     }
 }
 
 @Composable
-fun TimePickerLazyColumn(items: List<Int>, initialIndex: Int, updateState: (Long) -> Unit) {
+fun TimePickerLazyColumn(
+    modifier: Modifier,
+    label: String,
+    items: List<Int>,
+    initialIndex: Int,
+    updateState: (Long) -> Unit
+) {
     val scope = rememberCoroutineScope()
     val itemHeightPixels = remember { mutableIntStateOf(0) }
     val listState = rememberLazyListState()
@@ -239,23 +316,38 @@ fun TimePickerLazyColumn(items: List<Int>, initialIndex: Int, updateState: (Long
             listState.scrollToItem(initialIndex - 1 + items.size)
         }
     }
-    LazyColumn(
-        state = listState,
-        verticalArrangement = Arrangement.spacedBy(5.dp),
-        flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
-        modifier = Modifier
-            .height(pixelsToDp(pixels = itemHeightPixels.intValue * 3) + 10.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
     ) {
-        items(count = Int.MAX_VALUE / 2, itemContent = { item ->
-            val index = item % items.size
-            Text(
-                text = if (items[index] > 9) "${items[index]}" else "0${items[index]}",
-                style = Typography.bodyLarge,
-                modifier = Modifier.onSizeChanged { size ->
-                    itemHeightPixels.intValue = size.height
-                }
-            )
-        })
+        Text(
+            text = label,
+            fontSize = 18.sp,
+            modifier = Modifier.padding(bottom = 10.dp)
+        )
+        LazyColumn(
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            flingBehavior = rememberSnapFlingBehavior(lazyListState = listState),
+            modifier = Modifier
+                .height(pixelsToDp(pixels = itemHeightPixels.intValue * 3) + 10.dp)
+        ) {
+            items(count = Int.MAX_VALUE / 2, itemContent = { item ->
+                val index = item % items.size
+                Text(
+                    text = if (items[index] > 9) "${items[index]}" else "0${items[index]}",
+                    fontSize = if (items[index] == chosenNumber) 30.sp else 26.sp,
+                    fontWeight = if (items[index] == chosenNumber) FontWeight.SemiBold else FontWeight.Normal,
+                    modifier = Modifier
+                        .alpha(
+                            if (items[index] == chosenNumber) 1f else .5f
+                        )
+                        .onSizeChanged { size ->
+                            itemHeightPixels.intValue = size.height
+                        }
+                )
+            })
+        }
     }
 }
 
@@ -266,7 +358,7 @@ private fun pixelsToDp(pixels: Int) = with(LocalDensity.current) { pixels.toDp()
 @Preview
 @Composable
 fun DurationPickerPreview() {
-    DurationPicker(2000L, {})
+    EditDurationDialog(5000L, {}) { }
 }
 
 @Preview(showBackground = true)

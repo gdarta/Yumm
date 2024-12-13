@@ -15,6 +15,7 @@ data class RecipeUiState (
     val ingredients: List<Ingredient> = emptyList(),
     val amountOptionValues: List<String> = listOf("1/2", "1", "2", "3", "4", "5", "6"),
     val msrOptionValues: List<String> = unitStrings,
+    val editDurationDialog: Boolean = false,
     val directions: List<String> = emptyList(),
     val difficulty: Float = 0f,
     val duration: Long = 0

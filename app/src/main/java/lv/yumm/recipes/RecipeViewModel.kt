@@ -137,6 +137,11 @@ class RecipeViewModel @Inject constructor(
                     it.copy(duration = newDuration.toLong())
                 }
             }
+            is RecipeEvent.SetDurationDialog -> {
+                _recipeUiState.update {
+                    it.copy(editDurationDialog = event.open)
+                }
+            }
         }
     }
 }
