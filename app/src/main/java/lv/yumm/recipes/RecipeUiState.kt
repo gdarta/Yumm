@@ -9,11 +9,11 @@ data class RecipeUiState (
     val id: Long = -1,
     val isLoading: Boolean = false,
     val imageUrl: String = "",
-    val uploadLink: String = "",
+    val type: RecipeType? = null,
     val title: String = "",
     val description: String = "",
     val ingredients: List<Ingredient> = emptyList(),
-    val amountOptionValues: List<String> = listOf("1/2", "1", "2", "3", "4", "5", "6"),
+    val amountOptionValues: List<String> = listOf("0.5", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"),
     val msrOptionValues: List<String> = unitStrings,
     val editDurationDialog: Boolean = false,
     val directions: List<String> = emptyList(),
@@ -39,6 +39,7 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         directions = this.directions,
         difficulty = this.complexity.toFloat(),
         duration = this.duration,
+        type = this.type,
     )
 }
 

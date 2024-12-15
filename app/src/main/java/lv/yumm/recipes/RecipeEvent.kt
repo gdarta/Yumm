@@ -1,6 +1,7 @@
 package lv.yumm.recipes
 
 import lv.yumm.recipes.data.Ingredient
+import lv.yumm.recipes.data.RecipeType
 
 sealed class RecipeEvent {
     class CreateRecipe(): RecipeEvent()
@@ -17,4 +18,5 @@ sealed class RecipeEvent {
     class UpdateDuration(val duration: List<Long>): RecipeEvent()
     class SetDurationDialog(val open: Boolean): RecipeEvent()
     class UploadPicture(val uri: String): RecipeEvent()
+    class UpdateCategory(val type: RecipeType): RecipeEvent()
 }

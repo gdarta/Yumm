@@ -1,8 +1,10 @@
 package lv.yumm.recipes.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -14,9 +16,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -33,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -40,6 +46,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,11 +58,13 @@ import lv.yumm.R
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
+import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.toTimestamp
 import lv.yumm.ui.theme.RatingBar
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
 import lv.yumm.ui.theme.recipeTextFieldColors
+import java.util.Locale
 
 @Composable
 fun CreateRecipeScreen(
@@ -107,22 +116,64 @@ fun CreateRecipeScreen(
         }
         item {
             EditRow {
-                AsyncImage(
-                    model = uiState.imageUrl,
-                    contentDescription = null,
-                    placeholder = painterResource(R.drawable.ic_pasta_filled),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .height(100.dp)
-                        .weight(1f)
-                        .clip(RoundedCornerShape(16.dp))
-                )
+                if (uiState.imageUrl.isNotBlank()){
+                    AsyncImage(
+                        model = uiState.imageUrl,
+                        contentDescription = null,
+                        placeholder = painterResource(R.drawable.ic_pasta_filled),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .height(100.dp)
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .shadow(elevation = 5.dp, shape = RoundedCornerShape(16.dp))
+                    )
+                }
                 GalleryAndCameraLauncher(
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 10.dp)
                 ) {
                     onEvent(RecipeEvent.UploadPicture(it))
+                }
+            }
+        }
+        item {
+            var expanded by remember { mutableStateOf(false) }
+            EditRow {
+                Text(
+                    text = "Category:",
+                    style = Typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Box{
+                    Surface(
+                        onClick = { expanded = !expanded },
+                        color = MaterialTheme.colorScheme.tertiary,
+                        shadowElevation = 5.dp,
+                        shape = RoundedCornerShape(20.dp)
+                    ){
+                        Text(
+                            text = uiState.type?.name ?: "Choose type...",
+                            color = MaterialTheme.colorScheme.onTertiary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(all = 10.dp)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        RecipeType.entries.forEach { type ->
+                            DropdownMenuItem(
+                                onClick = {
+                                    onEvent(RecipeEvent.UpdateCategory(type))
+                                    expanded = false
+                                          },
+                                text = { Text(text = type.name) }
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -47,7 +47,7 @@ class RecipeViewModel @Inject constructor(
                 complexity = recipeState.difficulty.toInt(),
                 duration = recipeState.duration,
                 imageUrl = recipeState.imageUrl,
-                type = RecipeType.LUNCH, //todo
+                type = recipeState.type,
                 ingredients = recipeState.ingredients
                 )
         }
@@ -145,6 +145,11 @@ class RecipeViewModel @Inject constructor(
             is RecipeEvent.UploadPicture -> {
                 _recipeUiState.update {
                     it.copy(imageUrl = event.uri)
+                }
+            }
+            is RecipeEvent.UpdateCategory -> {
+                _recipeUiState.update {
+                    it.copy(type = event.type)
                 }
             }
         }
