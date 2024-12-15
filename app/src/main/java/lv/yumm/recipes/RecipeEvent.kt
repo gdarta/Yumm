@@ -12,6 +12,7 @@ sealed class RecipeEvent {
     class UpdateTitle(val title: String): RecipeEvent()
     class UpdateDescription(val description: String): RecipeEvent()
     class UpdateIngredient(val index: Int, val ingredient: Ingredient): RecipeEvent()
+    class DeleteIngredient(val index: Int): RecipeEvent()
     class AddDirection(): RecipeEvent()
     class UpdateDirection(val index: Int, val direction: String): RecipeEvent()
     class UpdateDifficulty(val difficulty: Float): RecipeEvent()

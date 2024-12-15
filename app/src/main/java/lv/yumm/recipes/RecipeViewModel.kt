@@ -116,6 +116,13 @@ class RecipeViewModel @Inject constructor(
                     it.copy(ingredients = updatedIngredients)
                 }
             }
+            is RecipeEvent.DeleteIngredient -> {
+                val updatedIngredients = _recipeUiState.value.ingredients.toMutableList()
+                updatedIngredients.removeAt(event.index)
+                _recipeUiState.update {
+                    it.copy(ingredients = updatedIngredients)
+                }
+            }
             is RecipeEvent.AddDirection -> {
                 _recipeUiState.update {
                     it.copy(directions = it.directions + "")

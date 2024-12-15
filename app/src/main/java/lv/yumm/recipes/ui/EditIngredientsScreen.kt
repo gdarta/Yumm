@@ -3,10 +3,13 @@ package lv.yumm.recipes.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -14,6 +17,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -22,13 +26,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import lv.yumm.R
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
@@ -40,53 +49,86 @@ fun EditIngredientsScreen(
     onEvent: (RecipeEvent) -> Unit,
     navigateBack: () -> Unit
 ) {
-    Column(){
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    Column(
+        modifier = Modifier
+            .padding(all = 10.dp)
+            .padding(horizontal = 20.dp),
+    ){
         LazyColumn(
+            state = listState,
             modifier = Modifier
-                .padding(all = 10.dp)
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             itemsIndexed(uiState.ingredients) { index, ingredient ->
-                IngredientCard(uiState,
-                    ingredient,
-                    onNameChange = {
-                        onEvent(
-                            RecipeEvent.UpdateIngredient(
-                                index,
-                                ingredient.copy(name = it)
+                SwipeableItemWithActions(
+                    modifier = Modifier.padding(vertical = 10.dp),
+                    shape = RoundedCornerShape(5.dp),
+                    leftAction = {
+                        Surface(
+                            onClick = { onEvent(RecipeEvent.DeleteIngredient(index)) },
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(80.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(18.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_delete),
+                                tint = Color.White,
+                                contentDescription = "delete item"
                             )
-                        )
-                    },
-                    onAmountChange = {
-                        onEvent(
-                            RecipeEvent.UpdateIngredient(
-                                index,
-                                ingredient.copy(amount = it.toFloatOrNull())
+                        }
+                    }
+                ){
+                    IngredientCard(uiState,
+                        ingredient,
+                        onNameChange = {
+                            onEvent(
+                                RecipeEvent.UpdateIngredient(
+                                    index,
+                                    ingredient.copy(name = it)
+                                )
                             )
-                        )
-                    },
-                    onMeasurementChange = {
-                        onEvent(
-                            RecipeEvent.UpdateIngredient(
-                                index,
-                                ingredient.copy(unit = it)
+                        },
+                        onAmountChange = {
+                            onEvent(
+                                RecipeEvent.UpdateIngredient(
+                                    index,
+                                    ingredient.copy(amount = it.toFloatOrNull())
+                                )
                             )
-                        )
-                    })
+                        },
+                        onMeasurementChange = {
+                            onEvent(
+                                RecipeEvent.UpdateIngredient(
+                                    index,
+                                    ingredient.copy(unit = it)
+                                )
+                            )
+                        })
+                }
             }
         }
         Button(
             content = { Text(text = "Add an ingredient") },
             shape = RoundedCornerShape(3.dp),
-            modifier = Modifier.fillMaxWidth(),
-            onClick = { onEvent(RecipeEvent.AddIngredient()) }
+            modifier = Modifier
+                .fillMaxWidth(),
+            onClick = {
+                onEvent(RecipeEvent.AddIngredient())
+                scope.launch {
+                    listState.animateScrollToItem(index = uiState.ingredients.size - 1)
+                }
+            }
         )
         Button(
-            content = { Text(text = "Return to recipe") },
+            content = { Text(text = "Save and return") },
             shape = RoundedCornerShape(3.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             onClick = {
                 navigateBack()
             }
