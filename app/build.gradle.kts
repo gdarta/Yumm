@@ -62,7 +62,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.material3)
-    implementation ("com.jakewharton.timber:timber:5.0.1")
+    implementation (libs.timber)
     implementation (libs.coil.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.espresso.core)
@@ -89,6 +89,13 @@ dependencies {
     implementation(libs.gson)
     implementation (libs.androidx.work.runtime)
     implementation(libs.androidx.material)
+    implementation (libs.accompanist.permissions)
+    // retrofit
+    implementation (libs.retrofit)
+    implementation (libs.logging.interceptor)
+    implementation(libs.converter.scalars)
+    // gson converter
+    implementation (libs.converter.gson)
 }
 
 configurations.all {

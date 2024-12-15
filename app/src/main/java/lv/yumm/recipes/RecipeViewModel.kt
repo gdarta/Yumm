@@ -46,7 +46,7 @@ class RecipeViewModel @Inject constructor(
                 directions = recipeState.directions,
                 complexity = recipeState.difficulty.toInt(),
                 duration = recipeState.duration,
-                imageUrl = "https://images.squarespace-cdn.com/content/v1/57879a6cbebafb879f256735/1712832754805-I7IJ7FRXF629FN3PIS3O/KC310124-27.jpg", //todo
+                imageUrl = recipeState.imageUrl,
                 type = RecipeType.LUNCH, //todo
                 ingredients = recipeState.ingredients
                 )
@@ -140,6 +140,11 @@ class RecipeViewModel @Inject constructor(
             is RecipeEvent.SetDurationDialog -> {
                 _recipeUiState.update {
                     it.copy(editDurationDialog = event.open)
+                }
+            }
+            is RecipeEvent.UploadPicture -> {
+                _recipeUiState.update {
+                    it.copy(imageUrl = event.uri)
                 }
             }
         }

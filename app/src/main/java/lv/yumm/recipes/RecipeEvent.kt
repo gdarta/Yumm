@@ -16,4 +16,5 @@ sealed class RecipeEvent {
     class UpdateDifficulty(val difficulty: Float): RecipeEvent()
     class UpdateDuration(val duration: List<Long>): RecipeEvent()
     class SetDurationDialog(val open: Boolean): RecipeEvent()
+    class UploadPicture(val uri: String): RecipeEvent()
 }

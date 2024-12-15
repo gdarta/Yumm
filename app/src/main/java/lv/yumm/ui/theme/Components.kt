@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,9 +44,11 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import coil.size.Scale
 import lv.yumm.R
 import kotlin.math.round
 
@@ -125,12 +128,14 @@ fun NavIcon(id: Int, description: String, onClick: () -> Unit) {
     }
 }
 
+//todo this is ugly
 @Composable
 fun LoadImageWithStates(url: String, modifier: Modifier) {
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current)
         .data(url)
         .size(coil.size.Size.ORIGINAL)
+        .scale(Scale.FIT)
         .build())
 
     Box(
@@ -159,7 +164,8 @@ fun LoadImageWithStates(url: String, modifier: Modifier) {
                 Image(
                     painter = painter,
                     contentDescription = "Loaded Image",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
             }
         }

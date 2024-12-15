@@ -38,7 +38,7 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         ingredients = this.ingredients,
         directions = this.directions,
         difficulty = this.complexity.toFloat(),
-        duration = this.duration
+        duration = this.duration,
     )
 }
 

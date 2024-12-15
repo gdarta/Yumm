@@ -3,7 +3,6 @@ package lv.yumm
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
-import lv.yumm.BuildConfig
 
 @HiltAndroidApp
 class MainApplication: Application() {

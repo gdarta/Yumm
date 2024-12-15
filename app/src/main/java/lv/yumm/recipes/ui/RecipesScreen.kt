@@ -47,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import lv.yumm.GalleryAndCameraLauncher
 import lv.yumm.R
 import lv.yumm.recipes.RecipeCardUiState
 import lv.yumm.recipes.RecipeEvent
@@ -103,10 +104,7 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, 
                     }
                 },
             ) {
-                RecipeCard(
-                    recipe,
-                    Modifier
-                )
+                RecipeCard(recipe, Modifier)
             }
         }
     }
