@@ -63,7 +63,7 @@ fun EditIngredientsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             itemsIndexed(uiState.ingredients) { index, ingredient ->
-                SwipeableItemWithActions(
+                SwipeableItemWithActions( //todo snap to 0 on delete
                     modifier = Modifier.padding(vertical = 10.dp),
                     shape = RoundedCornerShape(5.dp),
                     leftAction = {
