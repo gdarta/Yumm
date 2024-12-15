@@ -40,59 +40,57 @@ fun EditIngredientsScreen(
     onEvent: (RecipeEvent) -> Unit,
     navigateBack: () -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .padding(all = 10.dp)
-            .padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        itemsIndexed(uiState.ingredients) { index, ingredient ->
-            IngredientCard(uiState,
-                ingredient,
-                onNameChange = {
-                    onEvent(
-                        RecipeEvent.UpdateIngredient(
-                            index,
-                            ingredient.copy(name = it)
+    Column(){
+        LazyColumn(
+            modifier = Modifier
+                .padding(all = 10.dp)
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            itemsIndexed(uiState.ingredients) { index, ingredient ->
+                IngredientCard(uiState,
+                    ingredient,
+                    onNameChange = {
+                        onEvent(
+                            RecipeEvent.UpdateIngredient(
+                                index,
+                                ingredient.copy(name = it)
+                            )
                         )
-                    )
-                },
-                onAmountChange = {
-                    onEvent(
-                        RecipeEvent.UpdateIngredient(
-                            index,
-                            ingredient.copy(amount = it.toFloatOrNull())
+                    },
+                    onAmountChange = {
+                        onEvent(
+                            RecipeEvent.UpdateIngredient(
+                                index,
+                                ingredient.copy(amount = it.toFloatOrNull())
+                            )
                         )
-                    )
-                },
-                onMeasurementChange = {
-                    onEvent(
-                        RecipeEvent.UpdateIngredient(
-                            index,
-                            ingredient.copy(unit = it)
+                    },
+                    onMeasurementChange = {
+                        onEvent(
+                            RecipeEvent.UpdateIngredient(
+                                index,
+                                ingredient.copy(unit = it)
+                            )
                         )
-                    )
-                })
+                    })
+            }
         }
-        item {
-            Button(
-                content = { Text(text = "Add an ingredient") },
-                shape = RoundedCornerShape(3.dp),
-                modifier = Modifier.fillMaxWidth(),
-                onClick = { onEvent(RecipeEvent.AddIngredient()) }
-            )
-        }
-        item {
-            Button(
-                content = { Text(text = "Return to recipe") },
-                shape = RoundedCornerShape(3.dp),
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    navigateBack()
-                }
-            )
-        }
+        Button(
+            content = { Text(text = "Add an ingredient") },
+            shape = RoundedCornerShape(3.dp),
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { onEvent(RecipeEvent.AddIngredient()) }
+        )
+        Button(
+            content = { Text(text = "Return to recipe") },
+            shape = RoundedCornerShape(3.dp),
+            modifier = Modifier.fillMaxWidth(),
+            onClick = {
+                navigateBack()
+            }
+        )
     }
 }
 

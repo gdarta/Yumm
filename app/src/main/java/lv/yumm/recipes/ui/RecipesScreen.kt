@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -55,6 +56,7 @@ import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.toTimestamp
 import lv.yumm.ui.theme.LoadImageWithStates
 import lv.yumm.ui.theme.YummTheme
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 @Composable
@@ -67,7 +69,11 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, 
             SwipeableItemWithActions(
                 modifier = Modifier.padding(vertical = 10.dp),
                 isLeftRevealed = recipe.isDeleteRevealed,
+                onLeftExpanded = { onEvent(RecipeEvent.OnDeleteRevealed(recipe.id)) },
+                onLeftCollapsed = { onEvent(RecipeEvent.OnDeleteCollapsed(recipe.id)) },
                 isRightRevealed = recipe.isEditRevealed,
+                onRightExpanded =  { onEvent(RecipeEvent.OnEditRevealed(recipe.id)) },
+                onRightCollapsed = { onEvent(RecipeEvent.OnEditCollapsed(recipe.id)) },
                 leftAction = {
                     Surface(
                         onClick = { onEvent(RecipeEvent.DeleteRecipe(recipe.id))},
@@ -104,14 +110,16 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, 
                     }
                 },
             ) {
-                RecipeCard(recipe, Modifier)
+                RecipeCard(recipe, Modifier) {
+                    onEvent(RecipeEvent.OnCardClicked(recipe.id))
+                }
             }
         }
     }
 }
 
 @Composable
-fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier) {
+fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier, onClick: (Long) -> Unit) {
     Card(
         modifier = modifier
             .height(intrinsicSize = IntrinsicSize.Max),
@@ -119,7 +127,7 @@ fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier) {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
-        onClick = {}
+        onClick = {onClick(recipe.id)}
     ) {
         Row() {
             LoadImageWithStates(
@@ -158,10 +166,11 @@ fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier) {
 
 @Composable
 fun SwipeableItemWithActions(
+    shape: Shape = RoundedCornerShape(16.dp),
     isLeftRevealed: Boolean = false,
     isRightRevealed: Boolean = false,
-    leftAction: @Composable () -> Unit = {},
-    rightAction: @Composable () -> Unit = {},
+    leftAction: (@Composable () -> Unit)? = null,
+    rightAction: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
     onRightExpanded: () -> Unit = {},
     onLeftExpanded: () -> Unit = {},
@@ -175,11 +184,17 @@ fun SwipeableItemWithActions(
 
     val scope = rememberCoroutineScope()
 
+    val min = if (rightAction == null) 0f else -actionWidth
+    val max = if (leftAction == null) 0f else actionWidth
+
     LaunchedEffect(isRightRevealed, isLeftRevealed, actionWidth) {
+        Timber.d("right: $isRightRevealed, left: $isLeftRevealed")
         if (isRightRevealed) {
             offset.animateTo(-actionWidth)
         } else if(isLeftRevealed) {
             offset.animateTo(actionWidth)
+        } else {
+            offset.animateTo(0f)
         }
     }
 
@@ -197,13 +212,13 @@ fun SwipeableItemWithActions(
             Box(
                 modifier = Modifier.onSizeChanged { actionWidth = (it.width + 20).toFloat() }
             ) {
-                leftAction()
+                leftAction?.invoke()
             }
-            rightAction()
+            rightAction?.invoke()
         }
         Surface(
             color = Color.Transparent,
-            shape = RoundedCornerShape(16.dp),
+            shape = shape,
             shadowElevation = 3.dp,
             modifier = Modifier
                 .fillMaxSize()
@@ -213,7 +228,7 @@ fun SwipeableItemWithActions(
                         onHorizontalDrag = { _, dragAmount ->
                             scope.launch {
                                 val newOffset = (offset.value + dragAmount)
-                                    .coerceIn(-actionWidth, actionWidth)
+                                    .coerceIn(min, max)
                                 offset.snapTo(newOffset)
                             }
                         },
@@ -223,7 +238,7 @@ fun SwipeableItemWithActions(
                                     scope.launch {
                                         offset.animateTo(-actionWidth)
                                         onRightExpanded()
-                                        onLeftCollapsed
+                                        onLeftCollapsed()
                                     }
                                 }
 
@@ -267,6 +282,6 @@ fun RecipeCardPreview() {
                 type = RecipeType.LUNCH,
                 imageUrl = "https://images.ctfassets.net/hrltx12pl8hq/28ECAQiPJZ78hxatLTa7Ts/2f695d869736ae3b0de3e56ceaca3958/free-nature-images.jpg?fit=fill&w=1200&h=630"
             )
-        )
+        ) {}
     }
 }

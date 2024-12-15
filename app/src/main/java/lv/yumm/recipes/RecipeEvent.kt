@@ -19,4 +19,10 @@ sealed class RecipeEvent {
     class SetDurationDialog(val open: Boolean): RecipeEvent()
     class UploadPicture(val uri: String): RecipeEvent()
     class UpdateCategory(val type: RecipeType): RecipeEvent()
+
+    class OnCardClicked(val id: Long): RecipeEvent()
+    class OnDeleteRevealed(val id: Long): RecipeEvent()
+    class OnEditRevealed(val id: Long): RecipeEvent()
+    class OnDeleteCollapsed(val id: Long): RecipeEvent()
+    class OnEditCollapsed(val id: Long): RecipeEvent()
 }

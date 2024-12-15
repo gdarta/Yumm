@@ -31,6 +31,7 @@ import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.toRecipeCardUiState
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
+import timber.log.Timber
 
 @Serializable
 object RecipesScreen
@@ -95,8 +96,9 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                 startDestination = RecipesScreen
             ) {
                 composable<RecipesScreen> {
-                    val state = viewModel.recipeStream.collectAsStateWithLifecycle()
-                    RecipesScreen(state.value.toRecipeCardUiState(),
+                    val state = viewModel.recipeCardUiList.collectAsStateWithLifecycle()
+                    Timber.d("List: ${state.value}")
+                    RecipesScreen(state.value,
                         { navController.navigate(CreateRecipe) },
                         { viewModel.onEvent(it) })
                 }

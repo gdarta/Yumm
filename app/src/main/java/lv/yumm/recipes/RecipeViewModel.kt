@@ -14,8 +14,6 @@ import kotlinx.coroutines.launch
 import lv.yumm.recipes.data.DefaultRecipeRepository
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
-import lv.yumm.recipes.data.RecipeType
-import lv.yumm.recipes.data.source.LocalRecipe
 import lv.yumm.recipes.data.source.toExternal
 import timber.log.Timber
 import javax.inject.Inject
@@ -33,8 +31,21 @@ class RecipeViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
+    private val _recipeCardUiList = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
+    val recipeCardUiList = _recipeCardUiList.asStateFlow()
+
     private val _recipeUiState = MutableStateFlow(RecipeUiState())
     val recipeUiState = _recipeUiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _recipeStream.collect { recipes ->
+                _recipeCardUiList.update {
+                    recipes.toRecipeCardUiState()
+                }
+            }
+        }
+    }
 
     fun updateRecipe() {
         val recipeState = recipeUiState.value
@@ -150,6 +161,57 @@ class RecipeViewModel @Inject constructor(
             is RecipeEvent.UpdateCategory -> {
                 _recipeUiState.update {
                     it.copy(type = event.type)
+                }
+            }
+            is RecipeEvent.OnCardClicked -> {
+                _recipeCardUiList.update {
+                    val updatedList = it.toMutableList()
+                    val index = updatedList.indexOf(updatedList.find {event.id == it.id})
+                    updatedList[index] = updatedList[index].copy(
+                        isDeleteRevealed = false,
+                        isEditRevealed = false
+                    )
+                    updatedList
+                }
+            }
+            is RecipeEvent.OnEditRevealed -> {
+                _recipeCardUiList.update {
+                    val updatedList = it.toMutableList()
+                    val index = updatedList.indexOf(updatedList.find {event.id == it.id})
+                    updatedList[index] = updatedList[index].copy(
+                        isEditRevealed = true
+                    )
+                    updatedList
+                }
+            }
+            is RecipeEvent.OnDeleteRevealed -> {
+                _recipeCardUiList.update {
+                    val updatedList = it.toMutableList()
+                    val index = updatedList.indexOf(updatedList.find {event.id == it.id})
+                    updatedList[index] = updatedList[index].copy(
+                        isDeleteRevealed = true
+                    )
+                    updatedList
+                }
+            }
+            is RecipeEvent.OnEditCollapsed -> {
+                _recipeCardUiList.update {
+                    val updatedList = it.toMutableList()
+                    val index = updatedList.indexOf(updatedList.find {event.id == it.id})
+                    updatedList[index] = updatedList[index].copy(
+                        isEditRevealed = false
+                    )
+                    updatedList
+                }
+            }
+            is RecipeEvent.OnDeleteCollapsed -> {
+                _recipeCardUiList.update {
+                    val updatedList = it.toMutableList()
+                    val index = updatedList.indexOf(updatedList.find {event.id == it.id})
+                    updatedList[index] = updatedList[index].copy(
+                        isDeleteRevealed = false
+                    )
+                    updatedList
                 }
             }
         }

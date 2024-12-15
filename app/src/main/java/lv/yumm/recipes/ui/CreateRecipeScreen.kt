@@ -116,19 +116,19 @@ fun CreateRecipeScreen(
         }
         item {
             EditRow {
-                if (uiState.imageUrl.isNotBlank()){
-                    AsyncImage(
-                        model = uiState.imageUrl,
-                        contentDescription = null,
-                        placeholder = painterResource(R.drawable.ic_pasta_filled),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .height(100.dp)
-                            .weight(1f)
-                            .clip(RoundedCornerShape(16.dp))
-                            .shadow(elevation = 5.dp, shape = RoundedCornerShape(16.dp))
-                    )
-                }
+                AsyncImage(
+                    model = uiState.imageUrl,
+                    contentDescription = null,
+                    placeholder = painterResource(R.drawable.ic_pasta_filled),
+                    fallback = painterResource(R.drawable.ic_pasta_filled),
+                    error = painterResource(R.drawable.ic_pasta_filled), // todo icon for placeholder brr
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .height(100.dp)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .shadow(elevation = 5.dp, shape = RoundedCornerShape(16.dp))
+                )
                 GalleryAndCameraLauncher(
                     modifier = Modifier
                         .weight(1f)
