@@ -2,8 +2,12 @@ package lv.yumm
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,6 +30,7 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
+import kotlinx.serialization.InternalSerializationApi
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.toRecipeCardUiState
@@ -84,12 +89,15 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                         viewModel.onEvent(RecipeEvent.CreateRecipe())
                     })
             }
-        }
+        },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+                .systemBarsPadding()
         ) {
             NavHost(
                 navController = navController,
@@ -97,7 +105,6 @@ fun YummNavHost(viewModel: RecipeViewModel) {
             ) {
                 composable<RecipesScreen> {
                     val state = viewModel.recipeCardUiList.collectAsStateWithLifecycle()
-                    Timber.d("List: ${state.value}")
                     RecipesScreen(state.value,
                         { navController.navigate(CreateRecipe) },
                         { viewModel.onEvent(it) })

@@ -90,6 +90,7 @@ dependencies {
     implementation (libs.androidx.work.runtime)
     implementation(libs.androidx.material)
     implementation (libs.accompanist.permissions)
+    implementation (libs.androidx.foundation)
     // retrofit
     implementation (libs.retrofit)
     implementation (libs.logging.interceptor)

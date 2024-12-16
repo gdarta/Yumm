@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,7 +40,6 @@ import kotlinx.coroutines.launch
 import lv.yumm.R
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
-import lv.yumm.ui.theme.Typography
 
 @Composable
 fun EditDirectionsScreen(
@@ -45,13 +49,16 @@ fun EditDirectionsScreen(
 ) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
             .padding(all = 10.dp)
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         ){
-        LazyColumn(
+        LazyColumn( //todo drag and reorder
             state = listState,
             modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -60,8 +67,9 @@ fun EditDirectionsScreen(
             itemsIndexed(
                 items = uiState.directions,
                 key = { index, _ -> index }) { index, direction ->
+                val textField = TextFieldValue(text = direction, selection = TextRange(direction.length))
                 DirectionCard(
-                    text = direction,
+                    textField = textField,
                     number = index + 1,
                     updateDirection = {
                         onEvent(RecipeEvent.UpdateDirection(index, it))
@@ -79,7 +87,7 @@ fun EditDirectionsScreen(
             onClick = {
                 onEvent(RecipeEvent.AddDirection())
                 scope.launch {
-                    listState.animateScrollToItem(index = uiState.directions.size - 1)
+                    listState.animateScrollToItem(index = (uiState.directions.size - 1).coerceAtLeast(0))
                 }
             }
         )
@@ -95,27 +103,33 @@ fun EditDirectionsScreen(
 }
 
 @Composable
-fun DirectionCard(text: String, number: Int, updateDirection: (String) -> Unit, deleteDirection: () -> Unit) {
-    var textField by remember { mutableStateOf(TextFieldValue(text = text, selection = TextRange(text.length))) }
+fun DirectionCard(textField: TextFieldValue, number: Int, updateDirection: (String) -> Unit, deleteDirection: () -> Unit) {
+    var isDeleteRevealed by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.padding(horizontal = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(
-            text = "${number}.",
-            style = Typography.bodyLarge
+        Icon(
+            painter = painterResource(R.drawable.ic_list_reorder),
+            contentDescription = null,
         )
-        SwipeableItemWithActions( //todo snap to 0 on delete
+        SwipeableItemWithActions(
             shape = RoundedCornerShape(5.dp),
+            isLeftRevealed = isDeleteRevealed,
+            onLeftExpanded = { isDeleteRevealed = true },
+            onLeftCollapsed = { isDeleteRevealed = false },
             leftAction = {
                 Surface(
-                    onClick = { deleteDirection() },
+                    onClick = {
+                        deleteDirection()
+                        isDeleteRevealed = false
+                    },
                     modifier = Modifier
                         .fillMaxHeight()
                         .width(80.dp),
                     color = MaterialTheme.colorScheme.errorContainer,
-                    shape = RoundedCornerShape(18.dp)
+                    shape = RoundedCornerShape(5.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_delete),
@@ -137,9 +151,14 @@ fun DirectionCard(text: String, number: Int, updateDirection: (String) -> Unit, 
                         .fillMaxWidth(),
                     value = textField,
                     onValueChange = {
-                        textField = it
                         updateDirection(it.text)
                     },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        errorContainerColor = Color.Transparent
+                    )
                 )
             }
         }
@@ -150,7 +169,7 @@ fun DirectionCard(text: String, number: Int, updateDirection: (String) -> Unit, 
 @Composable
 fun DirectionCardPreview() {
     DirectionCard(
-        text = "Take your peanuts and roast them in the oven for 20 minutes.",
+        textField = TextFieldValue("Take your peanuts and roast them in the oven for 20 minutes."),
         number = 1,
         {}
     ) { }

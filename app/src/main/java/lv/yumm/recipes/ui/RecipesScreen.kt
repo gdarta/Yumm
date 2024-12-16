@@ -188,7 +188,6 @@ fun SwipeableItemWithActions(
     val max = if (leftAction == null) 0f else actionWidth
 
     LaunchedEffect(isRightRevealed, isLeftRevealed, actionWidth) {
-        Timber.d("right: $isRightRevealed, left: $isLeftRevealed")
         if (isRightRevealed) {
             offset.animateTo(-actionWidth)
         } else if(isLeftRevealed) {

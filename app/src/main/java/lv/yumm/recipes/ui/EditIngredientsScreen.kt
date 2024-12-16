@@ -4,13 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -23,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -53,27 +58,36 @@ fun EditIngredientsScreen(
     val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
             .padding(all = 10.dp)
             .padding(horizontal = 20.dp),
     ){
-        LazyColumn(
+        LazyColumn( //todo drag and reorder
             state = listState,
             modifier = Modifier
                 .weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             itemsIndexed(uiState.ingredients) { index, ingredient ->
-                SwipeableItemWithActions( //todo snap to 0 on delete
+                var isDeleteRevealed by remember { mutableStateOf(false) }
+                SwipeableItemWithActions(
                     modifier = Modifier.padding(vertical = 10.dp),
                     shape = RoundedCornerShape(5.dp),
+                    isLeftRevealed = isDeleteRevealed,
+                    onLeftExpanded = { isDeleteRevealed = true },
+                    onLeftCollapsed = { isDeleteRevealed = false },
                     leftAction = {
                         Surface(
-                            onClick = { onEvent(RecipeEvent.DeleteIngredient(index)) },
+                            onClick = {
+                                onEvent(RecipeEvent.DeleteIngredient(index))
+                                isDeleteRevealed = false
+                            },
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .width(80.dp),
                             color = MaterialTheme.colorScheme.errorContainer,
-                            shape = RoundedCornerShape(18.dp)
+                            shape = RoundedCornerShape(5.dp)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_delete),
@@ -120,7 +134,7 @@ fun EditIngredientsScreen(
             onClick = {
                 onEvent(RecipeEvent.AddIngredient())
                 scope.launch {
-                    listState.animateScrollToItem(index = uiState.ingredients.size - 1)
+                    listState.animateScrollToItem(index = (uiState.ingredients.size - 1).coerceAtLeast(0))
                 }
             }
         )
@@ -163,6 +177,20 @@ fun IngredientCard(
             selection = TextRange(ingredient.unit.length)
         )
     ) }
+    LaunchedEffect(ingredient) {
+        ingredientField = TextFieldValue(
+            text = ingredient.name,
+            selection = TextRange(ingredient.name.length)
+        )
+        amountField = TextFieldValue(
+            text = ingredient.amount?.toString() ?: "",
+            selection = TextRange(ingredient.amount.toString().length)
+        )
+        unitField = TextFieldValue(
+            text = ingredient.unit,
+            selection = TextRange(ingredient.unit.length)
+        )
+    }
     Surface(
         shape = RoundedCornerShape(5.dp),
         shadowElevation = 3.dp,
@@ -180,7 +208,9 @@ fun IngredientCard(
                 },
                 label = { Text(text = "Ingredient") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = recipeTextFieldColors()
+                colors = recipeTextFieldColors(),
+                maxLines = 1,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(20.dp)
@@ -194,7 +224,8 @@ fun IngredientCard(
                         onAmountChange(it.text)
                     },
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal
+                        keyboardType = KeyboardType.Decimal,
+                        imeAction = ImeAction.Next
                     ),
                     modifier = Modifier.weight(1f)
                 )
@@ -206,6 +237,9 @@ fun IngredientCard(
                         unitField = it
                         onMeasurementChange(it.text)
                     },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Done
+                    ),
                     modifier = Modifier.weight(1f)
                 )
             }
