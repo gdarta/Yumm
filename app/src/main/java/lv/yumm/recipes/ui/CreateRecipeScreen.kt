@@ -1,7 +1,6 @@
 package lv.yumm.recipes.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,9 +15,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,14 +38,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,7 +60,7 @@ import lv.yumm.ui.theme.RatingBar
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
 import lv.yumm.ui.theme.recipeTextFieldColors
-import java.util.Locale
+import timber.log.Timber
 
 @Composable
 fun CreateRecipeScreen(
@@ -90,15 +86,23 @@ fun CreateRecipeScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
+            var titleInteracted by remember { mutableStateOf(false) }
             TextField(
                 value = uiState.title,
                 onValueChange = {
+                    Timber.d("value change to $it")
                     onEvent(RecipeEvent.UpdateTitle(it))
+                    Timber.d("Title: ${uiState.title}")
+                    titleInteracted = true
                 },
                 textStyle = Typography.titleLarge,
                 label = { Text(text = "Title") },
                 singleLine = true,
                 colors = recipeTextFieldColors(),
+                isError = if (titleInteracted) uiState.titleError else false,
+                supportingText = {
+                    if (titleInteracted && uiState.titleError) Text(text = "Title must not be null")
+                },
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -185,13 +189,13 @@ fun CreateRecipeScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 RatingBar(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier,
                     rating = uiState.difficulty,
                     ratingStep = 1f,
-                    starSize = 50.dp,
+                    starSize = 32.dp,
                     unratedContent = {
                         Icon(
-                            modifier = Modifier.alpha(.2f),
+                            modifier = Modifier.alpha(.1f),
                             painter = painterResource(R.drawable.ic_cookie_outlined),
                             tint = MaterialTheme.colorScheme.tertiary,
                             contentDescription = null
@@ -271,8 +275,10 @@ fun CreateRecipeScreen(
                 shape = RoundedCornerShape(3.dp),
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    onEvent(RecipeEvent.SaveRecipe())
-                    navigateToRecipesScreen()
+                    if (!uiState.editScreenHasError){
+                        onEvent(RecipeEvent.SaveRecipe())
+                        navigateToRecipesScreen()
+                    }
                 }
             )
         }

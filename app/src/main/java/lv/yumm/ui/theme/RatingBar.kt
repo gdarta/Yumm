@@ -131,7 +131,7 @@ fun RatingBar(
                     }
                 }
             } else {
-                Modifier
+                modifier
             }
         )
     ) {

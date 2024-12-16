@@ -100,6 +100,7 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.UpdateTitle -> {
+                Timber.d("Updating title from createRecipeScreen to ${event.title}")
                 _recipeUiState.update {
                     it.copy(title = event.title)
                 }

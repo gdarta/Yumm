@@ -9,6 +9,7 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -23,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -113,7 +115,11 @@ fun GalleryAndCameraLauncher(
                 }
             }
         ) {
-            Text(text = "Take a photo")
+            Text(
+                text = "Take a photo",
+                maxLines = 1,
+                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+            )
         }
         Button(
             shape = RoundedCornerShape(3.dp),
@@ -128,7 +134,11 @@ fun GalleryAndCameraLauncher(
                 }
             }
         ) {
-            Text(text = "Choose a photo")
+            Text(
+                text = "Choose a photo",
+                maxLines = 1,
+                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
+            )
         }
     }
 }

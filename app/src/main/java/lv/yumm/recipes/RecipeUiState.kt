@@ -20,6 +20,10 @@ data class RecipeUiState (
     val difficulty: Float = 0f,
     val duration: Long = 0
 ) {
+    val titleError: Boolean = this.title.isBlank()
+
+    val editScreenHasError: Boolean = titleError
+
     fun filteredAmountValues(input: String): List<String> {
         return amountOptionValues.filter { it.startsWith(input) }
     }
