@@ -266,6 +266,9 @@ class RecipeViewModel @Inject constructor(
                                     event.navigateBack()
                                 },
                                 onConfirmButtonClick = {
+                                    _recipeUiState.update {
+                                        it.copy(confirmationDialog = null)
+                                    }
                                     saveRecipe { event.navigateBack() }
                                 }
                             )

@@ -52,9 +52,9 @@ import lv.yumm.ui.state.ConfirmationDialogUiState
 @Composable
 fun ConfirmationDialog(uiState: ConfirmationDialogUiState) {
     BasicAlertDialog(
-        onDismissRequest = uiState.onCancelButtonClick,
+        onDismissRequest = uiState.onConfirmButtonClick,
         modifier = Modifier
-            .width(intrinsicSize = IntrinsicSize.Max)
+            .width(intrinsicSize = IntrinsicSize.Min)
             .clip(RoundedCornerShape(10.dp))
             .background(color = MaterialTheme.colorScheme.secondary)
     ) {
@@ -81,7 +81,7 @@ fun ConfirmationDialog(uiState: ConfirmationDialogUiState) {
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(
@@ -122,7 +122,7 @@ fun ErrorDialog(title: String, description: String, onDismiss: () -> Unit) {
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier
-            .width(intrinsicSize = IntrinsicSize.Max)
+            .width(intrinsicSize = IntrinsicSize.Min)
             .clip(RoundedCornerShape(10.dp))
             .background(color = MaterialTheme.colorScheme.secondary)
     ) {
