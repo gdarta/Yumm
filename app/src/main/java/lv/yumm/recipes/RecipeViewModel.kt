@@ -47,11 +47,12 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-    fun updateRecipe() {
+    fun insertNewOrUpdate() {
         val recipeState = recipeUiState.value
         viewModelScope.launch {
+            val id = if (recipeState.id == -1L) recipeRepository.createNew() else recipeState.id
             recipeRepository.upsert(
-                id = recipeState.id,
+                id = id,
                 title = recipeState.title,
                 description = recipeState.description,
                 directions = recipeState.directions,
@@ -65,11 +66,8 @@ class RecipeViewModel @Inject constructor(
     }
 
     fun createRecipe() {
-        viewModelScope.launch {
-            val newId = recipeRepository.createNew()
-            _recipeUiState.update {
-                RecipeUiState(id = newId)
-            }
+        _recipeUiState.update {
+            RecipeUiState(id = -1)
         }
     }
 
@@ -90,17 +88,19 @@ class RecipeViewModel @Inject constructor(
     }
 
     fun saveRecipe(navigateBack: () -> Unit) {
-        _recipeUiState.update {
-            it.copy(triedToSave = true)
-        }
-        if (!_recipeUiState.value.editScreenHasError) {
-            updateRecipe()
-            navigateBack()
-        } else {
+        viewModelScope.launch {
             _recipeUiState.update {
-                if (!it.hasOpenDialogs) {
-                    it.copy(showErrorDialog = true)
-                } else it
+                it.copy(triedToSave = true)
+            }
+            if (!_recipeUiState.value.editScreenHasError) {
+                insertNewOrUpdate()
+                navigateBack()
+            } else {
+                _recipeUiState.update {
+                    if (!it.hasOpenDialogs) {
+                        it.copy(showErrorDialog = true)
+                    } else it
+                }
             }
         }
     }
