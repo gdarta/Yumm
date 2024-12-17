@@ -9,7 +9,7 @@ data class RecipeUiState (
     val id: Long = -1,
     val isLoading: Boolean = false,
     val imageUrl: String = "",
-    val type: RecipeType? = null,
+    val category: RecipeType? = null,
     val title: String = "",
     val description: String = "",
     val ingredients: List<Ingredient> = emptyList(),
@@ -18,11 +18,18 @@ data class RecipeUiState (
     val editDurationDialog: Boolean = false,
     val directions: List<String> = emptyList(),
     val difficulty: Float = 0f,
-    val duration: Long = 0
+    val duration: Long = 0,
+    val triedToSave: Boolean = false,
+    val showErrorDialog: Boolean = false
 ) {
-    val titleError: Boolean = this.title.isBlank()
+    val titleError: Boolean = this.title.isBlank() && this.triedToSave
+    val categoryError: Boolean = this.category == null && this.triedToSave
+    val difficultyError: Boolean = this.difficulty <= 0 && this.triedToSave
+    val durationError: Boolean = this.duration <= 0 && this.triedToSave
+    val ingredientsEmptyError: Boolean = this.ingredients.isEmpty() && this.triedToSave
+    val directionsEmptyError: Boolean = this.directions.isEmpty() && this.triedToSave
 
-    val editScreenHasError: Boolean = titleError
+    val editScreenHasError: Boolean = (titleError || categoryError || difficultyError || durationError || ingredientsEmptyError || directionsEmptyError)
 
     fun filteredAmountValues(input: String): List<String> {
         return amountOptionValues.filter { it.startsWith(input) }
@@ -43,7 +50,8 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         directions = this.directions,
         difficulty = this.complexity.toFloat(),
         duration = this.duration,
-        type = this.type,
+        category = this.type,
+        triedToSave = false
     )
 }
 

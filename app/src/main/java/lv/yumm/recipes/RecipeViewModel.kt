@@ -58,7 +58,7 @@ class RecipeViewModel @Inject constructor(
                 complexity = recipeState.difficulty.toInt(),
                 duration = recipeState.duration,
                 imageUrl = recipeState.imageUrl,
-                type = recipeState.type,
+                type = recipeState.category,
                 ingredients = recipeState.ingredients
                 )
         }
@@ -100,7 +100,6 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.UpdateTitle -> {
-                Timber.d("Updating title from createRecipeScreen to ${event.title}")
                 _recipeUiState.update {
                     it.copy(title = event.title)
                 }
@@ -144,7 +143,17 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.SaveRecipe -> {
-                updateRecipe()
+                _recipeUiState.update {
+                    it.copy(triedToSave = true)
+                }
+                if (!_recipeUiState.value.editScreenHasError) {
+                    updateRecipe()
+                    event.navigateBack()
+                } else {
+                    _recipeUiState.update {
+                        it.copy(showErrorDialog = true)
+                    }
+                }
             }
             is RecipeEvent.DeleteRecipe -> {
                 deleteRecipe(event.id)
@@ -168,6 +177,11 @@ class RecipeViewModel @Inject constructor(
                     it.copy(editDurationDialog = event.open)
                 }
             }
+            is RecipeEvent.SetErrorDialog -> {
+                _recipeUiState.update {
+                    it.copy(showErrorDialog = event.open)
+                }
+            }
             is RecipeEvent.UploadPicture -> {
                 _recipeUiState.update {
                     it.copy(imageUrl = event.uri)
@@ -175,7 +189,7 @@ class RecipeViewModel @Inject constructor(
             }
             is RecipeEvent.UpdateCategory -> {
                 _recipeUiState.update {
-                    it.copy(type = event.type)
+                    it.copy(category = event.type)
                 }
             }
             is RecipeEvent.OnCardClicked -> {

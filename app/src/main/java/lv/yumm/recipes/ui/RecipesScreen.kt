@@ -76,7 +76,10 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, 
                 onRightCollapsed = { onEvent(RecipeEvent.OnEditCollapsed(recipe.id)) },
                 leftAction = {
                     Surface(
-                        onClick = { onEvent(RecipeEvent.DeleteRecipe(recipe.id))},
+                        onClick = {
+                            onEvent(RecipeEvent.DeleteRecipe(recipe.id))
+                            onEvent(RecipeEvent.OnDeleteCollapsed(recipe.id))
+                        },
                         modifier = Modifier
                             .fillMaxHeight()
                             .width(80.dp),
@@ -94,8 +97,8 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, 
                     Surface(
                         onClick = {
                             onEvent(RecipeEvent.SetRecipeToUi(recipe.id))
-                            navigateToEdit() }
-                        ,
+                            onEvent(RecipeEvent.OnEditCollapsed(recipe.id))
+                            navigateToEdit() },
                         modifier = Modifier
                             .fillMaxHeight()
                             .width(80.dp),

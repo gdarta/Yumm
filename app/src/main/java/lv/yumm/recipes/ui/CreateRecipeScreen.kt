@@ -56,6 +56,7 @@ import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.toTimestamp
+import lv.yumm.ui.theme.ErrorDialog
 import lv.yumm.ui.theme.RatingBar
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
@@ -78,6 +79,12 @@ fun CreateRecipeScreen(
             { onEvent(RecipeEvent.SetDurationDialog(false)) }
         )
     }
+    if (uiState.showErrorDialog) {
+        ErrorDialog(
+            title = "Error",
+            description = "Error saving recipe"
+        ) { onEvent(RecipeEvent.SetErrorDialog(false)) }
+    }
     LazyColumn(
         modifier = Modifier
             .padding(all = 10.dp)
@@ -86,22 +93,18 @@ fun CreateRecipeScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
-            var titleInteracted by remember { mutableStateOf(false) }
             TextField(
                 value = uiState.title,
                 onValueChange = {
-                    Timber.d("value change to $it")
                     onEvent(RecipeEvent.UpdateTitle(it))
-                    Timber.d("Title: ${uiState.title}")
-                    titleInteracted = true
                 },
                 textStyle = Typography.titleLarge,
                 label = { Text(text = "Title") },
                 singleLine = true,
                 colors = recipeTextFieldColors(),
-                isError = if (titleInteracted) uiState.titleError else false,
+                isError = uiState.titleError,
                 supportingText = {
-                    if (titleInteracted && uiState.titleError) Text(text = "Title must not be null")
+                    if (uiState.titleError) Text(text = "Title must not be null")
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -148,7 +151,7 @@ fun CreateRecipeScreen(
                 Text(
                     text = "Category:",
                     style = Typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = if (!uiState.categoryError) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.error,
                 )
                 Box{
                     Surface(
@@ -158,7 +161,7 @@ fun CreateRecipeScreen(
                         shape = RoundedCornerShape(20.dp)
                     ){
                         Text(
-                            text = uiState.type?.name ?: "Choose type...",
+                            text = uiState.category?.name ?: "Choose type...",
                             color = MaterialTheme.colorScheme.onTertiary,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(all = 10.dp)
@@ -184,9 +187,9 @@ fun CreateRecipeScreen(
         item {
             EditRow {
                 Text(
-                    text = "Difficulty:  ${uiState.difficulty.toInt()}",
+                    text = "Difficulty:  ${if (uiState.difficulty > 0 ) uiState.difficulty.toInt() else ""}",
                     style = Typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = if (!uiState.difficultyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
                 RatingBar(
                     modifier = Modifier,
@@ -220,7 +223,7 @@ fun CreateRecipeScreen(
                 Text(
                     text = "Duration: ${uiState.duration.toTimestamp()}",
                     style = Typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = if (!uiState.durationError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
                 Button(
                     content = { Text(text = "Edit duration") },
@@ -235,13 +238,22 @@ fun CreateRecipeScreen(
                 Text(
                     text = "Ingredients:",
                     style = Typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = if (!uiState.ingredientsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
                 Button(
                     content = { Text(text = "Edit ingredients") },
                     shape = RoundedCornerShape(3.dp),
                     modifier = Modifier.wrapContentWidth(),
                     onClick = { navigateToEditIngredientsScreen(uiState.id) }
+                )
+            }
+        }
+        if (uiState.ingredientsEmptyError) {
+            item {
+                Text(
+                    text = "Add at least one ingredient...",
+                    style = Typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -253,13 +265,22 @@ fun CreateRecipeScreen(
                 Text(
                     text = "Directions:",
                     style = Typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = if (!uiState.directionsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
                 Button(
                     content = { Text(text = "Edit directions", modifier = Modifier) },
                     shape = RoundedCornerShape(3.dp),
                     modifier = Modifier.wrapContentWidth(),
                     onClick = { navigateToEditDirectionsScreen(uiState.id) }
+                )
+            }
+        }
+        if (uiState.directionsEmptyError) {
+            item {
+                Text(
+                    text = "Add at least one direction...",
+                    style = Typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -275,10 +296,7 @@ fun CreateRecipeScreen(
                 shape = RoundedCornerShape(3.dp),
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    if (!uiState.editScreenHasError){
-                        onEvent(RecipeEvent.SaveRecipe())
-                        navigateToRecipesScreen()
-                    }
+                    onEvent(RecipeEvent.SaveRecipe { navigateToRecipesScreen() })
                 }
             )
         }
