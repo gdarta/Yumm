@@ -15,7 +15,7 @@ import lv.yumm.recipes.data.DefaultRecipeRepository
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.source.toExternal
-import timber.log.Timber
+import lv.yumm.ui.state.ConfirmationDialogUiState
 import javax.inject.Inject
 
 @HiltViewModel
@@ -89,6 +89,22 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
+    fun saveRecipe(navigateBack: () -> Unit) {
+        _recipeUiState.update {
+            it.copy(triedToSave = true)
+        }
+        if (!_recipeUiState.value.editScreenHasError) {
+            updateRecipe()
+            navigateBack()
+        } else {
+            _recipeUiState.update {
+                if (!it.hasOpenDialogs) {
+                    it.copy(showErrorDialog = true)
+                } else it
+            }
+        }
+    }
+
     fun onEvent(event: RecipeEvent) {
         when (event) {
             is RecipeEvent.CreateRecipe -> {
@@ -143,17 +159,7 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.SaveRecipe -> {
-                _recipeUiState.update {
-                    it.copy(triedToSave = true)
-                }
-                if (!_recipeUiState.value.editScreenHasError) {
-                    updateRecipe()
-                    event.navigateBack()
-                } else {
-                    _recipeUiState.update {
-                        it.copy(showErrorDialog = true)
-                    }
-                }
+                saveRecipe { event.navigateBack() }
             }
             is RecipeEvent.DeleteRecipe -> {
                 deleteRecipe(event.id)
@@ -241,6 +247,30 @@ class RecipeViewModel @Inject constructor(
                         isDeleteRevealed = false
                     )
                     updatedList
+                }
+            }
+            is RecipeEvent.HandleBackPressed -> {
+                val currentState = _recipeUiState.value
+                if (!currentState.hasOpenDialogs && !currentState.equals(recipeStream.value.find { it.id == currentState.id})) {
+                    _recipeUiState.update {
+                        it.copy(
+                            confirmationDialog = ConfirmationDialogUiState(
+                                title = "Save recipe?",
+                                description = "Do you want to save your recent changes?",
+                                cancelButtonText = "Dismiss",
+                                confirmButtonText = "Save ",
+                                onCancelButtonClick = {
+                                    _recipeUiState.update {
+                                        it.copy(confirmationDialog = null)
+                                    }
+                                    event.navigateBack()
+                                },
+                                onConfirmButtonClick = {
+                                    saveRecipe { event.navigateBack() }
+                                }
+                            )
+                        )
+                    }
                 }
             }
         }

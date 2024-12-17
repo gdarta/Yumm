@@ -1,12 +1,10 @@
-package lv.yumm
+package lv.yumm.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
@@ -30,13 +28,9 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
-import kotlinx.serialization.InternalSerializationApi
 import lv.yumm.recipes.RecipeEvent
-import lv.yumm.recipes.data.Ingredient
-import lv.yumm.recipes.toRecipeCardUiState
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
-import timber.log.Timber
 
 @Serializable
 object RecipesScreen

@@ -24,6 +24,8 @@ sealed class RecipeEvent {
     class SetDurationDialog(val open: Boolean): RecipeEvent()
     class SetErrorDialog(val open: Boolean): RecipeEvent()
 
+    class HandleBackPressed(val navigateBack: () -> Unit): RecipeEvent()
+
     class OnCardClicked(val id: Long): RecipeEvent()
     class OnDeleteRevealed(val id: Long): RecipeEvent()
     class OnEditRevealed(val id: Long): RecipeEvent()

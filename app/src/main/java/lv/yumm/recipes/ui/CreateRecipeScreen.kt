@@ -1,5 +1,6 @@
 package lv.yumm.recipes.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
@@ -49,19 +50,19 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
-import lv.yumm.GalleryAndCameraLauncher
+import lv.yumm.ui.GalleryAndCameraLauncher
 import lv.yumm.R
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.toTimestamp
+import lv.yumm.ui.theme.ConfirmationDialog
 import lv.yumm.ui.theme.ErrorDialog
 import lv.yumm.ui.theme.RatingBar
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
 import lv.yumm.ui.theme.recipeTextFieldColors
-import timber.log.Timber
 
 @Composable
 fun CreateRecipeScreen(
@@ -71,7 +72,11 @@ fun CreateRecipeScreen(
     navigateToEditIngredientsScreen: (Long) -> Unit,
     navigateToEditDirectionsScreen: (Long) -> Unit,
 ) {
+    BackHandler { onEvent(RecipeEvent.HandleBackPressed(navigateToRecipesScreen)) }
     var difficulty by remember { mutableFloatStateOf(0f) }
+    uiState.confirmationDialog?.let {
+        ConfirmationDialog(it)
+    }
     if (uiState.editDurationDialog) {
         EditDurationDialog(
             uiState.duration,
@@ -151,7 +156,7 @@ fun CreateRecipeScreen(
                 Text(
                     text = "Category:",
                     style = Typography.titleMedium,
-                    color = if (!uiState.categoryError) MaterialTheme.colorScheme.onTertiary else MaterialTheme.colorScheme.error,
+                    color = if (!uiState.categoryError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error,
                 )
                 Box{
                     Surface(

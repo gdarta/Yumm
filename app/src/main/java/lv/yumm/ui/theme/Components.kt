@@ -1,16 +1,20 @@
 package lv.yumm.ui.theme
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
@@ -42,20 +46,90 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Scale
 import lv.yumm.R
+import lv.yumm.ui.state.ConfirmationDialogUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ErrorDialog(title: String, description: String, onDismiss: () -> Unit) {
+fun ConfirmationDialog(uiState: ConfirmationDialogUiState) {
     BasicAlertDialog(
-        onDismissRequest = onDismiss
+        onDismissRequest = uiState.onCancelButtonClick,
+        modifier = Modifier
+            .width(intrinsicSize = IntrinsicSize.Max)
+            .clip(RoundedCornerShape(10.dp))
+            .background(color = MaterialTheme.colorScheme.secondary)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = Modifier
-                .clip(RoundedCornerShape(10.dp))
-                .wrapContentSize()
-                .background(color = MaterialTheme.colorScheme.secondary)
+                .padding(all = 30.dp)
+        ) {
+            Text(
+                text = uiState.title,
+                style = Typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onSecondary,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                text = uiState.description,
+                style = Typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSecondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    onClick = uiState.onConfirmButtonClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    shape = RoundedCornerShape(5.dp),
+                    modifier = Modifier.wrapContentWidth()
+                ) {
+                    Text(
+                        text = uiState.confirmButtonText
+                    )
+                }
+                Button(
+                    onClick = uiState.onCancelButtonClick,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
+                    ),
+                    border = BorderStroke(width = 2.dp, color = MaterialTheme.colorScheme.primaryContainer),
+                    shape = RoundedCornerShape(5.dp),
+                    modifier = Modifier.wrapContentWidth()
+                ) {
+                    Text(
+                        text = uiState.cancelButtonText
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ErrorDialog(title: String, description: String, onDismiss: () -> Unit) {
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier
+            .width(intrinsicSize = IntrinsicSize.Max)
+            .clip(RoundedCornerShape(10.dp))
+            .background(color = MaterialTheme.colorScheme.secondary)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier
                 .padding(all = 30.dp)
         ) {
             Text(
@@ -229,4 +303,16 @@ fun ErrorDialogPreview() {
         title = "Warning",
         description = "You messed up"
     ) { }
+}
+
+@Preview
+@Composable
+fun ConfirmationDialogPreview() {
+    ConfirmationDialog(
+        ConfirmationDialogUiState(
+            title = "You sure?",
+            cancelButtonText = "go back",
+            confirmButtonText = "i am sure"
+        )
+    )
 }

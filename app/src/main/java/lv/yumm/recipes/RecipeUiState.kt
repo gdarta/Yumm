@@ -4,24 +4,30 @@ import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.unitStrings
+import lv.yumm.ui.state.ConfirmationDialogUiState
 
 data class RecipeUiState (
     val id: Long = -1,
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = false, //todo
+
     val imageUrl: String = "",
     val category: RecipeType? = null,
     val title: String = "",
     val description: String = "",
     val ingredients: List<Ingredient> = emptyList(),
-    val amountOptionValues: List<String> = listOf("0.5", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"),
-    val msrOptionValues: List<String> = unitStrings,
-    val editDurationDialog: Boolean = false,
     val directions: List<String> = emptyList(),
     val difficulty: Float = 0f,
     val duration: Long = 0,
+
     val triedToSave: Boolean = false,
-    val showErrorDialog: Boolean = false
+
+    val editDurationDialog: Boolean = false,
+    val showErrorDialog: Boolean = false,
+    val confirmationDialog: ConfirmationDialogUiState? = null
 ) {
+    val amountOptionValues: List<String> = listOf("0.5", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+    val msrOptionValues: List<String> = unitStrings
+
     val titleError: Boolean = this.title.isBlank() && this.triedToSave
     val categoryError: Boolean = this.category == null && this.triedToSave
     val difficultyError: Boolean = this.difficulty <= 0 && this.triedToSave
@@ -30,6 +36,8 @@ data class RecipeUiState (
     val directionsEmptyError: Boolean = this.directions.isEmpty() && this.triedToSave
 
     val editScreenHasError: Boolean = (titleError || categoryError || difficultyError || durationError || ingredientsEmptyError || directionsEmptyError)
+
+    val hasOpenDialogs: Boolean = this.editDurationDialog || this.showErrorDialog || this.confirmationDialog != null
 
     fun filteredAmountValues(input: String): List<String> {
         return amountOptionValues.filter { it.startsWith(input) }
