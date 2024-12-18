@@ -51,10 +51,6 @@ fun GalleryAndCameraLauncher(
         "com.app.id.fileProvider", file
     )
 
-    val cameraPermissionState = rememberPermissionState(
-        permission = Manifest.permission.CAMERA
-    )
-
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture(),
         onResult = { success ->
@@ -66,13 +62,13 @@ fun GalleryAndCameraLauncher(
         }
     )
 
-    val mediaPermissionState = rememberMultiplePermissionsState(
-        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) listOf(
-            Manifest.permission.READ_MEDIA_IMAGES
-        ) else listOf(
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-        )
+    val cameraPermissionState = rememberPermissionState(
+        permission = Manifest.permission.CAMERA,
+        onPermissionResult = {
+            if (it) {
+                cameraLauncher.launch(uri)
+            }
+        }
     )
 
     val galleryLauncher =
@@ -94,6 +90,20 @@ fun GalleryAndCameraLauncher(
 
     val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
 
+    val mediaPermissionState = rememberMultiplePermissionsState(
+        permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) listOf(
+            Manifest.permission.READ_MEDIA_IMAGES
+        ) else listOf(
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+        ),
+        onPermissionsResult = {
+            if (it[Manifest.permission.READ_MEDIA_IMAGES] == true || (it[Manifest.permission.WRITE_EXTERNAL_STORAGE] == true && it[Manifest.permission.READ_EXTERNAL_STORAGE] == true)) {
+                galleryLauncher.launch(galleryIntent)
+            }
+        }
+    )
+
     val hasCameraPermission = cameraPermissionState.status.isGranted
     val hasMediaPermission = mediaPermissionState.allPermissionsGranted
 
@@ -110,12 +120,11 @@ fun GalleryAndCameraLauncher(
                     cameraLauncher.launch(uri)
                 } else {
                     cameraPermissionState.launchPermissionRequest()
-                    cameraLauncher.launch(uri)
                 }
             }
         ) {
             Text(
-                text = "Take a photo",
+                text = "Take photo",
                 maxLines = 1,
                 modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
             )
@@ -129,12 +138,11 @@ fun GalleryAndCameraLauncher(
                     galleryLauncher.launch(galleryIntent)
                 } else {
                     mediaPermissionState.launchMultiplePermissionRequest()
-                    galleryLauncher.launch(galleryIntent)
                 }
             }
         ) {
             Text(
-                text = "Choose a photo",
+                text = "Choose photo",
                 maxLines = 1,
                 modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE)
             )
