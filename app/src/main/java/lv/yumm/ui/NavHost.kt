@@ -28,9 +28,11 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.navigation
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
+import lv.yumm.recipes.ui.ViewRecipeScreen
 
 @Serializable
 object RecipesScreen
@@ -43,6 +45,9 @@ object EditIngredients
 
 @Serializable
 object EditDirections
+
+@Serializable
+object ViewRecipe
 
 fun getTitle(screen: NavDestination?) : String{
     return when {
@@ -65,6 +70,7 @@ fun YummNavHost(viewModel: RecipeViewModel) {
     }
 
     Scaffold(
+        modifier = Modifier.systemBarsPadding(),
         topBar = { TopBar(title = getTitle(navBackStackEntry?.destination)) },
         bottomBar = { BottomNavBar(
             toRecipes = {
@@ -101,6 +107,10 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                     val state by viewModel.recipeCardUiList.collectAsStateWithLifecycle()
                     RecipesScreen(state,
                         { navController.navigate(CreateRecipe) },
+                        navigateToView = {
+                            viewModel.onEvent(RecipeEvent.SetRecipeToUi(it))
+                            navController.navigate(ViewRecipe)
+                        },
                         { viewModel.onEvent(it) })
                 }
                 composable<CreateRecipe> {
@@ -111,6 +121,13 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                         navigateToRecipesScreen = { navController.navigate(RecipesScreen) },
                         navigateToEditIngredientsScreen = {navController.navigate(EditIngredients)},
                         navigateToEditDirectionsScreen = { navController.navigate(EditDirections)})
+                }
+                composable<ViewRecipe> {
+                    val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    ViewRecipeScreen(
+                        recipeUiState,
+                        onEvent = { viewModel.onEvent(it) }
+                    )
                 }
                 composable<EditIngredients> {
                     val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()

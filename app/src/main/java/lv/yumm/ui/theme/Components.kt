@@ -170,7 +170,7 @@ fun TopBar(title: String) {
     CenterAlignedTopAppBar(
         title = {
             Text(
-                modifier = Modifier.padding(vertical = 10.dp),
+                modifier = Modifier,
                 text = title,
                 color = MaterialTheme.colorScheme.onPrimary,
             )
@@ -189,36 +189,32 @@ fun BottomNavBar(
     toRecipes: () -> Unit,
     toProfile:() -> Unit,
 ) {
-    BottomAppBar(
-        containerColor = MaterialTheme.colorScheme.primary,
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier
-                .padding(vertical = 10.dp)
-                .fillMaxWidth()
-        ){
-            NavIcon(
-                id = R.drawable.ic_home,
-                description = "Home"
-            ) { toHome() }
-            NavIcon(
-                id = R.drawable.ic_recipes,
-                description = "Home"
-            ) { toRecipes() }
-            NavIcon(
-                id = R.drawable.ic_list,
-                description = "Home"
-            ) { toLists() }
-            NavIcon(
-                id = R.drawable.ic_calendar,
-                description = "Home"
-            ) { toCalendar() }
-            NavIcon(
-                id = R.drawable.ic_profile,
-                description = "Home"
-            ) { toProfile() }
-        }
+    Row(
+        horizontalArrangement = Arrangement.SpaceAround,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.primary)
+            .fillMaxWidth()
+    ){
+        NavIcon(
+            id = R.drawable.ic_home,
+            description = "Home"
+        ) { toHome() }
+        NavIcon(
+            id = R.drawable.ic_recipes,
+            description = "Home"
+        ) { toRecipes() }
+        NavIcon(
+            id = R.drawable.ic_list,
+            description = "Home"
+        ) { toLists() }
+        NavIcon(
+            id = R.drawable.ic_calendar,
+            description = "Home"
+        ) { toCalendar() }
+        NavIcon(
+            id = R.drawable.ic_profile,
+            description = "Home"
+        ) { toProfile() }
     }
 }
 
@@ -235,7 +231,7 @@ fun NavIcon(id: Int, description: String, onClick: () -> Unit) {
             tint = Color.White,
             modifier = Modifier
                 .padding(10.dp)
-                .size(40.dp)
+                .size(30.dp)
         )
     }
 }

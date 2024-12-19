@@ -52,7 +52,12 @@ import lv.yumm.ui.theme.YummTheme
 import kotlin.math.roundToInt
 
 @Composable
-fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, onEvent: (RecipeEvent) -> Unit) {
+fun RecipesScreen(
+    recipes: List<RecipeCardUiState>,
+    navigateToEdit: () -> Unit,
+    navigateToView: (id: Long) -> Unit,
+    onEvent: (RecipeEvent) -> Unit
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.padding(horizontal = 10.dp)
@@ -90,7 +95,8 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, 
                         onClick = {
                             onEvent(RecipeEvent.SetRecipeToUi(recipe.id))
                             onEvent(RecipeEvent.OnEditCollapsed(recipe.id))
-                            navigateToEdit() },
+                            navigateToEdit()
+                        },
                         modifier = Modifier
                             .fillMaxHeight()
                             .width(80.dp),
@@ -107,6 +113,7 @@ fun RecipesScreen(recipes: List<RecipeCardUiState>, navigateToEdit: () -> Unit, 
             ) {
                 RecipeCard(recipe, Modifier) {
                     onEvent(RecipeEvent.OnCardClicked(recipe.id))
+                    navigateToView(recipe.id)
                 }
             }
         }
