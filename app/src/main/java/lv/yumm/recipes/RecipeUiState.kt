@@ -1,11 +1,13 @@
 package lv.yumm.recipes
 
+import androidx.compose.runtime.Immutable
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.unitStrings
 import lv.yumm.ui.state.ConfirmationDialogUiState
 
+@Immutable
 data class RecipeUiState (
     val id: Long = -1,
     val isLoading: Boolean = false, //todo

@@ -16,6 +16,7 @@ import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.source.toExternal
 import lv.yumm.ui.state.ConfirmationDialogUiState
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,6 +32,8 @@ class RecipeViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
+    private val _recipeList = MutableStateFlow<List<Recipe>>(emptyList())
+
     private val _recipeCardUiList = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
     val recipeCardUiList = _recipeCardUiList.asStateFlow()
 
@@ -42,6 +45,9 @@ class RecipeViewModel @Inject constructor(
             _recipeStream.collect { recipes ->
                 _recipeCardUiList.update {
                     recipes.toRecipeCardUiState()
+                }
+                _recipeList.update {
+                    recipes
                 }
             }
         }
@@ -251,13 +257,13 @@ class RecipeViewModel @Inject constructor(
             }
             is RecipeEvent.HandleBackPressed -> {
                 val currentState = _recipeUiState.value
-                if (!currentState.hasOpenDialogs && !currentState.equals(recipeStream.value.find { it.id == currentState.id})) {
+                if (!currentState.hasOpenDialogs && currentState != _recipeList.replayCache[0].find { it.id == currentState.id}?.toRecipeUiState()) {
                     _recipeUiState.update {
                         it.copy(
                             confirmationDialog = ConfirmationDialogUiState(
                                 title = "Save recipe?",
                                 description = "Do you want to save your recent changes?",
-                                cancelButtonText = "Dismiss",
+                                cancelButtonText = "Don't save",
                                 confirmButtonText = "Save ",
                                 onCancelButtonClick = {
                                     _recipeUiState.update {
@@ -270,10 +276,17 @@ class RecipeViewModel @Inject constructor(
                                         it.copy(confirmationDialog = null)
                                     }
                                     saveRecipe { event.navigateBack() }
+                                },
+                                onDismissDialog = {
+                                    _recipeUiState.update {
+                                        it.copy(confirmationDialog = null)
+                                    }
                                 }
                             )
                         )
                     }
+                } else {
+                    event.navigateBack()
                 }
             }
         }

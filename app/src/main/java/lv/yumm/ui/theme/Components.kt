@@ -52,7 +52,7 @@ import lv.yumm.ui.state.ConfirmationDialogUiState
 @Composable
 fun ConfirmationDialog(uiState: ConfirmationDialogUiState) {
     BasicAlertDialog(
-        onDismissRequest = uiState.onConfirmButtonClick,
+        onDismissRequest = uiState.onDismissDialog,
         modifier = Modifier
             .width(intrinsicSize = IntrinsicSize.Min)
             .clip(RoundedCornerShape(10.dp))

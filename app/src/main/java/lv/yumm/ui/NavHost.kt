@@ -98,33 +98,33 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                 startDestination = RecipesScreen
             ) {
                 composable<RecipesScreen> {
-                    val state = viewModel.recipeCardUiList.collectAsStateWithLifecycle()
-                    RecipesScreen(state.value,
+                    val state by viewModel.recipeCardUiList.collectAsStateWithLifecycle()
+                    RecipesScreen(state,
                         { navController.navigate(CreateRecipe) },
                         { viewModel.onEvent(it) })
                 }
                 composable<CreateRecipe> {
-                    val recipeUiState = viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()
                     CreateRecipeScreen(
-                        recipeUiState.value,
+                        recipeUiState,
                         onEvent = { viewModel.onEvent(it) },
                         navigateToRecipesScreen = { navController.navigate(RecipesScreen) },
                         navigateToEditIngredientsScreen = {navController.navigate(EditIngredients)},
                         navigateToEditDirectionsScreen = { navController.navigate(EditDirections)})
                 }
                 composable<EditIngredients> {
-                    val recipeUiState = viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()
                     EditIngredientsScreen(
-                        uiState = recipeUiState.value,
+                        uiState = recipeUiState,
                         onEvent = { viewModel.onEvent(it) }
                     ) {
                         navController.popBackStack()
                     }
                 }
                 composable<EditDirections> {
-                    val recipeUiState = viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()
                     EditDirectionsScreen(
-                        uiState = recipeUiState.value,
+                        uiState = recipeUiState,
                         onEvent = { viewModel.onEvent(it) }
                     ) {
                         navController.popBackStack()
