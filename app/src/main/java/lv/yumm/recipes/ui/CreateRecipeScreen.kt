@@ -57,6 +57,7 @@ import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.toTimestamp
+import lv.yumm.ui.theme.CategoryBadge
 import lv.yumm.ui.theme.ConfirmationDialog
 import lv.yumm.ui.theme.ErrorDialog
 import lv.yumm.ui.theme.RatingBar
@@ -158,20 +159,11 @@ fun CreateRecipeScreen(
                     style = Typography.titleMedium,
                     color = if (!uiState.categoryError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error,
                 )
-                Box{
-                    Surface(
+                Box {
+                    CategoryBadge(
+                        text = uiState.category?.name ?: "Choose type...",
                         onClick = { expanded = !expanded },
-                        color = MaterialTheme.colorScheme.tertiary,
-                        shadowElevation = 5.dp,
-                        shape = RoundedCornerShape(20.dp)
-                    ){
-                        Text(
-                            text = uiState.category?.name ?: "Choose type...",
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(all = 10.dp)
-                        )
-                    }
+                    )
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }

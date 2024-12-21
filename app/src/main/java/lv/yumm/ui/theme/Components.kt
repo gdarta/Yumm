@@ -164,6 +164,76 @@ fun ErrorDialog(title: String, description: String, onDismiss: () -> Unit) {
     }
 }
 
+@Composable
+fun CategoryBadge(
+    text: String,
+    onClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        onClick = onClick,
+        color = MaterialTheme.colorScheme.tertiary,
+        shadowElevation = 5.dp,
+        shape = RoundedCornerShape(15.dp)
+    ){
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.onTertiary,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(all = 10.dp)
+        )
+    }
+}
+
+@Composable
+fun DifficultyBadge(
+    modifier: Modifier = Modifier,
+    difficulty: Int
+) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.tertiary,
+        shadowElevation = 5.dp,
+        shape = RoundedCornerShape(15.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier.padding(all = 10.dp)
+        ) {
+            repeat(difficulty) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_cookie_outlined),
+                    contentDescription = "Cookie",
+                    tint = MaterialTheme.colorScheme.onTertiary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TextBadge(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.tertiary,
+        shadowElevation = 5.dp,
+        shape = RoundedCornerShape(15.dp)
+    ){
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.onTertiary,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(all = 10.dp)
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(title: String) {
