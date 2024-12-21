@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -47,7 +48,10 @@ import lv.yumm.recipes.RecipeCardUiState
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.data.RecipeType
 import lv.yumm.recipes.data.toTimestamp
+import lv.yumm.ui.theme.DifficultyBadge
 import lv.yumm.ui.theme.LoadImageWithStates
+import lv.yumm.ui.theme.TextBadge
+import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
 import kotlin.math.roundToInt
 
@@ -124,43 +128,58 @@ fun RecipesScreen(
 fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier, onClick: (Long) -> Unit) {
     Card(
         modifier = modifier
-            .height(intrinsicSize = IntrinsicSize.Max),
+            .height(intrinsicSize = IntrinsicSize.Min),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         ),
         onClick = {onClick(recipe.id)}
     ) {
-        Row() {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .padding(all = 10.dp)
+                .weight(1f)
+                .height(100.dp)
+        ) {
             LoadImageWithStates(
                 url = recipe.imageUrl,
                 modifier = Modifier
-                    .padding(10.dp)
                     .weight(1f)
-                    .height(100.dp)
                     .clip(RoundedCornerShape(16.dp)),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = recipe.title
+                    text = recipe.title,
+                    style = Typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 10.dp)
                 )
                 Text(
-                    text = recipe.description
+                    text = recipe.description,
+                    modifier = Modifier,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(
-                text = recipe.complexity.toString() + "/5"
+            recipe.type?.let {
+                TextBadge(
+                    modifier = Modifier.weight(1f),
+                    text = it.name,
+                )
+            }
+            DifficultyBadge(
+                modifier = Modifier,
+                difficulty = recipe.difficulty.toInt(),
             )
-            Text(
-                text = recipe.type.toString()
-            )
-            Text(
-                text = recipe.duration.toTimestamp()
+            TextBadge(
+                modifier = Modifier.weight(1f),
+                text = recipe.duration.toTimestamp(),
             )
         }
     }
@@ -278,7 +297,7 @@ fun RecipeCardPreview() {
                 id = 0,
                 title = "Recipe title",
                 description = "Some very very very very very very long description",
-                complexity = 2,
+                difficulty = 2,
                 duration = 30000L,
                 type = RecipeType.LUNCH,
                 imageUrl = "https://images.ctfassets.net/hrltx12pl8hq/28ECAQiPJZ78hxatLTa7Ts/2f695d869736ae3b0de3e56ceaca3958/free-nature-images.jpg?fit=fill&w=1200&h=630"

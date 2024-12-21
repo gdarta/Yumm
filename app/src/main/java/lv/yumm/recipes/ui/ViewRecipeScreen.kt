@@ -73,7 +73,7 @@ fun ViewRecipeScreen(
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround,
+                horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
@@ -91,7 +91,8 @@ fun ViewRecipeScreen(
                     .padding(top = 40.dp)
             ) {
                 uiState.category?.let {
-                    CategoryBadge(
+                    TextBadge(
+                        modifier = Modifier.weight(1f),
                         text = it.name,
                     )
                 }
@@ -100,7 +101,7 @@ fun ViewRecipeScreen(
                     difficulty = uiState.difficulty.toInt(),
                 )
                 TextBadge(
-                    modifier = Modifier,
+                    modifier = Modifier.weight(1f),
                     text = uiState.duration.toTimestamp(),
                 )
             }

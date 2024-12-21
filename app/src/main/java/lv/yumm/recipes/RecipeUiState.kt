@@ -69,7 +69,7 @@ data class RecipeCardUiState (
     val id: Long,
     val title: String = "",
     val description: String = "",
-    val complexity: Int = -1,
+    val difficulty: Int = -1,
     val type: RecipeType? = null,
     val duration: Long = 0,
     val imageUrl: String = "",

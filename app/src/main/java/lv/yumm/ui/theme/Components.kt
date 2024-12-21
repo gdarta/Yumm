@@ -3,6 +3,7 @@ package lv.yumm.ui.theme
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -171,7 +173,7 @@ fun CategoryBadge(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.height(40.dp),
         onClick = onClick,
         color = MaterialTheme.colorScheme.tertiary,
         shadowElevation = 5.dp,
@@ -181,7 +183,7 @@ fun CategoryBadge(
             text = text,
             color = MaterialTheme.colorScheme.onTertiary,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(all = 10.dp)
+            modifier = Modifier.padding(10.dp)
         )
     }
 }
@@ -192,7 +194,7 @@ fun DifficultyBadge(
     difficulty: Int
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.height(40.dp),
         color = MaterialTheme.colorScheme.tertiary,
         shadowElevation = 5.dp,
         shape = RoundedCornerShape(15.dp)
@@ -200,14 +202,15 @@ fun DifficultyBadge(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp),
-            modifier = Modifier.padding(all = 10.dp)
+            modifier = Modifier.padding(10.dp)
         ) {
             repeat(difficulty) {
                 Icon(
                     painter = painterResource(R.drawable.ic_cookie_outlined),
                     contentDescription = "Cookie",
                     tint = MaterialTheme.colorScheme.onTertiary,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier
+                        .size(18.dp)
                 )
             }
         }
@@ -220,16 +223,21 @@ fun TextBadge(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier
+            .wrapContentWidth()
+            .height(40.dp),
         color = MaterialTheme.colorScheme.tertiary,
         shadowElevation = 5.dp,
-        shape = RoundedCornerShape(15.dp)
+        shape = RoundedCornerShape(15.dp),
     ){
         Text(
             text = text,
             color = MaterialTheme.colorScheme.onTertiary,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(all = 10.dp)
+            maxLines  = 1,
+            modifier = Modifier
+                .padding(10.dp)
+                .basicMarquee(Int.MAX_VALUE)
         )
     }
 }
