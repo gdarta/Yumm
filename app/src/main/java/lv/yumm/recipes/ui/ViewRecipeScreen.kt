@@ -1,6 +1,9 @@
 package lv.yumm.recipes.ui
 
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,7 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,6 +41,7 @@ fun ViewRecipeScreen(
 ) {
     Column(
         modifier = Modifier
+            .verticalScroll(state = rememberScrollState())
             .padding(all = 10.dp)
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.Start,
@@ -50,13 +56,13 @@ fun ViewRecipeScreen(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(200.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .shadow(elevation = 5.dp, shape = RoundedCornerShape(16.dp))
         )
         Text(
             text = uiState.title,
-            style = Typography.titleLarge,
+            style = Typography.headlineLarge,
             maxLines = 1,
             modifier = Modifier
                 .fillMaxWidth()
@@ -68,7 +74,7 @@ fun ViewRecipeScreen(
         )
         Text(
             text = "Category: ${uiState.category}",
-            style = Typography.titleMedium
+            style = Typography.headlineSmall
         )
         EditRow {
             Text(
