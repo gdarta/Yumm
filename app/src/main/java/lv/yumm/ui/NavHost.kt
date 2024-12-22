@@ -28,7 +28,8 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.navigation
+import lv.yumm.login.LoginViewModel
+import lv.yumm.login.ui.LoginScreen
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
@@ -49,18 +50,26 @@ object EditDirections
 @Serializable
 object ViewRecipe
 
+@Serializable
+object SplashScreen
+
+@Serializable
+object LoginScreen
+
+
 fun getTitle(screen: NavDestination?) : String{
     return when {
         screen?.hasRoute(route = RecipesScreen::class) == true -> "My Recipes"
         screen?.hasRoute(route = CreateRecipe::class) == true -> "Create a Recipe"
         screen?.hasRoute(route = EditIngredients::class) == true -> "Edit Ingredients"
         screen?.hasRoute(route = EditDirections::class) == true -> "Edit Directions"
+        screen?.hasRoute(route = LoginScreen::class) == true -> "Log in"
         else -> "Yumm"
     }
 }
 
 @Composable
-fun YummNavHost(viewModel: RecipeViewModel) {
+fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     var shouldShowActionButton by remember { mutableStateOf(false) }
@@ -78,7 +87,9 @@ fun YummNavHost(viewModel: RecipeViewModel) {
             },
             toHome = {},
             toLists = {},
-            toProfile = {},
+            toProfile = {
+                navController.navigate(LoginScreen)
+            },
             toCalendar = {}) },
         floatingActionButton = {
             if (shouldShowActionButton) {
@@ -86,7 +97,7 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                     content = { Text("Add recipe") },
                     onClick = {
                         navController.navigate(CreateRecipe)
-                        viewModel.onEvent(RecipeEvent.CreateRecipe())
+                        recipeViewModel.onEvent(RecipeEvent.CreateRecipe())
                     })
             }
         },
@@ -104,47 +115,58 @@ fun YummNavHost(viewModel: RecipeViewModel) {
                 startDestination = RecipesScreen
             ) {
                 composable<RecipesScreen> {
-                    val state by viewModel.recipeCardUiList.collectAsStateWithLifecycle()
+                    val state by recipeViewModel.recipeCardUiList.collectAsStateWithLifecycle()
                     RecipesScreen(state,
                         { navController.navigate(CreateRecipe) },
                         navigateToView = {
-                            viewModel.onEvent(RecipeEvent.SetRecipeToUi(it))
+                            recipeViewModel.onEvent(RecipeEvent.SetRecipeToUi(it))
                             navController.navigate(ViewRecipe)
                         },
-                        { viewModel.onEvent(it) })
+                        { recipeViewModel.onEvent(it) })
                 }
                 composable<CreateRecipe> {
-                    val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
                     CreateRecipeScreen(
-                        recipeUiState,
-                        onEvent = { viewModel.onEvent(it) },
+                        { recipeUiState },
+                        onEvent = { recipeViewModel.onEvent(it) },
                         navigateToRecipesScreen = { navController.navigate(RecipesScreen) },
                         navigateToEditIngredientsScreen = {navController.navigate(EditIngredients)},
                         navigateToEditDirectionsScreen = { navController.navigate(EditDirections)})
                 }
                 composable<ViewRecipe> {
-                    val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
                     ViewRecipeScreen(
-                        recipeUiState,
-                        onEvent = { viewModel.onEvent(it) }
+                        { recipeUiState },
+                        onEvent = { recipeViewModel.onEvent(it) }
                     )
                 }
                 composable<EditIngredients> {
-                    val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
                     EditIngredientsScreen(
                         uiState = recipeUiState,
-                        onEvent = { viewModel.onEvent(it) }
+                        onEvent = { recipeViewModel.onEvent(it) }
                     ) {
                         navController.popBackStack()
                     }
                 }
                 composable<EditDirections> {
-                    val recipeUiState by viewModel.recipeUiState.collectAsStateWithLifecycle()
+                    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
                     EditDirectionsScreen(
                         uiState = recipeUiState,
-                        onEvent = { viewModel.onEvent(it) }
+                        onEvent = { recipeViewModel.onEvent(it) }
                     ) {
                         navController.popBackStack()
+                    }
+                }
+                composable<SplashScreen> {
+                    SplashScreen()
+                }
+                composable<LoginScreen> {
+                    val loginUiState by loginViewModel.loginUiState.collectAsStateWithLifecycle()
+                    LoginScreen(
+                        uiState = { loginUiState }
+                    ) {
+                        loginViewModel.onEvent(it)
                     }
                 }
             }

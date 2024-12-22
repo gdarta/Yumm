@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "71754710169",
+    "project_id": "yumm-8c434",
+    "storage_bucket": "yumm-8c434.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:71754710169:android:1bc69454d4d0c87694cc08",
+        "android_client_info": {
+          "package_name": "lv.yumm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "71754710169-8t31takolasugeokirvg2c1bu3koa913.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "lv.yumm",
+            "certificate_hash": "64c3bac9341721bac6e7e83d2ea4e9e8f5fdc52f"
+          }
+        },
+        {
+          "client_id": "71754710169-sf2vepi143ng9qk3j5o5masaeg4kmgv3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvISnE5sAh7rM9K226P9XoWTsxR9OX5eE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "71754710169-sf2vepi143ng9qk3j5o5masaeg4kmgv3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

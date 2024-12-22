@@ -67,7 +67,7 @@ import lv.yumm.ui.theme.recipeTextFieldColors
 
 @Composable
 fun CreateRecipeScreen(
-    uiState: RecipeUiState,
+    uiState: () -> RecipeUiState,
     onEvent: (RecipeEvent) -> Unit,
     navigateToRecipesScreen: () -> Unit,
     navigateToEditIngredientsScreen: (Long) -> Unit,
@@ -75,17 +75,17 @@ fun CreateRecipeScreen(
 ) {
     BackHandler { onEvent(RecipeEvent.HandleBackPressed(navigateToRecipesScreen)) }
     var difficulty by remember { mutableFloatStateOf(0f) }
-    uiState.confirmationDialog?.let {
+    uiState().confirmationDialog?.let {
         ConfirmationDialog(it)
     }
-    if (uiState.editDurationDialog) {
+    if (uiState().editDurationDialog) {
         EditDurationDialog(
-            uiState.duration,
+            uiState().duration,
             { onEvent(RecipeEvent.UpdateDuration(it)) },
             { onEvent(RecipeEvent.SetDurationDialog(false)) }
         )
     }
-    if (uiState.showErrorDialog) {
+    if (uiState().showErrorDialog) {
         ErrorDialog(
             title = "Error",
             description = "Error saving recipe"
@@ -100,7 +100,7 @@ fun CreateRecipeScreen(
     ) {
         item {
             TextField(
-                value = uiState.title,
+                value = uiState().title,
                 onValueChange = {
                     onEvent(RecipeEvent.UpdateTitle(it))
                 },
@@ -108,16 +108,16 @@ fun CreateRecipeScreen(
                 label = { Text(text = "Title") },
                 singleLine = true,
                 colors = recipeTextFieldColors(),
-                isError = uiState.titleError,
+                isError = uiState().titleError,
                 supportingText = {
-                    if (uiState.titleError) Text(text = "Title must not be null")
+                    if (uiState().titleError) Text(text = "Title must not be null")
                 },
                 modifier = Modifier.fillMaxWidth()
             )
         }
         item {
             TextField(
-                value = uiState.description,
+                value = uiState().description,
                 onValueChange = {
                     onEvent(RecipeEvent.UpdateDescription(it))
                 },
@@ -130,7 +130,7 @@ fun CreateRecipeScreen(
         item {
             EditRow {
                 AsyncImage(
-                    model = uiState.imageUrl,
+                    model = uiState().imageUrl,
                     contentDescription = null,
                     placeholder = painterResource(R.drawable.ic_pasta_filled),
                     fallback = painterResource(R.drawable.ic_pasta_filled),
@@ -157,11 +157,11 @@ fun CreateRecipeScreen(
                 Text(
                     text = "Category:",
                     style = Typography.titleMedium,
-                    color = if (!uiState.categoryError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error,
+                    color = if (!uiState().categoryError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error,
                 )
                 Box {
                     CategoryBadge(
-                        text = uiState.category?.name ?: "Choose type...",
+                        text = uiState().category?.name ?: "Choose type...",
                         onClick = { expanded = !expanded },
                     )
                     DropdownMenu(
@@ -184,13 +184,13 @@ fun CreateRecipeScreen(
         item {
             EditRow {
                 Text(
-                    text = "Difficulty:  ${if (uiState.difficulty > 0 ) uiState.difficulty.toInt() else ""}",
+                    text = "Difficulty:  ${if (uiState().difficulty > 0 ) uiState().difficulty.toInt() else ""}",
                     style = Typography.titleMedium,
-                    color = if (!uiState.difficultyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
+                    color = if (!uiState().difficultyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
                 RatingBar(
                     modifier = Modifier,
-                    rating = uiState.difficulty,
+                    rating = uiState().difficulty,
                     ratingStep = 1f,
                     starSize = 32.dp,
                     unratedContent = {
@@ -218,9 +218,9 @@ fun CreateRecipeScreen(
         item {
             EditRow {
                 Text(
-                    text = "Duration: ${uiState.duration.toTimestamp()}",
+                    text = "Duration: ${uiState().duration.toTimestamp()}",
                     style = Typography.titleMedium,
-                    color = if (!uiState.durationError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
+                    color = if (!uiState().durationError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
                 Button(
                     content = { Text(text = "Edit duration") },
@@ -235,17 +235,17 @@ fun CreateRecipeScreen(
                 Text(
                     text = "Ingredients:",
                     style = Typography.titleMedium,
-                    color = if (!uiState.ingredientsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
+                    color = if (!uiState().ingredientsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
                 Button(
                     content = { Text(text = "Edit ingredients") },
                     shape = RoundedCornerShape(3.dp),
                     modifier = Modifier.wrapContentWidth(),
-                    onClick = { navigateToEditIngredientsScreen(uiState.id) }
+                    onClick = { navigateToEditIngredientsScreen(uiState().id) }
                 )
             }
         }
-        if (uiState.ingredientsEmptyError) {
+        if (uiState().ingredientsEmptyError) {
             item {
                 Text(
                     text = "Add at least one ingredient...",
@@ -254,7 +254,7 @@ fun CreateRecipeScreen(
                 )
             }
         }
-        itemsIndexed(uiState.ingredients) { _, ingredient ->
+        itemsIndexed(uiState().ingredients, key = {index, _ -> index}) { _, ingredient ->
             IngredientText(ingredient)
         }
         item {
@@ -262,17 +262,17 @@ fun CreateRecipeScreen(
                 Text(
                     text = "Directions:",
                     style = Typography.titleMedium,
-                    color = if (!uiState.directionsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
+                    color = if (!uiState().directionsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
                 Button(
                     content = { Text(text = "Edit directions", modifier = Modifier) },
                     shape = RoundedCornerShape(3.dp),
                     modifier = Modifier.wrapContentWidth(),
-                    onClick = { navigateToEditDirectionsScreen(uiState.id) }
+                    onClick = { navigateToEditDirectionsScreen(uiState().id) }
                 )
             }
         }
-        if (uiState.directionsEmptyError) {
+        if (uiState().directionsEmptyError) {
             item {
                 Text(
                     text = "Add at least one direction...",
@@ -281,7 +281,7 @@ fun CreateRecipeScreen(
                 )
             }
         }
-        itemsIndexed(uiState.directions) { index, direction ->
+        itemsIndexed(uiState().directions, key = {index, _ -> uiState().ingredients.size + index}) { index, direction ->
             Text(
                 text = "${index + 1}. $direction",
                 color = MaterialTheme.colorScheme.onBackground
@@ -451,5 +451,5 @@ fun DurationPickerPreview() {
 @Preview(showBackground = true)
 @Composable
 fun CreateRecipePreview() {
-    YummTheme { CreateRecipeScreen(RecipeUiState(), {}, {}, {}, {}) }
+    YummTheme { CreateRecipeScreen({ RecipeUiState() }, {}, {}, {}, {}) }
 }
