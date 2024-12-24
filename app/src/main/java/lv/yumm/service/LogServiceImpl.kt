@@ -1,4 +1,4 @@
-package lv.yumm.login.service
+package lv.yumm.service
 
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.crashlytics

@@ -12,13 +12,10 @@ import lv.yumm.recipes.data.di.ApplicationScope
 import lv.yumm.recipes.data.di.DefaultDispatcher
 import lv.yumm.recipes.data.source.LocalRecipe
 import lv.yumm.recipes.data.source.RecipeDao
-import lv.yumm.recipes.data.source.RecipeDatabase
 import lv.yumm.recipes.data.source.network.RecipeNetworkDataSource
-import lv.yumm.recipes.data.source.network.RecipeNetworkDataSourceImpl
 import lv.yumm.recipes.data.source.toExternal
 import lv.yumm.recipes.data.source.toLocal
 import lv.yumm.recipes.data.source.toNetwork
-import java.util.UUID
 
 class DefaultRecipeRepository @Inject constructor(
     private val localDataSource: RecipeDao,
@@ -45,7 +42,7 @@ class DefaultRecipeRepository @Inject constructor(
     }
 
     suspend fun upsert(
-        id: Long,
+        id: String,
         title: String,
         description: String = "",
         directions: List<String> = emptyList(),

@@ -19,7 +19,8 @@ import lv.yumm.ui.theme.recipeTextFieldColors
 @Composable
 fun LoginScreen(
     uiState: () -> LoginUiState,
-    onEvent: (LoginEvent) -> Unit
+    onEvent: (LoginEvent) -> Unit,
+    navigateBack: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -46,7 +47,7 @@ fun LoginScreen(
         )
         Button(
             onClick = {
-                onEvent(LoginEvent.LogIn())
+                onEvent(LoginEvent.LogIn(navigateBack))
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,

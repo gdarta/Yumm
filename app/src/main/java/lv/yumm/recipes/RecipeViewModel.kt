@@ -8,13 +8,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import lv.yumm.recipes.data.DefaultRecipeRepository
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
-import lv.yumm.recipes.data.source.toExternal
+import lv.yumm.service.StorageService
 import lv.yumm.ui.state.ConfirmationDialogUiState
 import timber.log.Timber
 import javax.inject.Inject
@@ -22,9 +24,10 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val recipeRepository: DefaultRecipeRepository,
+    private val storageService: StorageService,
+    //private val recipeRepository: DefaultRecipeRepository,
 ) : ViewModel () {
-    private val _recipeStream = recipeRepository.observeAll()
+    private val _recipeStream = storageService.recipes
     val recipeStream: StateFlow<List<Recipe>> = _recipeStream
         .stateIn(
             scope = viewModelScope,
@@ -38,11 +41,20 @@ class RecipeViewModel @Inject constructor(
     val recipeCardUiList = _recipeCardUiList.asStateFlow()
 
     private val _recipeUiState = MutableStateFlow(RecipeUiState())
-    val recipeUiState = _recipeUiState.asStateFlow()
+    val recipeUiState = combine(
+        _recipeUiState,
+        storageService.uploadingFlow
+    ) { uiState, isLoading ->
+        uiState.copy(isLoading = isLoading)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = RecipeUiState()
+    )
 
     init {
         viewModelScope.launch {
-            _recipeStream.collect { recipes ->
+            _recipeStream.collectLatest { recipes ->
                 _recipeCardUiList.update {
                     recipes.toRecipeCardUiState()
                 }
@@ -53,42 +65,47 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
+    fun onError(error: Throwable?) {
+        error?.let {
+            Timber.e("Error happened with message: ${it.message}")
+        }
+    }
+
     fun insertNewOrUpdate() {
         val recipeState = recipeUiState.value
         viewModelScope.launch {
-            val id = if (recipeState.id == -1L) recipeRepository.createNew() else recipeState.id
-            recipeRepository.upsert(
-                id = id,
-                title = recipeState.title,
-                description = recipeState.description,
-                directions = recipeState.directions,
-                complexity = recipeState.difficulty.toInt(),
-                duration = recipeState.duration,
-                imageUrl = recipeState.imageUrl,
-                type = recipeState.category,
-                ingredients = recipeState.ingredients
-                )
+            if (recipeState.id.isBlank()) {
+                storageService.insertRecipe(recipeState.toRecipe()).also {
+                    if (it.isSuccess) {
+                        storageService.updateRecipe(recipeState.copy(id = it.getOrThrow()).toRecipe())
+                    }
+                }
+            } else {
+                storageService.updateRecipe(recipeState.toRecipe())
+            }
         }
     }
 
     fun createRecipe() {
         _recipeUiState.update {
-            RecipeUiState(id = -1)
+            RecipeUiState(id = "")
         }
     }
 
-    fun deleteRecipe(id: Long) {
+    fun deleteRecipe(id: String) {
         viewModelScope.launch {
-            val recipe = recipeRepository.getLocalRecipe(id)
-            recipeRepository.deleteRecipe(recipe)
+            val recipe = storageService.getRecipe(id)
+            recipe?.let {
+                onError(storageService.deleteRecipe(recipe)?.cause)
+            }
         }
     }
 
-    fun setRecipeUiState(id: Long) {
+    fun setRecipeUiState(id: String) {
         viewModelScope.launch {
-            val recipe = recipeRepository.getLocalRecipe(id)
+            val recipe = storageService.getRecipe(id) ?: Recipe("")
             _recipeUiState.update {
-                recipe.toExternal().toRecipeUiState()
+                recipe.toRecipeUiState()
             }
         }
     }
@@ -195,8 +212,18 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.UploadPicture -> {
-                _recipeUiState.update {
-                    it.copy(imageUrl = event.uri)
+                event.uri?.let {
+                    viewModelScope.launch {
+                        _recipeUiState.update {
+                            it.copy(imageUrl = event.uri.toString())
+                        }
+                        val uploadResult = storageService.uploadPhoto(event.uri)
+                        if (uploadResult == null){
+                            //todo
+                        } else {
+                            onError(uploadResult)
+                        }
+                    }
                 }
             }
             is RecipeEvent.UpdateCategory -> {

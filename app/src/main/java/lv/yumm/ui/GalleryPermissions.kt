@@ -30,6 +30,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import lv.yumm.BuildConfig
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
@@ -39,7 +40,7 @@ import java.util.Date
 @Composable
 fun GalleryAndCameraLauncher(
     modifier: Modifier = Modifier,
-    saveUri: (String) -> Unit
+    saveUri: (Uri?) -> Unit
 ) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(Uri.EMPTY) }
@@ -48,7 +49,7 @@ fun GalleryAndCameraLauncher(
 
     val uri = FileProvider.getUriForFile(
         context,
-        "com.app.id.fileProvider", file
+        BuildConfig.APPLICATION_ID + ".fileProvider", file
     )
 
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -56,7 +57,7 @@ fun GalleryAndCameraLauncher(
         onResult = { success ->
             if (success) imageUri = uri
             if (imageUri.toString().isNotEmpty()) {
-                saveUri(imageUri.toString())
+                saveUri(imageUri)
                 Timber.tag("myImageUri").d("$imageUri ")
             }
         }
@@ -81,7 +82,7 @@ fun GalleryAndCameraLauncher(
                     imageUri = Uri.parse(data.data.toString())
 
                     if (imageUri.toString().isNotEmpty()) {
-                        saveUri(imageUri.toString())
+                        saveUri(imageUri)
                         Timber.tag("myImageUri").d("$imageUri ")
                     }
                 }

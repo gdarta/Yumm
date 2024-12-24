@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -14,6 +17,15 @@ android {
     namespace = "lv.yumm"
     compileSdk = 35
 
+    signingConfigs {
+        create("release") {
+            storeFile = file ("keystore/release_store") // Path to your keystore file
+            storePassword = "parole"
+            keyAlias = "releaseKey"
+            keyPassword = "parole"
+        }
+    }
+
     defaultConfig {
         applicationId = "lv.yumm"
         minSdk = 27
@@ -26,11 +38,17 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+
+            isShrinkResources = true
+
+            applicationIdSuffix = ".release"
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isDebuggable = true
@@ -103,10 +121,11 @@ dependencies {
     // firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation ("com.firebaseui:firebase-ui-auth:7.2.0")
-    implementation ("com.facebook.android:facebook-android-sdk:17.0.2")
-    implementation("com.google.firebase:firebase-crashlytics")
-
+    implementation (libs.firebase.ui.auth)
+    implementation (libs.facebook.android.sdk)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
 }
 
 configurations.all {

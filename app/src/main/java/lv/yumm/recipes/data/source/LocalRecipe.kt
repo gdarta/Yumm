@@ -25,7 +25,7 @@ data class LocalRecipe (
 )
 
 fun LocalRecipe.toExternal() = Recipe(
-    id = id,
+    id = id.toString(),
     title = title,
     description = description,
     complexity = complexity,
@@ -40,7 +40,7 @@ fun LocalRecipe.toExternal() = Recipe(
 fun List<LocalRecipe>.toExternal() = map { it.toExternal() }
 
 fun Recipe.toLocal() = LocalRecipe(
-    id = id,
+    id = 0,
     title = title,
     description = description,
     complexity = complexity,

@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
@@ -34,6 +37,7 @@ import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
 import lv.yumm.recipes.ui.ViewRecipeScreen
+import timber.log.Timber
 
 @Serializable
 object RecipesScreen
@@ -77,6 +81,8 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
     navBackStackEntry?.destination?.let { currentDestination ->
         shouldShowActionButton = currentDestination.hasRoute(route = RecipesScreen::class)
     }
+
+    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.systemBarsPadding(),
@@ -125,7 +131,6 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         { recipeViewModel.onEvent(it) })
                 }
                 composable<CreateRecipe> {
-                    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
                     CreateRecipeScreen(
                         { recipeUiState },
                         onEvent = { recipeViewModel.onEvent(it) },
@@ -134,14 +139,12 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         navigateToEditDirectionsScreen = { navController.navigate(EditDirections)})
                 }
                 composable<ViewRecipe> {
-                    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
                     ViewRecipeScreen(
                         { recipeUiState },
                         onEvent = { recipeViewModel.onEvent(it) }
                     )
                 }
                 composable<EditIngredients> {
-                    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
                     EditIngredientsScreen(
                         uiState = recipeUiState,
                         onEvent = { recipeViewModel.onEvent(it) }
@@ -150,7 +153,6 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                     }
                 }
                 composable<EditDirections> {
-                    val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
                     EditDirectionsScreen(
                         uiState = recipeUiState,
                         onEvent = { recipeViewModel.onEvent(it) }
@@ -164,11 +166,16 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                 composable<LoginScreen> {
                     val loginUiState by loginViewModel.loginUiState.collectAsStateWithLifecycle()
                     LoginScreen(
-                        uiState = { loginUiState }
-                    ) {
-                        loginViewModel.onEvent(it)
-                    }
+                        uiState = { loginUiState },
+                        onEvent = { loginViewModel.onEvent(it) },
+                        navigateBack = { navController.popBackStack() }
+                    )
                 }
+            }
+            if (recipeUiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
         }
     }

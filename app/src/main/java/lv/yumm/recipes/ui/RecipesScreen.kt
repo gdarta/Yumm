@@ -59,7 +59,7 @@ import kotlin.math.roundToInt
 fun RecipesScreen(
     recipes: List<RecipeCardUiState>,
     navigateToEdit: () -> Unit,
-    navigateToView: (id: Long) -> Unit,
+    navigateToView: (String) -> Unit,
     onEvent: (RecipeEvent) -> Unit
 ) {
     LazyColumn(
@@ -125,7 +125,7 @@ fun RecipesScreen(
 }
 
 @Composable
-fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier, onClick: (Long) -> Unit) {
+fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier, onClick: (String) -> Unit) {
     Card(
         modifier = modifier
             .height(intrinsicSize = IntrinsicSize.Min),
@@ -294,7 +294,7 @@ fun RecipeCardPreview() {
         RecipeCard(
             modifier = Modifier,
             recipe = RecipeCardUiState(
-                id = 0,
+                id = "0",
                 title = "Recipe title",
                 description = "Some very very very very very very long description",
                 difficulty = 2,

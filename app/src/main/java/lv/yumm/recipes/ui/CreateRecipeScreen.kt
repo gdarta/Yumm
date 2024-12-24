@@ -21,7 +21,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -70,8 +69,8 @@ fun CreateRecipeScreen(
     uiState: () -> RecipeUiState,
     onEvent: (RecipeEvent) -> Unit,
     navigateToRecipesScreen: () -> Unit,
-    navigateToEditIngredientsScreen: (Long) -> Unit,
-    navigateToEditDirectionsScreen: (Long) -> Unit,
+    navigateToEditIngredientsScreen: (String) -> Unit,
+    navigateToEditDirectionsScreen: (String) -> Unit,
 ) {
     BackHandler { onEvent(RecipeEvent.HandleBackPressed(navigateToRecipesScreen)) }
     var difficulty by remember { mutableFloatStateOf(0f) }

@@ -9,17 +9,17 @@ import lv.yumm.ui.state.ConfirmationDialogUiState
 
 @Immutable
 data class RecipeUiState (
-    val id: Long = -1,
+    val id: String = "",
     val isLoading: Boolean = false, //todo
 
     val imageUrl: String = "",
     val category: RecipeType? = null,
-    val title: String = "",
+    val title: String = "c",
     val description: String = "",
     val ingredients: List<Ingredient> = emptyList(),
     val directions: List<String> = emptyList(),
-    val difficulty: Float = 0f,
-    val duration: Long = 0,
+    val difficulty: Float = 3f,
+    val duration: Long = 10,
 
     val triedToSave: Boolean = false,
 
@@ -50,6 +50,21 @@ data class RecipeUiState (
     }
 }
 
+fun RecipeUiState.toRecipe(): Recipe {
+    return Recipe(
+        id = this.id,
+        imageUrl = this.imageUrl,
+        title = this.title,
+        description = this.description,
+        ingredients = this.ingredients,
+        directions = this.directions,
+        complexity = this.difficulty.toInt(),
+        duration = this.duration,
+        type = this.category,
+        portions = 0 // TODO bla
+    )
+}
+
 fun Recipe.toRecipeUiState(): RecipeUiState {
     return RecipeUiState(
         id = this.id,
@@ -66,7 +81,7 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
 }
 
 data class RecipeCardUiState (
-    val id: Long,
+    val id: String,
     val title: String = "",
     val description: String = "",
     val difficulty: Int = -1,

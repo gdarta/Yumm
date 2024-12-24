@@ -24,3 +24,22 @@
 -keep class androidx.credentials.playservices.** {
   *;
 }
+
+# Keep all @Serializable classes
+-keepclassmembers class ** {
+    @kotlinx.serialization.Serializable *;
+}
+
+# Keep generated serializers
+-keepnames class kotlinx.serialization.** {
+    *;
+}
+
+# Prevent obfuscation of the kotlinx.serialization runtime
+-keepnames class kotlinx.serialization.** { *; }
+
+# Prevent obfuscation of application-specific serializable classes
+-keep class your.package.name.** { *; }
+
+# Keep annotations
+-keepattributes *Annotation*
