@@ -31,8 +31,11 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import lv.yumm.login.LoginViewModel
 import lv.yumm.login.ui.LoginScreen
+import lv.yumm.login.ui.ProfileScreen
 import lv.yumm.login.ui.RegisterScreen
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.EditDirectionsScreen
@@ -64,6 +67,9 @@ object LoginScreen
 @Serializable
 object RegisterScreen
 
+@Serializable
+object ProfileScreen
+
 
 fun getTitle(screen: NavDestination?) : String{
     return when {
@@ -88,6 +94,7 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
     }
 
     val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
+    val loginUiState by loginViewModel.loginUiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.systemBarsPadding(),
@@ -99,7 +106,11 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
             toHome = {},
             toLists = {},
             toProfile = {
-                navController.navigate(LoginScreen)
+                if (Firebase.auth.currentUser == null) {
+                    navController.navigate(LoginScreen)
+                } else {
+                    navController.navigate(ProfileScreen)
+                }
             },
             toCalendar = {}) },
         floatingActionButton = {
@@ -169,7 +180,6 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                     SplashScreen()
                 }
                 composable<LoginScreen> {
-                    val loginUiState by loginViewModel.loginUiState.collectAsStateWithLifecycle()
                     LoginScreen(
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
@@ -178,13 +188,17 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                     )
                 }
                 composable<RegisterScreen> {
-                    val loginUiState by loginViewModel.loginUiState.collectAsStateWithLifecycle()
                     RegisterScreen (
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
                         navigateBack = { navController.popBackStack() },
                         navigateToLogIn = { navController.navigate(LoginScreen)}
                     )
+                }
+                composable<ProfileScreen> {
+                    ProfileScreen(
+                        uiState = { loginUiState }
+                    ) { loginViewModel.onEvent(it) }
                 }
             }
             if (recipeUiState.isLoading) {

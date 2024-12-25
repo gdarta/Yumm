@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -31,9 +32,35 @@ fun LoginScreen(
         verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        LoginFields(
+            email = uiState().email,
+            onEmailChange = { onEvent(LoginEvent.UpdateEmail(it)) },
+            password = uiState().password,
+            onPasswordChange = { onEvent(LoginEvent.UpdatePassword(it)) },
+        )
+        LoginButton(text = "Log in") { onEvent(LoginEvent.LogIn(navigateBack)) }
+        Text(
+            text = "Do not have an account?"
+        )
+        LoginButton(text = "Create an account") { navigateToSignUp() }
+    }
+}
+
+@Composable
+fun LoginFields(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier,
+        verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         TextField(
-            value = uiState().email,
-            onValueChange = { onEvent(LoginEvent.UpdateEmail(it)) },
+            value = email,
+            onValueChange = { onEmailChange(it) },
             textStyle = Typography.bodyMedium,
             colors = recipeTextFieldColors(),
             label = {
@@ -41,43 +68,32 @@ fun LoginScreen(
             }
         )
         TextField(
-            value = uiState().password,
-            onValueChange = { onEvent(LoginEvent.UpdatePassword(it)) },
+            value = password,
+            onValueChange = { onPasswordChange(it) },
             textStyle = Typography.bodyMedium,
             colors = recipeTextFieldColors(),
             label = {
                 Text(text = "Password")
             }
         )
-        Button(
-            onClick = {
-                onEvent(LoginEvent.LogIn(navigateBack))
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        ) {
-            Text(text = "Log in", style = Typography.titleMedium)
-        }
-        Text(
-            text = "Do not have an account?"
-        )
-        HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
-        )
-        Button(
-            onClick = {
-                navigateToSignUp()
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        ) {
-            Text(text = "Create an acount", style = Typography.titleMedium)
-        }
+    }
+}
+
+@Composable
+fun LoginButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    onclick: () -> Unit,
+) {
+    Button(
+        modifier = modifier,
+        onClick = onclick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        shape = RoundedCornerShape(3.dp)
+    ) {
+        Text(text = text, style = Typography.titleMedium)
     }
 }

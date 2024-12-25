@@ -40,6 +40,15 @@ fun RegisterScreen(
             }
         )
         TextField(
+            value = uiState().displayName ?: "User",
+            onValueChange = { onEvent(LoginEvent.UpdateDisplayName(it)) },
+            textStyle = Typography.bodyMedium,
+            colors = recipeTextFieldColors(),
+            label = {
+                Text(text = "Display name")
+            }
+        )
+        TextField(
             value = uiState().password,
             onValueChange = { onEvent(LoginEvent.UpdatePassword(it)) },
             textStyle = Typography.bodyMedium,
@@ -57,17 +66,7 @@ fun RegisterScreen(
                 Text(text = "Confirm password")
             }
         )
-        Button(
-            onClick = {
-                onEvent(LoginEvent.SignUp(navigateBack))
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        ) {
-            Text(text = "Sign up", style = Typography.titleMedium)
-        }
+        LoginButton(text = "Sign up") { onEvent(LoginEvent.SignUp(navigateBack)) }
         Text(
             text = "Already have an account? Sign in",
             style = Typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),

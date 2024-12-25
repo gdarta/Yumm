@@ -18,8 +18,13 @@ class LoginViewModel @Inject constructor(
     private val accountService: AccountService
 ) : ViewModel() {
 
-    private val _loginUiState = MutableStateFlow(LoginUiState())
+    private val _loginUiState = MutableStateFlow(LoginUiState(
+        displayName = accountService.currentUser?.displayName,
+        email = accountService.currentUser?.email ?: ""
+    ))
     val loginUiState = _loginUiState.asStateFlow()
+
+    val currentUser = accountService.currentUser
 
     fun createAnonymousAccount() {
         accountService.createAnonymousAccount {  }
@@ -30,7 +35,11 @@ class LoginViewModel @Inject constructor(
     }
 
     fun register(onError: (Throwable?) -> Unit) {
-        accountService.registerAccount(_loginUiState.value.email, _loginUiState.value.password) { onError(it) }
+        accountService.registerAccount(_loginUiState.value.email, _loginUiState.value.password, _loginUiState.value.displayName) { onError(it) }
+    }
+
+    fun signOut() {
+        accountService.signOut()
     }
 
     fun onEvent(event: LoginEvent) {
@@ -50,6 +59,11 @@ class LoginViewModel @Inject constructor(
                     it.copy(confirmPassword = event.password)
                 }
             }
+            is LoginEvent.UpdateDisplayName -> {
+                _loginUiState.update {
+                    it.copy(displayName = event.name)
+                }
+            }
             is LoginEvent.LogIn -> {
                 authenticate { error ->
                     if (error == null) {
@@ -63,6 +77,18 @@ class LoginViewModel @Inject constructor(
                         event.navigateBack()
                     }
                 }
+            }
+            is LoginEvent.EditEmail -> {
+
+            }
+            is LoginEvent.EditName -> {
+
+            }
+            is LoginEvent.EditPassword -> {
+
+            }
+            is LoginEvent.SignOut -> {
+                signOut()
             }
         }
     }
