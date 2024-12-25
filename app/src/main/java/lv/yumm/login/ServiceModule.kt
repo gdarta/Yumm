@@ -1,5 +1,6 @@
 package lv.yumm.login
 
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
@@ -32,6 +33,11 @@ object ServiceModule {
     }
 
     @Provides
+    fun provideFirebaseAuth(): FirebaseAuth {
+        return Firebase.auth
+    }
+
+    @Provides
     fun provideStorageService(
         firestore: FirebaseFirestore,
         auth: AccountService,
@@ -41,8 +47,10 @@ object ServiceModule {
     }
 
     @Provides
-    fun provideAccountService(): AccountService {
-        return AccountServiceImpl()
+    fun provideAccountService(
+        auth: FirebaseAuth
+    ): AccountService {
+        return AccountServiceImpl(auth)
     }
 
     @Provides

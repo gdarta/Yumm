@@ -1,30 +1,29 @@
 package lv.yumm.login.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import lv.yumm.login.LoginUiState
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.recipeTextFieldColors
 
 @Composable
-fun LoginScreen(
+fun RegisterScreen(
     uiState: () -> LoginUiState,
     onEvent: (LoginEvent) -> Unit,
     navigateBack: () -> Unit,
-    navigateToSignUp: () -> Unit
+    navigateToLogIn: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -49,35 +48,32 @@ fun LoginScreen(
                 Text(text = "Password")
             }
         )
+        TextField(
+            value = uiState().confirmPassword,
+            onValueChange = { onEvent(LoginEvent.UpdateConfirmPassword(it)) },
+            textStyle = Typography.bodyMedium,
+            colors = recipeTextFieldColors(),
+            label = {
+                Text(text = "Confirm password")
+            }
+        )
         Button(
             onClick = {
-                onEvent(LoginEvent.LogIn(navigateBack))
+                onEvent(LoginEvent.SignUp(navigateBack))
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             )
         ) {
-            Text(text = "Log in", style = Typography.titleMedium)
+            Text(text = "Sign up", style = Typography.titleMedium)
         }
         Text(
-            text = "Do not have an account?"
+            text = "Already have an account? Sign in",
+            style = Typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
+            modifier = Modifier.clickable {
+                navigateToLogIn()
+            }
         )
-        HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
-        )
-        Button(
-            onClick = {
-                navigateToSignUp()
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        ) {
-            Text(text = "Create an acount", style = Typography.titleMedium)
-        }
     }
 }

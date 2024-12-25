@@ -25,13 +25,12 @@ class LoginViewModel @Inject constructor(
         accountService.createAnonymousAccount {  }
     }
 
-    fun authenticate(): Throwable? {
-        var error: Throwable? = null
-        accountService.authenticate(
-            _loginUiState.value.email,
-            _loginUiState.value.password
-        ) { error = it }
-        return error
+    fun authenticate(onError: (Throwable?) -> Unit) {
+        accountService.authenticate(_loginUiState.value.email, _loginUiState.value.password) { onError(it) }
+    }
+
+    fun register(onError: (Throwable?) -> Unit) {
+        accountService.registerAccount(_loginUiState.value.email, _loginUiState.value.password) { onError(it) }
     }
 
     fun onEvent(event: LoginEvent) {
@@ -46,9 +45,23 @@ class LoginViewModel @Inject constructor(
                     it.copy(password = event.password)
                 }
             }
+            is LoginEvent.UpdateConfirmPassword -> {
+                _loginUiState.update {
+                    it.copy(confirmPassword = event.password)
+                }
+            }
             is LoginEvent.LogIn -> {
-                if ( authenticate() == null ) {
-                    event.navigateBack()
+                authenticate { error ->
+                    if (error == null) {
+                        event.navigateBack()
+                    }
+                }
+            }
+            is LoginEvent.SignUp -> {
+                register { error ->
+                    if (error == null) {
+                        event.navigateBack()
+                    }
                 }
             }
         }

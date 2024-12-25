@@ -33,6 +33,7 @@ import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
 import lv.yumm.login.LoginViewModel
 import lv.yumm.login.ui.LoginScreen
+import lv.yumm.login.ui.RegisterScreen
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
@@ -60,6 +61,9 @@ object SplashScreen
 @Serializable
 object LoginScreen
 
+@Serializable
+object RegisterScreen
+
 
 fun getTitle(screen: NavDestination?) : String{
     return when {
@@ -67,7 +71,8 @@ fun getTitle(screen: NavDestination?) : String{
         screen?.hasRoute(route = CreateRecipe::class) == true -> "Create a Recipe"
         screen?.hasRoute(route = EditIngredients::class) == true -> "Edit Ingredients"
         screen?.hasRoute(route = EditDirections::class) == true -> "Edit Directions"
-        screen?.hasRoute(route = LoginScreen::class) == true -> "Log in"
+        screen?.hasRoute(route = LoginScreen::class) == true -> "Log In"
+        screen?.hasRoute(route = RegisterScreen::class) == true -> "Sign Up"
         else -> "Yumm"
     }
 }
@@ -168,7 +173,17 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                     LoginScreen(
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
-                        navigateBack = { navController.popBackStack() }
+                        navigateBack = { navController.popBackStack() },
+                        navigateToSignUp = { navController.navigate(RegisterScreen)}
+                    )
+                }
+                composable<RegisterScreen> {
+                    val loginUiState by loginViewModel.loginUiState.collectAsStateWithLifecycle()
+                    RegisterScreen (
+                        uiState = { loginUiState },
+                        onEvent = { loginViewModel.onEvent(it) },
+                        navigateBack = { navController.popBackStack() },
+                        navigateToLogIn = { navController.navigate(LoginScreen)}
                     )
                 }
             }

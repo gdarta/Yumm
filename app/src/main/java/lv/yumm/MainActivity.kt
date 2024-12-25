@@ -21,6 +21,12 @@ class MainActivity : ComponentActivity() {
     private val loginViewModel by viewModels<LoginViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val currentUser = Firebase.auth.currentUser
+        if (currentUser != null) {
+            // todo reload
+        }
+
         enableEdgeToEdge()
         setContent {
             WindowCompat.setDecorFitsSystemWindows(window, false)

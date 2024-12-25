@@ -11,6 +11,13 @@ class FakeRecipeDao(initialRecipes: List<LocalRecipe>) : RecipeDao {
     private val recipesStream = MutableStateFlow(_recipes.toList())
 
     override fun observeAll(): Flow<List<LocalRecipe>> = recipesStream
+    override suspend fun insert(recipe: LocalRecipe): Long {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun delete(recipe: LocalRecipe) {
+        TODO("Not yet implemented")
+    }
 
     override suspend fun upsert(task: LocalRecipe) {
         _recipes.removeIf { it.id == task.id }
@@ -22,6 +29,10 @@ class FakeRecipeDao(initialRecipes: List<LocalRecipe>) : RecipeDao {
         val newRecipeIds = recipes.map { it.id }
         _recipes.removeIf { newRecipeIds.contains(it.id) }
         _recipes.addAll(recipes)
+    }
+
+    override suspend fun getRecipe(id: Long): LocalRecipe {
+        TODO("Not yet implemented")
     }
 
     override suspend fun deleteAll() {

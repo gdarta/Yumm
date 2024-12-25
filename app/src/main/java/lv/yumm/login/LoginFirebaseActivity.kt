@@ -1,7 +1,7 @@
 package lv.yumm.login
 
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 
-class LoginFirebaseActivity : AppCompatActivity() {
+class LoginFirebaseActivity : ComponentActivity() {
 
 }
