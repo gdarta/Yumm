@@ -1,5 +1,8 @@
 package lv.yumm.ui
 
+import androidx.annotation.Keep
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +14,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,9 +33,10 @@ import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import androidx.navigation.toRoute
 import lv.yumm.login.LoginViewModel
+import lv.yumm.login.ui.ActionAuthorizeScreen
+import lv.yumm.login.ui.LoginEvent
 import lv.yumm.login.ui.LoginScreen
 import lv.yumm.login.ui.ProfileScreen
 import lv.yumm.login.ui.RegisterScreen
@@ -41,7 +44,13 @@ import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
 import lv.yumm.recipes.ui.ViewRecipeScreen
-import timber.log.Timber
+
+@Keep
+enum class EditProfileAction{
+    DELETE,
+    EMAIL,
+    PASSWORD
+}
 
 @Serializable
 object RecipesScreen
@@ -70,6 +79,13 @@ object RegisterScreen
 @Serializable
 object ProfileScreen
 
+@Serializable
+data class ActionAuthorizeScreen(
+    val infoText: String,
+    val actionText: String,
+    val event: EditProfileAction
+)
+
 
 fun getTitle(screen: NavDestination?) : String{
     return when {
@@ -79,6 +95,7 @@ fun getTitle(screen: NavDestination?) : String{
         screen?.hasRoute(route = EditDirections::class) == true -> "Edit Directions"
         screen?.hasRoute(route = LoginScreen::class) == true -> "Log In"
         screen?.hasRoute(route = RegisterScreen::class) == true -> "Sign Up"
+        screen?.hasRoute(route = ActionAuthorizeScreen::class) == true -> "Verify Identity"
         else -> "Yumm"
     }
 }
@@ -106,11 +123,7 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
             toHome = {},
             toLists = {},
             toProfile = {
-                if (Firebase.auth.currentUser == null) {
-                    navController.navigate(LoginScreen)
-                } else {
-                    navController.navigate(ProfileScreen)
-                }
+                navController.navigate(ProfileScreen)
             },
             toCalendar = {}) },
         floatingActionButton = {
@@ -134,7 +147,13 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
         ) {
             NavHost(
                 navController = navController,
-                startDestination = RecipesScreen
+                startDestination = RecipesScreen,
+                enterTransition = {
+                    EnterTransition.None
+                },
+                exitTransition = {
+                    ExitTransition.None
+                }
             ) {
                 composable<RecipesScreen> {
                     val state by recipeViewModel.recipeCardUiList.collectAsStateWithLifecycle()
@@ -183,22 +202,34 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                     LoginScreen(
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
-                        navigateBack = { navController.popBackStack() },
-                        navigateToSignUp = { navController.navigate(RegisterScreen)}
+                        navigateToSignUp = { navController.navigate(RegisterScreen) }
                     )
                 }
                 composable<RegisterScreen> {
                     RegisterScreen (
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
-                        navigateBack = { navController.popBackStack() },
-                        navigateToLogIn = { navController.navigate(LoginScreen)}
+                        navigateToLogIn = { navController.navigate(LoginScreen) }
                     )
                 }
                 composable<ProfileScreen> {
                     ProfileScreen(
-                        uiState = { loginUiState }
-                    ) { loginViewModel.onEvent(it) }
+                        uiState = { loginUiState },
+                        onEvent = { loginViewModel.onEvent(it) },
+                        navigateToSignUp = { navController.navigate(RegisterScreen) },
+                        navigateToAction = { info, action, event -> navController.navigate(ActionAuthorizeScreen(info, action, event)) }
+                    )
+                }
+                composable<ActionAuthorizeScreen> { navBackStackEntry ->
+                    val args: ActionAuthorizeScreen = navBackStackEntry.toRoute()
+                    ActionAuthorizeScreen(
+                        infoText = args.infoText,
+                        actionText = args.actionText,
+                        actionType = args.event,
+                        uiState = { loginUiState },
+                        onEvent = { loginViewModel.onEvent(it) },
+                        navigateToSignUp = { navController.navigate(RegisterScreen) }
+                    )
                 }
             }
             if (recipeUiState.isLoading) {

@@ -19,3 +19,19 @@ fun recipeTextFieldColors(): TextFieldColors {
         errorContainerColor = Color.Transparent
     )
 }
+
+@Composable
+fun loginTextFieldColors(): TextFieldColors {
+    return TextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
+        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+        unfocusedIndicatorColor = MaterialTheme.colorScheme.secondary,
+        errorLabelColor = MaterialTheme.colorScheme.error,
+        errorIndicatorColor = MaterialTheme.colorScheme.error,
+        focusedLabelColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
+        errorContainerColor = Color.Transparent
+    )
+}

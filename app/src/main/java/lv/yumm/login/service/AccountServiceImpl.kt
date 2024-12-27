@@ -2,40 +2,38 @@ package lv.yumm.login.service
 
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.ktx.Firebase
 import javax.inject.Inject
 
 class AccountServiceImpl @Inject constructor(
     private val auth: FirebaseAuth
 ) : AccountService {
 
-    override val currentUser: FirebaseUser?
-        get() = auth.currentUser
-
     override fun createAnonymousAccount(onResult: (Throwable?) -> Unit) {
-        auth.signInAnonymously()
+        Firebase.auth.signInAnonymously()
             .addOnCompleteListener { onResult(it.exception) }
     }
 
     override fun authenticate(email: String, password: String, onResult: (Throwable?) -> Unit) {
-        auth.signInWithEmailAndPassword(email, password)
+        Firebase.auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { onResult(it.exception) }
     }
 
     override fun linkAccount(email: String, password: String, onResult: (Throwable?) -> Unit) {
         val credential = EmailAuthProvider.getCredential(email, password)
 
-        auth.currentUser!!.linkWithCredential(credential)
+        Firebase.auth.currentUser!!.linkWithCredential(credential)
             .addOnCompleteListener { onResult(it.exception) }
     }
 
     override fun registerAccount(email: String, password: String, displayName: String?, onResult: (Throwable?) -> Unit) {
-        auth.createUserWithEmailAndPassword(email, password)
+        Firebase.auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener {
                 if (it.isSuccessful) {
-                    val update = userProfileChangeRequest { setDisplayName(displayName) }
-                    auth.currentUser!!.updateProfile(update).addOnCompleteListener {
+                    val update = userProfileChangeRequest { setDisplayName(displayName ?: "User") }
+                    Firebase.auth.currentUser!!.updateProfile(update).addOnCompleteListener {
                         onResult(it.exception)
                     }
                 } else {
@@ -45,19 +43,32 @@ class AccountServiceImpl @Inject constructor(
     }
 
     override fun signOut() {
-        auth.signOut()
+        Firebase.auth.signOut()
     }
 
-    override fun deleteAccount(email: String, password: String, onReauthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit) {
+    override fun deleteAccount(email: String, password: String, onReAuthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit) {
         val credential = EmailAuthProvider.getCredential(email, password)
 
-        auth.currentUser?.reauthenticate(credential)
+        Firebase.auth.currentUser?.reauthenticate(credential)
             ?.addOnCompleteListener {
                 if (it.isSuccessful) {
-                    auth.currentUser!!.delete().addOnCompleteListener{
+                    Firebase.auth.currentUser!!.delete().addOnCompleteListener{
                         onResult(it.exception)
                     }
-                } else { onReauthenticate(it.exception) }
+                } else { onReAuthenticate(it.exception) }
+            }
+    }
+
+    override fun editDisplayName(name: String, onResult: (Throwable?) -> Unit) {
+        val user = Firebase.auth.currentUser
+
+        val profileUpdates = userProfileChangeRequest {
+            displayName = name
+        }
+
+        user?.updateProfile(profileUpdates)
+            ?.addOnCompleteListener { task ->
+                onResult(task.exception)
             }
     }
 }

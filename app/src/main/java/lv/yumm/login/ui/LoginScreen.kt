@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -15,16 +16,20 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import lv.yumm.login.LoginUiState
 import lv.yumm.ui.theme.Typography
+import lv.yumm.ui.theme.loginTextFieldColors
 import lv.yumm.ui.theme.recipeTextFieldColors
 
 @Composable
 fun LoginScreen(
     uiState: () -> LoginUiState,
     onEvent: (LoginEvent) -> Unit,
-    navigateBack: () -> Unit,
     navigateToSignUp: () -> Unit
 ) {
     Column(
@@ -33,12 +38,10 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LoginFields(
-            email = uiState().email,
-            onEmailChange = { onEvent(LoginEvent.UpdateEmail(it)) },
-            password = uiState().password,
-            onPasswordChange = { onEvent(LoginEvent.UpdatePassword(it)) },
+            uiState = uiState,
+            onEvent = { onEvent(it) }
         )
-        LoginButton(text = "Log in") { onEvent(LoginEvent.LogIn(navigateBack)) }
+        LoginButton(text = "Log in") { onEvent(LoginEvent.LogIn()) }
         Text(
             text = "Do not have an account?"
         )
@@ -48,35 +51,69 @@ fun LoginScreen(
 
 @Composable
 fun LoginFields(
-    email: String,
-    onEmailChange: (String) -> Unit,
-    password: String,
-    onPasswordChange: (String) -> Unit
+    uiState: () -> LoginUiState,
+    onEvent: (LoginEvent) -> Unit,
 ) {
     Column(
         modifier = Modifier,
         verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TextField(
-            value = email,
-            onValueChange = { onEmailChange(it) },
-            textStyle = Typography.bodyMedium,
-            colors = recipeTextFieldColors(),
-            label = {
-                Text(text = "E-mail")
-            }
+        uiState().credentialError?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+        LoginTextField(
+            value = uiState().email,
+            onValueChange = { onEvent(LoginEvent.UpdateEmail(it)) },
+            label = "E-mail",
+            isError = uiState().emailEmpty,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
-        TextField(
-            value = password,
-            onValueChange = { onPasswordChange(it) },
-            textStyle = Typography.bodyMedium,
-            colors = recipeTextFieldColors(),
-            label = {
-                Text(text = "Password")
-            }
+        LoginTextField(
+            value = uiState().password,
+            onValueChange = { onEvent(LoginEvent.UpdatePassword(it)) },
+            label = "Password",
+            isError = uiState().passwordEmpty,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            visualTransformation = PasswordVisualTransformation()
         )
     }
+}
+
+@Composable
+fun LoginTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isError: Boolean = false,
+    errorText: String? = null,
+    keyboardOptions: KeyboardOptions? = null,
+    visualTransformation: VisualTransformation? = null
+) {
+    TextField(
+        value = value,
+        onValueChange = { onValueChange(it) },
+        textStyle = Typography.bodyMedium,
+        colors = loginTextFieldColors(),
+        maxLines = 1,
+        keyboardOptions = keyboardOptions ?: KeyboardOptions.Default,
+        visualTransformation = visualTransformation ?: VisualTransformation.None,
+        isError = isError,
+        supportingText = {
+            if (isError) {
+                Text(
+                    text = errorText ?: "Field must not be empty!",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        label = {
+            Text(text = label)
+        }
+    )
 }
 
 @Composable
