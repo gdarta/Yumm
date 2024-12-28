@@ -1,7 +1,6 @@
 package lv.yumm.login
 
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuthEmailException
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -9,11 +8,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import lv.yumm.BaseViewModel
 import lv.yumm.login.service.AccountService
 import lv.yumm.service.LogService
 import lv.yumm.service.StorageService
 import lv.yumm.login.ui.LoginEvent
 import lv.yumm.login.ui.LoginUiState
+import lv.yumm.login.ui.VerificationScreenUiState
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -22,11 +23,11 @@ class LoginViewModel @Inject constructor(
     private val logService: LogService,
     private val storageService: StorageService,
     private val accountService: AccountService
-) : ViewModel() {
+) : BaseViewModel() {
 
     private val _loginUiState = MutableStateFlow(
         LoginUiState(
-            displayName = Firebase.auth.currentUser?.displayName,
+            displayName = Firebase.auth.currentUser?.displayName ?: "",
             email = Firebase.auth.currentUser?.email ?: ""
         )
     )
@@ -58,11 +59,15 @@ class LoginViewModel @Inject constructor(
             return
         }
         if (isInputNotNull(email, password)) {
-            accountService.registerAccount(
-                email,
-                password,
-                _loginUiState.value.displayName
-            ) { onError(it) }
+            if (_loginUiState.value.displayName.isNotBlank()) {
+                accountService.registerAccount(
+                    email,
+                    password,
+                    _loginUiState.value.displayName
+                ) { onError(it) }
+            } else {
+                _loginUiState.update { it.copy(displayNameEmpty = true) }
+            }
         }
     }
 
@@ -70,14 +75,14 @@ class LoginViewModel @Inject constructor(
         accountService.signOut()
     }
 
-    fun delete(onReAuthenticate: (Throwable?) -> Unit, onError: (Throwable?) -> Unit) {
+    fun delete(onReAuthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit) {
         val email = _loginUiState.value.email
         val password = _loginUiState.value.password
         if (isInputNotNull(email, password)) {
             accountService.deleteAccount(
                 email, password,
                 onReAuthenticate = onReAuthenticate,
-                onResult = onError
+                onResult = onResult
             )
         }
     }
@@ -104,7 +109,9 @@ class LoginViewModel @Inject constructor(
                 emailEmpty = false,
                 passwordEmpty = false,
                 confirmPasswordError = false,
-                credentialError = null
+                displayNameEmpty = false,
+                credentialError = null,
+                newEmailEmpty = false
             )
         }
     }
@@ -163,7 +170,9 @@ class LoginViewModel @Inject constructor(
                             handleApiError(error)
                         }
                     },
-                    onError = {}
+                    onResult = {
+                        reloadUser()
+                    }
                 )
             }
             is LoginEvent.EditEmail -> {
@@ -179,17 +188,37 @@ class LoginViewModel @Inject constructor(
                             }
                         },
                         onResult = {
-                            //todo
+                            reloadUser()
+                            _loginUiState.update {
+                                it.copy(
+                                    verificationScreenState = VerificationScreenUiState(
+                                        email = event.email,
+                                        resendEmail = {
+                                            accountService.verifyBeforeUpdateEmail(event.email) {
+                                                postMessage("E-mail sent")
+                                            }
+                                        }
+                                    )
+                                )
+                            }
                         }
                     )
+                } else {
+                    _loginUiState.update {
+                        it.copy(newEmailEmpty = true)
+                    }
                 }
             }
             is LoginEvent.EditName -> {
-                if (_loginUiState.value.displayName?.isNotBlank() == true) {
+                if (_loginUiState.value.displayName.isNotBlank()) {
                     accountService.editDisplayName(
-                        _loginUiState.value.displayName ?: "User",
+                        _loginUiState.value.displayName,
                     ) {
-                        //todo
+                        reloadUser()
+                    }
+                } else {
+                    _loginUiState.update {
+                        it.copy(displayName = Firebase.auth.currentUser?.displayName ?: "User")
                     }
                 }
             }
@@ -198,7 +227,24 @@ class LoginViewModel @Inject constructor(
             }
             is LoginEvent.SignOut -> {
                 signOut()
+                _loginUiState.update {
+                    LoginUiState()
+                }
             }
+            is LoginEvent.ClearVerifyScreen -> {
+                _loginUiState.update {
+                    it.copy(
+                        verificationScreenState = null,
+                        resetPasswordScreenState = null
+                    )
+                }
+            }
+        }
+    }
+
+    private fun reloadUser() {
+        Firebase.auth.currentUser?.reload()?.addOnCompleteListener{
+            Timber.d("Reloaded user")
         }
     }
 

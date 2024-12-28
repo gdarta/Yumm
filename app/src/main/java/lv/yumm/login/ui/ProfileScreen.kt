@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -24,22 +23,21 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
-import lv.yumm.login.ui.LoginUiState
-import lv.yumm.recipes.ui.EditRow
-import lv.yumm.ui.theme.Typography
 import lv.yumm.R
+import lv.yumm.recipes.ui.EditRow
 import lv.yumm.ui.EditProfileAction
+import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.recipeTextFieldColors
 
 @Composable
 fun ProfileScreen(
     uiState: () -> LoginUiState,
     onEvent: (LoginEvent) -> Unit,
-    navigateToSignUp: () -> Unit,
+    navigateToProfileScreen: () -> Unit,
     navigateToAction: (String, String, EditProfileAction) -> Unit
 ) {
     val currentUser = remember { mutableStateOf(Firebase.auth.currentUser) }
-    DisposableEffect(Unit) {
+    DisposableEffect(currentUser) {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
             currentUser.value = auth.currentUser
         }
@@ -49,9 +47,28 @@ fun ProfileScreen(
         }
     }
 
-    currentUser.value?.let {
-        ProfileInfo(it, uiState, onEvent = { onEvent(it) }, navigateToAction = { info, text, onEvent -> navigateToAction(info, text, onEvent) })
-    } ?: LoginScreen(uiState, onEvent, navigateToSignUp)
+    val register = remember { mutableStateOf(false) }
+
+    if (currentUser.value != null) {
+        currentUser.value?.let {
+            ProfileInfo(
+                it,
+                uiState,
+                onEvent = { onEvent(it) },
+                navigateToAction = { info, text, onEvent ->
+                    navigateToAction(
+                        info,
+                        text,
+                        onEvent
+                    )
+                }
+            )
+        }
+    } else if (!register.value) {
+        LoginScreen(uiState, onEvent) { register.value = true }
+    } else {
+        RegisterScreen(uiState, onEvent) { register.value = false }
+    }
 }
 
 @Composable
@@ -62,7 +79,6 @@ fun ProfileInfo(
     navigateToAction: (String, String, EditProfileAction) -> Unit,
 ) {
     val editName = remember { mutableStateOf(false) }
-    val editEmail = remember { mutableStateOf(false) }
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -73,7 +89,7 @@ fun ProfileInfo(
         EditRow {
             if (editName.value) {
                 TextField(
-                    value = uiState().displayName ?: "",
+                    value = uiState().displayName,
                     onValueChange = { onEvent(LoginEvent.UpdateDisplayName(it)) },
                     textStyle = Typography.headlineMedium,
                     colors = recipeTextFieldColors(),
@@ -96,7 +112,7 @@ fun ProfileInfo(
                 )
             } else {
                 Text(
-                    text = "Hello, ${currentUser.displayName}",
+                    text = "Hello, ${uiState().displayName}",
                     style = Typography.headlineMedium
                 )
                 IconButton(
@@ -141,7 +157,10 @@ fun ProfileInfo(
                 }
             )
         }
-        LoginButton(text = "Sign out", modifier = Modifier.fillMaxWidth()) { onEvent(LoginEvent.SignOut()) }
+        LoginButton(
+            text = "Sign out",
+            modifier = Modifier.fillMaxWidth()
+        ) { onEvent(LoginEvent.SignOut()) }
         LoginButton(text = "Change password", modifier = Modifier.fillMaxWidth()) {
             navigateToAction(
                 "To change your password, verify your current profile info",

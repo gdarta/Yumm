@@ -14,4 +14,6 @@ sealed class LoginEvent {
     class EditEmail(val email: String): LoginEvent()
     class EditPassword(): LoginEvent()
     class EditName(): LoginEvent()
+
+    class ClearVerifyScreen(): LoginEvent()
 }

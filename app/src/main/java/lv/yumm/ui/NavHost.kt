@@ -36,10 +36,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.toRoute
 import lv.yumm.login.LoginViewModel
 import lv.yumm.login.ui.ActionAuthorizeScreen
-import lv.yumm.login.ui.LoginEvent
-import lv.yumm.login.ui.LoginScreen
 import lv.yumm.login.ui.ProfileScreen
-import lv.yumm.login.ui.RegisterScreen
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
@@ -71,12 +68,6 @@ object ViewRecipe
 object SplashScreen
 
 @Serializable
-object LoginScreen
-
-@Serializable
-object RegisterScreen
-
-@Serializable
 object ProfileScreen
 
 @Serializable
@@ -93,8 +84,6 @@ fun getTitle(screen: NavDestination?) : String{
         screen?.hasRoute(route = CreateRecipe::class) == true -> "Create a Recipe"
         screen?.hasRoute(route = EditIngredients::class) == true -> "Edit Ingredients"
         screen?.hasRoute(route = EditDirections::class) == true -> "Edit Directions"
-        screen?.hasRoute(route = LoginScreen::class) == true -> "Log In"
-        screen?.hasRoute(route = RegisterScreen::class) == true -> "Sign Up"
         screen?.hasRoute(route = ActionAuthorizeScreen::class) == true -> "Verify Identity"
         else -> "Yumm"
     }
@@ -198,25 +187,11 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                 composable<SplashScreen> {
                     SplashScreen()
                 }
-                composable<LoginScreen> {
-                    LoginScreen(
-                        uiState = { loginUiState },
-                        onEvent = { loginViewModel.onEvent(it) },
-                        navigateToSignUp = { navController.navigate(RegisterScreen) }
-                    )
-                }
-                composable<RegisterScreen> {
-                    RegisterScreen (
-                        uiState = { loginUiState },
-                        onEvent = { loginViewModel.onEvent(it) },
-                        navigateToLogIn = { navController.navigate(LoginScreen) }
-                    )
-                }
                 composable<ProfileScreen> {
                     ProfileScreen(
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
-                        navigateToSignUp = { navController.navigate(RegisterScreen) },
+                        navigateToProfileScreen = { navController.navigate(ProfileScreen) },
                         navigateToAction = { info, action, event -> navController.navigate(ActionAuthorizeScreen(info, action, event)) }
                     )
                 }
@@ -228,7 +203,7 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         actionType = args.event,
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
-                        navigateToSignUp = { navController.navigate(RegisterScreen) }
+                        navigateToProfileScreen = { navController.navigate(ProfileScreen) }
                     )
                 }
             }

@@ -18,23 +18,23 @@ class AccountServiceImpl @Inject constructor(
     }
 
     override fun authenticate(email: String, password: String, onResult: (Throwable?) -> Unit) {
-        Firebase.auth.signInWithEmailAndPassword(email, password)
+        Firebase.auth.signInWithEmailAndPassword(email.filterNot { it.isWhitespace() }, password.filterNot { it.isWhitespace() })
             .addOnCompleteListener { onResult(it.exception) }
     }
 
     override fun linkAccount(email: String, password: String, onResult: (Throwable?) -> Unit) {
-        val credential = EmailAuthProvider.getCredential(email, password)
+        val credential = EmailAuthProvider.getCredential(email.filterNot { it.isWhitespace() }, password.filterNot { it.isWhitespace() })
 
         Firebase.auth.currentUser!!.linkWithCredential(credential)
             .addOnCompleteListener { onResult(it.exception) }
     }
 
-    override fun registerAccount(email: String, password: String, displayName: String?, onResult: (Throwable?) -> Unit) {
-        Firebase.auth.createUserWithEmailAndPassword(email, password)
+    override fun registerAccount(email: String, password: String, displayName: String, onResult: (Throwable?) -> Unit) {
+        Firebase.auth.createUserWithEmailAndPassword(email.filterNot { it.isWhitespace() }, password.filterNot { it.isWhitespace() })
             .addOnCompleteListener {
                 if (it.isSuccessful) {
-                    val update = userProfileChangeRequest { setDisplayName(displayName ?: "User") }
-                    Firebase.auth.currentUser!!.updateProfile(update).addOnCompleteListener {
+                    val update = userProfileChangeRequest { setDisplayName(displayName.filterNot { it.isWhitespace() }) }
+                    Firebase.auth.currentUser?.updateProfile(update)?.addOnCompleteListener {
                         onResult(it.exception)
                     }
                 } else {
@@ -48,12 +48,13 @@ class AccountServiceImpl @Inject constructor(
     }
 
     override fun deleteAccount(email: String, password: String, onReAuthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit) {
-        val credential = EmailAuthProvider.getCredential(email, password)
+        val credential = EmailAuthProvider.getCredential(email.filterNot { it.isWhitespace() }, password.filterNot { it.isWhitespace() })
+        val user = Firebase.auth.currentUser
 
-        Firebase.auth.currentUser?.reauthenticate(credential)
+        user?.reauthenticate(credential)
             ?.addOnCompleteListener {
                 if (it.isSuccessful) {
-                    Firebase.auth.currentUser!!.delete().addOnCompleteListener{
+                    user.delete().addOnCompleteListener{
                         onResult(it.exception)
                     }
                 } else { onReAuthenticate(it.exception) }
@@ -64,26 +65,36 @@ class AccountServiceImpl @Inject constructor(
         val user = Firebase.auth.currentUser
 
         val profileUpdates = userProfileChangeRequest {
-            displayName = name
+            displayName = name.filterNot { it.isWhitespace() }
         }
 
         user?.updateProfile(profileUpdates)
             ?.addOnCompleteListener { task ->
+                user.reload()
                 onResult(task.exception)
             }
     }
 
     override fun editEmail(oldEmail: String, newEmail: String, password: String, onReAuthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit) {
-        val credential = EmailAuthProvider.getCredential(oldEmail, password)
+        val credential = EmailAuthProvider.getCredential(oldEmail.filterNot { it.isWhitespace() }, password.filterNot { it.isWhitespace() })
         val user = Firebase.auth.currentUser
 
         user?.reauthenticate(credential)
             ?.addOnCompleteListener {
                 if (it.isSuccessful) {
-                    user.verifyBeforeUpdateEmail(newEmail).addOnCompleteListener {
-                        onResult(it.exception)
+                    verifyBeforeUpdateEmail(newEmail.filterNot { it.isWhitespace() }) { error ->
+                        onResult(error)
                     }
                 } else { onReAuthenticate(it.exception) }
             }
+    }
+
+    override fun verifyBeforeUpdateEmail(email: String, onResult: (Throwable?) -> Unit) {
+        Timber.d("verify before update email")
+        val user = Firebase.auth.currentUser
+        user?.verifyBeforeUpdateEmail(email.filterNot { it.isWhitespace() })?.addOnCompleteListener {
+            Timber.d("verify before update email done")
+            onResult(it.exception)
+        }
     }
 }
