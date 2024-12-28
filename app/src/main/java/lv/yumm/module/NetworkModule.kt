@@ -1,4 +1,4 @@
-package lv.yumm
+package lv.yumm.module
 
 import dagger.Module
 import dagger.Provides

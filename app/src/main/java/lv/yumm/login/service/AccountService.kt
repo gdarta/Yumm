@@ -8,4 +8,5 @@ interface AccountService {
     fun signOut()
     fun deleteAccount(email: String, password: String, onReAuthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit)
     fun editDisplayName(name: String, onResult: (Throwable?) -> Unit)
+    fun editEmail(oldEmail: String, newEmail: String, password: String, onReAuthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit)
 }

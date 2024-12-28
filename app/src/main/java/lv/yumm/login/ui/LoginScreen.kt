@@ -21,7 +21,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import lv.yumm.login.LoginUiState
+import lv.yumm.login.ui.LoginUiState
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.loginTextFieldColors
 import lv.yumm.ui.theme.recipeTextFieldColors
@@ -59,12 +59,10 @@ fun LoginFields(
         verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        uiState().credentialError?.let {
-            Text(
-                text = it,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
+        Text(
+            text = uiState().credentialError ?: "",
+            color = MaterialTheme.colorScheme.error
+        )
         LoginTextField(
             value = uiState().email,
             onValueChange = { onEvent(LoginEvent.UpdateEmail(it)) },

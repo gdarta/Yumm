@@ -24,7 +24,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
-import lv.yumm.login.LoginUiState
+import lv.yumm.login.ui.LoginUiState
 import lv.yumm.recipes.ui.EditRow
 import lv.yumm.ui.theme.Typography
 import lv.yumm.R
@@ -96,7 +96,7 @@ fun ProfileInfo(
                 )
             } else {
                 Text(
-                    text = "Hello, ${uiState().displayName}",
+                    text = "Hello, ${currentUser.displayName}",
                     style = Typography.headlineMedium
                 )
                 IconButton(
@@ -118,7 +118,7 @@ fun ProfileInfo(
         }
         EditRow {
             Text(
-                text = "Email: ${uiState().email}",
+                text = "Email: ${currentUser.email}",
                 style = Typography.bodyLarge
             )
             IconButton(
@@ -142,7 +142,13 @@ fun ProfileInfo(
             )
         }
         LoginButton(text = "Sign out", modifier = Modifier.fillMaxWidth()) { onEvent(LoginEvent.SignOut()) }
-        LoginButton(text = "Change password", modifier = Modifier.fillMaxWidth()) { onEvent(LoginEvent.SignOut()) }
+        LoginButton(text = "Change password", modifier = Modifier.fillMaxWidth()) {
+            navigateToAction(
+                "To change your password, verify your current profile info",
+                "Change password",
+                EditProfileAction.PASSWORD
+            )
+        }
         LoginButton(text = "Delete profile", modifier = Modifier.fillMaxWidth()) {
             navigateToAction(
                 "To proceed with the deletion of your account, verify your identity. By deleting your account, all of your data will be deleted.",

@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
+import timber.log.Timber
 import javax.inject.Inject
 
 class AccountServiceImpl @Inject constructor(
@@ -69,6 +70,20 @@ class AccountServiceImpl @Inject constructor(
         user?.updateProfile(profileUpdates)
             ?.addOnCompleteListener { task ->
                 onResult(task.exception)
+            }
+    }
+
+    override fun editEmail(oldEmail: String, newEmail: String, password: String, onReAuthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit) {
+        val credential = EmailAuthProvider.getCredential(oldEmail, password)
+        val user = Firebase.auth.currentUser
+
+        user?.reauthenticate(credential)
+            ?.addOnCompleteListener {
+                if (it.isSuccessful) {
+                    user.verifyBeforeUpdateEmail(newEmail).addOnCompleteListener {
+                        onResult(it.exception)
+                    }
+                } else { onReAuthenticate(it.exception) }
             }
     }
 }

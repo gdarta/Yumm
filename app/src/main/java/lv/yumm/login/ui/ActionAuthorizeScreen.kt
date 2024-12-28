@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
-import lv.yumm.login.LoginUiState
+import lv.yumm.login.ui.LoginUiState
 import lv.yumm.ui.EditProfileAction
 import lv.yumm.ui.theme.Typography
 
@@ -41,6 +41,7 @@ fun ActionAuthorizeScreen(
         }
     }
 
+    val newEmail = remember { mutableStateOf("") }
     if (currentUser.value != null) {
         Column(
             modifier = Modifier
@@ -49,6 +50,15 @@ fun ActionAuthorizeScreen(
             verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (actionType == EditProfileAction.EMAIL) {
+                LoginTextField(
+                    value = newEmail.value,
+                    onValueChange = {
+                        newEmail.value = it
+                    },
+                    label = "New e-mail",
+                )
+            }
             Text(
                 text = infoText,
                 style = Typography.titleMedium,
@@ -61,7 +71,7 @@ fun ActionAuthorizeScreen(
             LoginButton(text = actionText) {
                 when (actionType) {
                     EditProfileAction.EMAIL -> {
-                        onEvent(LoginEvent.EditEmail())
+                        onEvent(LoginEvent.EditEmail(newEmail.value))
                     }
                     EditProfileAction.DELETE -> {
                         onEvent(LoginEvent.DeleteAccount())

@@ -11,7 +11,7 @@ sealed class LoginEvent {
     class SignOut(): LoginEvent()
     class DeleteAccount(): LoginEvent()
 
-    class EditEmail(): LoginEvent()
+    class EditEmail(val email: String): LoginEvent()
     class EditPassword(): LoginEvent()
     class EditName(): LoginEvent()
 }

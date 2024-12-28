@@ -1,6 +1,7 @@
 package lv.yumm.login
 
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuthEmailException
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -12,6 +13,7 @@ import lv.yumm.login.service.AccountService
 import lv.yumm.service.LogService
 import lv.yumm.service.StorageService
 import lv.yumm.login.ui.LoginEvent
+import lv.yumm.login.ui.LoginUiState
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -22,10 +24,12 @@ class LoginViewModel @Inject constructor(
     private val accountService: AccountService
 ) : ViewModel() {
 
-    private val _loginUiState = MutableStateFlow(LoginUiState(
-        displayName = Firebase.auth.currentUser?.displayName,
-        email = Firebase.auth.currentUser?.email ?: ""
-    ))
+    private val _loginUiState = MutableStateFlow(
+        LoginUiState(
+            displayName = Firebase.auth.currentUser?.displayName,
+            email = Firebase.auth.currentUser?.email ?: ""
+        )
+    )
     val loginUiState = _loginUiState.asStateFlow()
 
     fun createAnonymousAccount() {
@@ -136,9 +140,7 @@ class LoginViewModel @Inject constructor(
                     authenticate { error ->
                         if (error != null) {
                             error as FirebaseAuthException
-                            _loginUiState.update {
-                                it.copy(credentialError = error.message)
-                            }
+                            handleApiError(error)
                         }
                     }
                 }
@@ -148,27 +150,47 @@ class LoginViewModel @Inject constructor(
                     register { error ->
                         if (error != null) {
                             error as FirebaseAuthException
-                            _loginUiState.update {
-                                it.copy(credentialError = error.message)
-                            }
+                            handleApiError(error)
                         }
                     }
                 }
             }
             is LoginEvent.DeleteAccount -> {
                 delete(
-                    onReAuthenticate = {},
+                    onReAuthenticate = { error ->
+                        if (error != null) {
+                            error as FirebaseAuthException
+                            handleApiError(error)
+                        }
+                    },
                     onError = {}
                 )
             }
             is LoginEvent.EditEmail -> {
-
+                if (event.email.isNotBlank()) {
+                    accountService.editEmail(
+                        oldEmail = _loginUiState.value.email,
+                        newEmail = event.email,
+                        password = _loginUiState.value.password,
+                        onReAuthenticate = { error ->
+                            if (error != null) {
+                                error as FirebaseAuthException
+                                handleApiError(error)
+                            }
+                        },
+                        onResult = {
+                            //todo
+                        }
+                    )
+                }
             }
             is LoginEvent.EditName -> {
-                accountService.editDisplayName(
-                    _loginUiState.value.displayName ?: "User",
-                ) {
-                    //todo
+                if (_loginUiState.value.displayName?.isNotBlank() == true) {
+                    accountService.editDisplayName(
+                        _loginUiState.value.displayName ?: "User",
+                    ) {
+                        //todo
+                    }
                 }
             }
             is LoginEvent.EditPassword -> {
@@ -177,6 +199,23 @@ class LoginViewModel @Inject constructor(
             is LoginEvent.SignOut -> {
                 signOut()
             }
+        }
+    }
+
+    private fun handleApiError(error: FirebaseAuthException) {
+        _loginUiState.update {
+            it.copy(credentialError = getApiErrorText(error))
+        }
+    }
+
+
+    private fun getApiErrorText(error: FirebaseAuthException): String {
+        return when (error.errorCode) {
+            "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL", "ERROR_EMAIL_ALREADY_IN_USE" -> "This e-mail is already taken."
+            "ERROR_INVALID_CREDENTIAL", "ERROR_INVALID_EMAIL", "ERROR_WRONG_PASSWORD", "ERROR_USER_MISMATCH", "" -> "Incorrect e-mail or password."
+            "ERROR_USER_NOT_FOUND" -> "A user with these credentials does not exist."
+            "ERROR_TOO_MANY_REQUESTS" -> "Too many requests. Try again later."
+            else -> "An error occurred."
         }
     }
 

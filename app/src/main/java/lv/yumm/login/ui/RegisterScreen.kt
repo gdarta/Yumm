@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -14,7 +15,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import lv.yumm.login.LoginUiState
+import lv.yumm.login.ui.LoginUiState
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.recipeTextFieldColors
 
@@ -29,6 +30,10 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text(
+            text = uiState().credentialError ?: "",
+            color = MaterialTheme.colorScheme.error
+        )
         LoginTextField(
             value = uiState().email,
             onValueChange = { onEvent(LoginEvent.UpdateEmail(it)) },

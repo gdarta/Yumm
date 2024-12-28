@@ -1,4 +1,4 @@
-package lv.yumm.login
+package lv.yumm.module
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
