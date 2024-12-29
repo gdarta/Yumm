@@ -1,19 +1,22 @@
 package lv.yumm.recipes
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import lv.yumm.BaseViewModel
+import lv.yumm.login.service.AccountService
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.service.StorageService
@@ -25,10 +28,13 @@ import javax.inject.Inject
 class RecipeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
     private val storageService: StorageService,
+    private val accountService: AccountService,
     //private val recipeRepository: DefaultRecipeRepository,
-) : ViewModel () {
-    private val _recipeStream = storageService.recipes
-    val recipeStream: StateFlow<List<Recipe>> = _recipeStream
+) : BaseViewModel() {
+    private val _publicRecipeStream = storageService.publicRecipes
+    private val _userRecipeStream = storageService.userRecipes
+
+    val recipeStream: StateFlow<List<Recipe>> = _userRecipeStream
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Lazily,
@@ -37,8 +43,11 @@ class RecipeViewModel @Inject constructor(
 
     private val _recipeList = MutableStateFlow<List<Recipe>>(emptyList())
 
-    private val _recipeCardUiList = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
-    val recipeCardUiList = _recipeCardUiList.asStateFlow()
+    private val _userRecipeCardUiList = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
+    val userRecipeCardUiList = _userRecipeCardUiList.asStateFlow()
+
+    private val _publicRecipeCardUiList = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
+    val publicRecipeCardUiList = _publicRecipeCardUiList.asStateFlow()
 
     private val _recipeUiState = MutableStateFlow(RecipeUiState())
     val recipeUiState = combine(
@@ -54,12 +63,46 @@ class RecipeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _recipeStream.collectLatest { recipes ->
-                _recipeCardUiList.update {
+            _userRecipeStream.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Lazily,
+                initialValue = emptyList(),
+            ).collectLatest { recipes ->
+                _userRecipeCardUiList.update {
                     recipes.toRecipeCardUiState()
                 }
                 _recipeList.update {
                     recipes
+                }
+            }
+        }
+        viewModelScope.launch {
+            _publicRecipeStream.collectLatest { recipes ->
+                _publicRecipeCardUiList.update {
+                    recipes.toRecipeCardUiState()
+                }
+            }
+        }
+        viewModelScope.launch {
+            accountService.currentUser.collectLatest { user ->
+                // when auth state changes, query the database again
+                // a bit stinky
+                if (user != "col"){
+                    storageService.refreshUserRecipes(user).collectLatest { recipes ->
+                        _userRecipeCardUiList.update {
+                            recipes.toRecipeCardUiState()
+                        }
+                        _recipeList.update {
+                            recipes
+                        }
+                    }
+                } else {
+                    _userRecipeCardUiList.update {
+                        emptyList()
+                    }
+                    _recipeList.update {
+                        emptyList()
+                    }
                 }
             }
         }
@@ -71,17 +114,20 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-    fun insertNewOrUpdate() {
-        val recipeState = recipeUiState.value
+    fun insertNewOrUpdate(public: Boolean) {
+        val recipeState = recipeUiState.value.copy(isPublic = public)
         viewModelScope.launch {
             if (recipeState.id.isBlank()) {
-                storageService.insertRecipe(recipeState.toRecipe()).also {
-                    if (it.isSuccess) {
-                        storageService.updateRecipe(recipeState.copy(id = it.getOrThrow()).toRecipe())
+                storageService.insertRecipe(recipeState.toRecipe()) {
+                    if (it != null) {
+                        postMessage("Error adding recipe")
                     }
                 }
             } else {
-                storageService.updateRecipe(recipeState.toRecipe())
+                Timber.d("Updating recipe: $recipeState")
+                storageService.updateRecipe(recipeState.toRecipe()) {
+                    if (it != null) postMessage("Error updating recipe")
+                }
             }
         }
     }
@@ -94,29 +140,29 @@ class RecipeViewModel @Inject constructor(
 
     fun deleteRecipe(id: String) {
         viewModelScope.launch {
-            val recipe = storageService.getRecipe(id)
+            val recipe = storageService.getUserRecipe(id)
             recipe?.let {
                 onError(storageService.deleteRecipe(recipe)?.cause)
             }
         }
     }
 
-    fun setRecipeUiState(id: String) {
+    fun setRecipeUiState(public: Boolean, id: String) {
         viewModelScope.launch {
-            val recipe = storageService.getRecipe(id) ?: Recipe("")
+            val recipe = if (public) storageService.getPublicRecipe(id) ?: Recipe() else storageService.getUserRecipe(id) ?: Recipe()
             _recipeUiState.update {
                 recipe.toRecipeUiState()
             }
         }
     }
 
-    fun saveRecipe(navigateBack: () -> Unit) {
+    fun saveRecipe(public: Boolean, navigateBack: () -> Unit) {
         viewModelScope.launch {
             _recipeUiState.update {
                 it.copy(triedToSave = true)
             }
             if (!_recipeUiState.value.editScreenHasError) {
-                insertNewOrUpdate()
+                insertNewOrUpdate(public)
                 navigateBack()
             } else {
                 _recipeUiState.update {
@@ -182,13 +228,13 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.SaveRecipe -> {
-                saveRecipe { event.navigateBack() }
+                saveRecipe(event.public) { event.navigateBack() }
             }
             is RecipeEvent.DeleteRecipe -> {
                 deleteRecipe(event.id)
             }
             is RecipeEvent.SetRecipeToUi -> {
-                setRecipeUiState(event.id)
+                setRecipeUiState(event.public, event.id)
             }
             is RecipeEvent.UpdateDifficulty -> {
                 _recipeUiState.update {
@@ -232,7 +278,7 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.OnCardClicked -> {
-                _recipeCardUiList.update {
+                _userRecipeCardUiList.update {
                     val updatedList = it.toMutableList()
                     val index = updatedList.indexOf(updatedList.find {event.id == it.id})
                     updatedList[index] = updatedList[index].copy(
@@ -243,7 +289,7 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.OnEditRevealed -> {
-                _recipeCardUiList.update {
+                _userRecipeCardUiList.update {
                     val updatedList = it.toMutableList()
                     val index = updatedList.indexOf(updatedList.find {event.id == it.id})
                     updatedList[index] = updatedList[index].copy(
@@ -253,7 +299,7 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.OnDeleteRevealed -> {
-                _recipeCardUiList.update {
+                _userRecipeCardUiList.update {
                     val updatedList = it.toMutableList()
                     val index = updatedList.indexOf(updatedList.find {event.id == it.id})
                     updatedList[index] = updatedList[index].copy(
@@ -263,7 +309,7 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.OnEditCollapsed -> {
-                _recipeCardUiList.update {
+                _userRecipeCardUiList.update {
                     val updatedList = it.toMutableList()
                     val index = updatedList.indexOf(updatedList.find {event.id == it.id})
                     updatedList[index] = updatedList[index].copy(
@@ -273,7 +319,7 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.OnDeleteCollapsed -> {
-                _recipeCardUiList.update {
+                _userRecipeCardUiList.update {
                     val updatedList = it.toMutableList()
                     val index = updatedList.indexOf(updatedList.find {event.id == it.id})
                     updatedList[index] = updatedList[index].copy(
@@ -302,7 +348,7 @@ class RecipeViewModel @Inject constructor(
                                     _recipeUiState.update {
                                         it.copy(confirmationDialog = null)
                                     }
-                                    saveRecipe { event.navigateBack() }
+                                    saveRecipe(false) { event.navigateBack() }
                                 },
                                 onDismissDialog = {
                                     _recipeUiState.update {

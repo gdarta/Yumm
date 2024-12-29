@@ -66,7 +66,7 @@ fun RecipesScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.padding(horizontal = 10.dp)
     ) {
-        itemsIndexed(items = recipes, key = {_, recipe -> recipe.id}) { index, recipe ->
+        itemsIndexed(items = recipes, ) { index, recipe ->
             SwipeableItemWithActions(
                 modifier = Modifier.padding(vertical = 10.dp),
                 isLeftRevealed = recipe.isDeleteRevealed,
@@ -97,7 +97,7 @@ fun RecipesScreen(
                 rightAction = {
                     Surface(
                         onClick = {
-                            onEvent(RecipeEvent.SetRecipeToUi(recipe.id))
+                            onEvent(RecipeEvent.SetRecipeToUi(false, recipe.id))
                             onEvent(RecipeEvent.OnEditCollapsed(recipe.id))
                             navigateToEdit()
                         },

@@ -10,7 +10,8 @@ import lv.yumm.ui.state.ConfirmationDialogUiState
 @Immutable
 data class RecipeUiState (
     val id: String = "",
-    val isLoading: Boolean = false, //todo
+    val isLoading: Boolean = false,
+    val isPublic: Boolean = false,
 
     val imageUrl: String = "",
     val category: RecipeType? = null,
@@ -61,6 +62,7 @@ fun RecipeUiState.toRecipe(): Recipe {
         complexity = this.difficulty.toInt(),
         duration = this.duration,
         type = this.category,
+        isPublic = this.isPublic,
         portions = 0 // TODO bla
     )
 }
@@ -76,6 +78,7 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         difficulty = this.complexity.toFloat(),
         duration = this.duration,
         category = this.type,
+        isPublic = this.isPublic,
         triedToSave = false
     )
 }

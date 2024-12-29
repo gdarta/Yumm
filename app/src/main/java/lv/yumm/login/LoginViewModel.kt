@@ -264,7 +264,7 @@ class LoginViewModel @Inject constructor(
                             _loginUiState.update {
                                 it.copy(password = "")
                             }
-                            postMessage("Account successfully created")
+                            postMessage("Account created")
                         }
                     }
                 }
@@ -281,7 +281,7 @@ class LoginViewModel @Inject constructor(
                     onResult = {
                         _loginUiState.update { LoginUiState() }
                         reloadUser()
-                        postMessage("Account successfully deleted")
+                        postMessage("Account deleted")
                     }
                 )
             }

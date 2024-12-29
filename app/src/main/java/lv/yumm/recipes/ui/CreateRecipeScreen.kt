@@ -287,14 +287,24 @@ fun CreateRecipeScreen(
             )
         }
         item {
-            Button(
-                content = { Text(text = "Save recipe") },
-                shape = RoundedCornerShape(3.dp),
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    onEvent(RecipeEvent.SaveRecipe { navigateToRecipesScreen() })
-                }
-            )
+            EditRow {
+                Button(
+                    content = { Text(text = "Save recipe") },
+                    shape = RoundedCornerShape(3.dp),
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        onEvent(RecipeEvent.SaveRecipe(false) { navigateToRecipesScreen() })
+                    }
+                )
+                Button(
+                    content = { Text(text = "Publish recipe") },
+                    shape = RoundedCornerShape(3.dp),
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        onEvent(RecipeEvent.SaveRecipe(true) { navigateToRecipesScreen() })
+                    }
+                )
+            }
         }
     }
 }

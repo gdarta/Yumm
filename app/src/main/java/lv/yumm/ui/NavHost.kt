@@ -40,6 +40,7 @@ import lv.yumm.login.ui.ProfileScreen
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
+import lv.yumm.recipes.ui.HomeScreen
 import lv.yumm.recipes.ui.ViewRecipeScreen
 
 @Keep
@@ -51,6 +52,9 @@ enum class EditProfileAction{
 
 @Serializable
 object RecipesScreen
+
+@Serializable
+object HomeScreen
 
 @Serializable
 object CreateRecipe
@@ -109,7 +113,9 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
             toRecipes = {
                 navController.navigate(RecipesScreen)
             },
-            toHome = {},
+            toHome = {
+                navController.navigate(HomeScreen)
+            },
             toLists = {},
             toProfile = {
                 navController.navigate(ProfileScreen)
@@ -145,11 +151,20 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                 }
             ) {
                 composable<RecipesScreen> {
-                    val state by recipeViewModel.recipeCardUiList.collectAsStateWithLifecycle()
+                    val state by recipeViewModel.userRecipeCardUiList.collectAsStateWithLifecycle()
                     RecipesScreen(state,
                         { navController.navigate(CreateRecipe) },
                         navigateToView = {
-                            recipeViewModel.onEvent(RecipeEvent.SetRecipeToUi(it))
+                            recipeViewModel.onEvent(RecipeEvent.SetRecipeToUi(false, it))
+                            navController.navigate(ViewRecipe)
+                        },
+                        { recipeViewModel.onEvent(it) })
+                }
+                composable<HomeScreen> {
+                    val state by recipeViewModel.publicRecipeCardUiList.collectAsStateWithLifecycle()
+                    HomeScreen(state,
+                        navigateToView = {
+                            recipeViewModel.onEvent(RecipeEvent.SetRecipeToUi(true, it))
                             navController.navigate(ViewRecipe)
                         },
                         { recipeViewModel.onEvent(it) })

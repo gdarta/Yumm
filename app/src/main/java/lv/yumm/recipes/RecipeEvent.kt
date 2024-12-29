@@ -7,8 +7,8 @@ import lv.yumm.recipes.data.RecipeType
 sealed class RecipeEvent {
     class CreateRecipe(): RecipeEvent()
     class DeleteRecipe(val id: String): RecipeEvent()
-    class SaveRecipe(val navigateBack: () -> Unit): RecipeEvent()
-    class SetRecipeToUi(val id: String): RecipeEvent()
+    class SaveRecipe(val public: Boolean, val navigateBack: () -> Unit): RecipeEvent()
+    class SetRecipeToUi(val public: Boolean, val id: String): RecipeEvent()
     class AddIngredient(): RecipeEvent()
     class UpdateTitle(val title: String): RecipeEvent()
     class UpdateDescription(val description: String): RecipeEvent()
