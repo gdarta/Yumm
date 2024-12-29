@@ -26,9 +26,6 @@ fun VerifyEmailScreen(
     resendEmail: () -> Unit,
     onBackPressed: () -> Unit
 ) {
-//    BackHandler(false) {
-//        onBackPressed()
-//    }
     val text = remember {
         buildAnnotatedString {
             append("To proceed, you need to verify your e-mail address.")

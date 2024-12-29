@@ -1,12 +1,16 @@
 package lv.yumm.login
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import lv.yumm.BaseViewModel
 import lv.yumm.login.service.AccountService
@@ -15,6 +19,7 @@ import lv.yumm.service.StorageService
 import lv.yumm.login.ui.LoginEvent
 import lv.yumm.login.ui.LoginUiState
 import lv.yumm.login.ui.VerificationScreenUiState
+import lv.yumm.recipes.RecipeUiState
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -31,10 +36,19 @@ class LoginViewModel @Inject constructor(
             email = Firebase.auth.currentUser?.email ?: ""
         )
     )
-    val loginUiState = _loginUiState.asStateFlow()
+    val loginUiState = combine(
+        _loginUiState,
+        accountService.loading
+    ) { uiState, isLoading ->
+        uiState.copy(isLoading = isLoading)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = LoginUiState()
+    )
 
     fun createAnonymousAccount() {
-        accountService.createAnonymousAccount {  }
+        accountService.createAnonymousAccount { }
     }
 
     fun authenticate(onError: (Throwable?) -> Unit) {
@@ -44,7 +58,17 @@ class LoginViewModel @Inject constructor(
             accountService.authenticate(
                 email,
                 password
-            ) { onError(it) }
+            ) {
+                onError(it)
+                if (it == null) {
+                    _loginUiState.update {
+                        it.copy(
+                            displayName = Firebase.auth.currentUser?.displayName ?: "User",
+                            password = ""
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -73,6 +97,7 @@ class LoginViewModel @Inject constructor(
 
     fun signOut() {
         accountService.signOut()
+        _loginUiState.update { LoginUiState() }
     }
 
     fun delete(onReAuthenticate: (Throwable?) -> Unit, onResult: (Throwable?) -> Unit) {
@@ -87,20 +112,90 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun isInputNotNull(email: String, password: String): Boolean {
-        if (email.isNotBlank() && password.isNotBlank()){
-            return true
-        } else if (email.isBlank()) {
-            _loginUiState.update {
-                it.copy(emailEmpty = true)
+    private fun editEmail(email: String) {
+        accountService.editEmail(
+            oldEmail = _loginUiState.value.email,
+            newEmail = email,
+            password = _loginUiState.value.password,
+            onReAuthenticate = { error ->
+                if (error != null) {
+                    error as FirebaseAuthException
+                    handleApiError(error)
+                }
+            },
+            onResult = {
+                reloadUser()
+                _loginUiState.update {
+                    it.copy(
+                        verificationScreenState = VerificationScreenUiState(
+                            email = email,
+                            resendEmail = {
+                                accountService.verifyBeforeUpdateEmail(email) {
+                                    postMessage("E-mail sent")
+                                }
+                            }
+                        )
+                    )
+                }
             }
-            return false
-        } else {
-            _loginUiState.update {
-                it.copy(passwordEmpty = true)
+        )
+    }
+
+    private fun isInputNotNull(
+        email: String? = null,
+        password: String? = null,
+        confirmPassword: String? = null,
+        newPassword: String? = null,
+        newPasswordConfirm: String? = null
+    ): Boolean {
+        var allInputsValid = true
+
+        email?.let {
+            if (it.isEmpty()) {
+                allInputsValid = false
+                _loginUiState.update {
+                    it.copy(emailEmpty = true)
+                }
             }
-            return false
         }
+
+        password?.let {
+            if (it.isEmpty()) {
+                allInputsValid = false
+                _loginUiState.update {
+                    it.copy(passwordEmpty = true)
+                }
+            }
+        }
+
+        confirmPassword?.let {
+            if (it.isEmpty()) {
+                allInputsValid = false
+                _loginUiState.update {
+                    it.copy(confirmPasswordError = true)
+                }
+            }
+        }
+
+        newPassword?.let {
+            if (it.isEmpty()) {
+                allInputsValid = false
+                _loginUiState.update {
+                    it.copy(newPasswordEmpty = true)
+                }
+            }
+        }
+
+        newPasswordConfirm?.let {
+            if (it.isEmpty()) {
+                allInputsValid = false
+                _loginUiState.update {
+                    it.copy(newPasswordConfirmEmpty = true)
+                }
+            }
+        }
+
+        return allInputsValid
     }
 
     private fun clearErrors() {
@@ -111,7 +206,9 @@ class LoginViewModel @Inject constructor(
                 confirmPasswordError = false,
                 displayNameEmpty = false,
                 credentialError = null,
-                newEmailEmpty = false
+                newEmailEmpty = false,
+                newPasswordEmpty = false,
+                newPasswordConfirmEmpty = false
             )
         }
     }
@@ -124,24 +221,28 @@ class LoginViewModel @Inject constructor(
                     it.copy(email = event.email)
                 }
             }
+
             is LoginEvent.UpdatePassword -> {
                 clearErrors()
                 _loginUiState.update {
                     it.copy(password = event.password)
                 }
             }
+
             is LoginEvent.UpdateConfirmPassword -> {
                 clearErrors()
                 _loginUiState.update {
                     it.copy(confirmPassword = event.password)
                 }
             }
+
             is LoginEvent.UpdateDisplayName -> {
                 clearErrors()
                 _loginUiState.update {
                     it.copy(displayName = event.name)
                 }
             }
+
             is LoginEvent.LogIn -> {
                 if (!_loginUiState.value.hasError) {
                     authenticate { error ->
@@ -152,16 +253,23 @@ class LoginViewModel @Inject constructor(
                     }
                 }
             }
+
             is LoginEvent.SignUp -> {
                 if (!_loginUiState.value.hasError) {
                     register { error ->
                         if (error != null) {
                             error as FirebaseAuthException
                             handleApiError(error)
+                        } else {
+                            _loginUiState.update {
+                                it.copy(password = "")
+                            }
+                            postMessage("Account successfully created")
                         }
                     }
                 }
             }
+
             is LoginEvent.DeleteAccount -> {
                 delete(
                     onReAuthenticate = { error ->
@@ -171,44 +279,23 @@ class LoginViewModel @Inject constructor(
                         }
                     },
                     onResult = {
+                        _loginUiState.update { LoginUiState() }
                         reloadUser()
+                        postMessage("Account successfully deleted")
                     }
                 )
             }
+
             is LoginEvent.EditEmail -> {
                 if (event.email.isNotBlank()) {
-                    accountService.editEmail(
-                        oldEmail = _loginUiState.value.email,
-                        newEmail = event.email,
-                        password = _loginUiState.value.password,
-                        onReAuthenticate = { error ->
-                            if (error != null) {
-                                error as FirebaseAuthException
-                                handleApiError(error)
-                            }
-                        },
-                        onResult = {
-                            reloadUser()
-                            _loginUiState.update {
-                                it.copy(
-                                    verificationScreenState = VerificationScreenUiState(
-                                        email = event.email,
-                                        resendEmail = {
-                                            accountService.verifyBeforeUpdateEmail(event.email) {
-                                                postMessage("E-mail sent")
-                                            }
-                                        }
-                                    )
-                                )
-                            }
-                        }
-                    )
+                    editEmail(event.email)
                 } else {
                     _loginUiState.update {
                         it.copy(newEmailEmpty = true)
                     }
                 }
             }
+
             is LoginEvent.EditName -> {
                 if (_loginUiState.value.displayName.isNotBlank()) {
                     accountService.editDisplayName(
@@ -222,20 +309,42 @@ class LoginViewModel @Inject constructor(
                     }
                 }
             }
-            is LoginEvent.EditPassword -> {
 
+            is LoginEvent.EditPassword -> {
+                if (isInputNotNull(newPassword = event.password, newPasswordConfirm = event.confirmPassword)) {
+                    if (event.password == event.confirmPassword) {
+                        accountService.changePassword(
+                            email = _loginUiState.value.email,
+                            password = _loginUiState.value.password,
+                            newPassword = event.password,
+                            onReAuthenticate = { error ->
+                                if (error != null) {
+                                    error as FirebaseAuthException
+                                    handleApiError(error)
+                                }
+                            },
+                            onResult = {
+                                if (it == null) {
+                                    postMessage("Password is updated")
+                                    event.goBack()
+                                }
+                            }
+                        )
+                    }
+                }
             }
+
             is LoginEvent.SignOut -> {
                 signOut()
                 _loginUiState.update {
                     LoginUiState()
                 }
             }
+
             is LoginEvent.ClearVerifyScreen -> {
                 _loginUiState.update {
                     it.copy(
-                        verificationScreenState = null,
-                        resetPasswordScreenState = null
+                        verificationScreenState = null
                     )
                 }
             }
@@ -243,7 +352,7 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun reloadUser() {
-        Firebase.auth.currentUser?.reload()?.addOnCompleteListener{
+        Firebase.auth.currentUser?.reload()?.addOnCompleteListener {
             Timber.d("Reloaded user")
         }
     }

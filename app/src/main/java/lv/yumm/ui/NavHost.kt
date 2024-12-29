@@ -207,7 +207,7 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                     )
                 }
             }
-            if (recipeUiState.isLoading) {
+            if (recipeUiState.isLoading || loginUiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )

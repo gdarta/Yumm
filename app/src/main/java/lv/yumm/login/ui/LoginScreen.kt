@@ -32,9 +32,12 @@ fun LoginScreen(
     onEvent: (LoginEvent) -> Unit,
     navigateToSignUp: () -> Unit
 ) {
+
     Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 50.dp),
+        verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.Top),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LoginFields(

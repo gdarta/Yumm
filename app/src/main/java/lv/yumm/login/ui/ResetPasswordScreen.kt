@@ -24,9 +24,6 @@ fun ResetPasswordScreen(
     resendEmail: () -> Unit,
     onBackPressed: () -> Unit
 ) {
-//    BackHandler(false) {
-//        onBackPressed()
-//    }
     val text = remember {
         buildAnnotatedString {
             append("To proceed with resetting your password, open the link sent to your e-mail.")

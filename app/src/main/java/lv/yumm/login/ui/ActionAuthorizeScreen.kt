@@ -4,14 +4,21 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
@@ -47,62 +54,93 @@ fun ActionAuthorizeScreen(
     }
 
     val newEmail = remember { mutableStateOf("") }
-    if (currentUser.value != null && uiState().verificationScreenState == null && uiState().resetPasswordScreenState == null) {
+    val newPassword = remember { mutableStateOf("") }
+    val newPasswordConfirm = remember { mutableStateOf("") }
+    if (currentUser.value != null && uiState().verificationScreenState == null) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
+                .padding(10.dp)
+                .imePadding(),
+            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (actionType == EditProfileAction.EMAIL) {
-                LoginTextField(
-                    value = newEmail.value,
-                    onValueChange = {
-                        newEmail.value = it
-                    },
-                    label = "New e-mail",
-                    isError = uiState().newEmailEmpty
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = infoText,
+                    style = Typography.titleMedium,
+                    textAlign = TextAlign.Center
                 )
+                LoginFields(
+                    uiState = uiState,
+                    onEvent = { onEvent(it) }
+                )
+                if (actionType == EditProfileAction.PASSWORD) {
+                    LoginTextField(
+                        value = newPassword.value,
+                        onValueChange = {
+                            newPassword.value = it
+                        },
+                        label = "New password",
+                        isError = uiState().newPasswordEmpty,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    )
+                    LoginTextField(
+                        value = newPasswordConfirm.value,
+                        onValueChange = {
+                            newPasswordConfirm.value = it
+                        },
+                        label = "Confirm new password",
+                        isError = uiState().newPasswordConfirmEmpty,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    )
+                }
+                if (actionType == EditProfileAction.EMAIL) {
+                    LoginTextField(
+                        value = newEmail.value,
+                        onValueChange = {
+                            newEmail.value = it
+                        },
+                        label = "New e-mail",
+                        isError = uiState().newEmailEmpty,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    )
+                }
             }
-            Text(
-                text = infoText,
-                style = Typography.titleMedium,
-                textAlign = TextAlign.Center
-            )
-            LoginFields(
-                uiState = uiState,
-                onEvent = { onEvent(it) }
-            )
             LoginButton(text = actionText) {
                 when (actionType) {
                     EditProfileAction.EMAIL -> {
                         onEvent(LoginEvent.EditEmail(newEmail.value))
                     }
+
                     EditProfileAction.DELETE -> {
                         onEvent(LoginEvent.DeleteAccount())
                     }
+
                     EditProfileAction.PASSWORD -> {
-                        onEvent(LoginEvent.EditPassword())
+                        onEvent(
+                            LoginEvent.EditPassword(
+                                newPassword.value,
+                                newPasswordConfirm.value,
+                                navigateToProfileScreen
+                            )
+                        )
                     }
                 }
             }
+
         }
     } else if (uiState().verificationScreenState != null) {
         VerifyEmailScreen(
             email = uiState().verificationScreenState?.email ?: "...",
             resendEmail = {
                 uiState().verificationScreenState?.resendEmail()
-            },
-            onBackPressed = {
-                onEvent(LoginEvent.ClearVerifyScreen())
-            }
-        )
-    } else if (uiState().resetPasswordScreenState != null) {
-        ResetPasswordScreen(
-            email = uiState().resetPasswordScreenState?.email ?: "...",
-            resendEmail = {
-                uiState().resetPasswordScreenState?.resendEmail()
             },
             onBackPressed = {
                 onEvent(LoginEvent.ClearVerifyScreen())

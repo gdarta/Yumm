@@ -12,7 +12,7 @@ sealed class LoginEvent {
     class DeleteAccount(): LoginEvent()
 
     class EditEmail(val email: String): LoginEvent()
-    class EditPassword(): LoginEvent()
+    class EditPassword(val password: String, val confirmPassword: String, val goBack: () -> Unit): LoginEvent()
     class EditName(): LoginEvent()
 
     class ClearVerifyScreen(): LoginEvent()
