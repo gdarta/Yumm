@@ -2,6 +2,7 @@ package lv.yumm.lists.data
 
 import com.google.firebase.Timestamp
 import com.google.type.DateTime
+import lv.yumm.lists.ListItem
 import lv.yumm.lists.ListUiState
 import lv.yumm.recipes.data.Ingredient
 import java.text.SimpleDateFormat
@@ -12,7 +13,7 @@ data class UserList(
     val id: String = "",
     val title: String = "",
     val updatedAt: Timestamp? = null,
-    val list: List<Ingredient> = emptyList()
+    val list: List<ListItem> = emptyList()
 )
 
 fun ListUiState.toUserList(): UserList {

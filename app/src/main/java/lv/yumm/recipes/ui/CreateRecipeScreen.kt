@@ -331,9 +331,9 @@ fun CreateRecipeScreen(
 }
 
 @Composable
-fun EditRow(content: @Composable RowScope.() -> Unit) {
+fun EditRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

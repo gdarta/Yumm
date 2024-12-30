@@ -43,6 +43,7 @@ import lv.yumm.ui.theme.Typography
 fun ListScreen(
     currentUserId: String,
     navigateToLogin: () -> Unit,
+    navigateToView: () -> Unit,
     navigateToEdit: () -> Unit,
     lists: List<ListUiState>,
     onEvent: (ListEvent) -> Unit
@@ -106,7 +107,10 @@ fun ListScreen(
                     }
                 ) {
                     Surface(
-                        onClick = {},
+                        onClick = {
+                            onEvent(ListEvent.OpenList(list.id))
+                            navigateToView()
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         tonalElevation = 5.dp,
                         shadowElevation = 5.dp,

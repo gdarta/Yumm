@@ -39,7 +39,9 @@ class ListServiceImpl @Inject constructor(
         get() = _loading
 
     override fun refreshUserLists(uid: String): Flow<List<UserList>> {
-        return listCollection.document(uid).collection(LISTS).dataObjects<UserList>()
+        return listCollection.document(uid).collection(LISTS)
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+            .dataObjects<UserList>()
     }
 
     override suspend fun getList(id: String): UserList? {
@@ -54,17 +56,20 @@ class ListServiceImpl @Inject constructor(
     override suspend fun updateList(list: UserList, onResult: (Throwable?) -> Unit) {
         if (list.list.isNotEmpty()) { // do not save list if it is empty
             Firebase.auth.currentUser?.let { user -> // allow updates for lists only for authenticated users
+                _loading.value = true
                 val userLists = listCollection.document(user.uid).collection(LISTS)
                 if (list.id.isBlank()) {
                     val id = userLists.add(list)
                         .await().id
                     userLists.document(id).set(list.copy(id = id, updatedAt = Timestamp.now()))
                         .addOnCompleteListener {
+                            _loading.value = false
                             onResult(it.exception)
                         }.await()
                 } else {
                     userLists.document(list.id).set(list.copy(updatedAt = Timestamp.now()))
                         .addOnCompleteListener {
+                            _loading.value = false
                             onResult(it.exception)
                         }.await()
                 }

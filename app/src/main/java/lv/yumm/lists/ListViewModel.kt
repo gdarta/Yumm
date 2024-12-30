@@ -5,6 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -28,7 +29,12 @@ class ListViewModel @Inject constructor(
 ) : BaseViewModel() {
 
     private val _listUiState = MutableStateFlow(ListUiState())
-    val listUiState = _listUiState.stateIn(
+    val listUiState = combine(
+        _listUiState,
+        storageService.uploadingFlow
+    ) { uiState, isLoading ->
+        uiState.copy(isLoading = isLoading)
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(),
         initialValue = ListUiState()
@@ -97,7 +103,7 @@ class ListViewModel @Inject constructor(
             is ListEvent.AddItem -> {
                 _listUiState.update {
                     it.copy(
-                        list = it.list + Ingredient(),
+                        list = it.list + ListItem(),
                         errorList = it.errorList + ItemError()
                     )
                 }
@@ -106,7 +112,7 @@ class ListViewModel @Inject constructor(
             is ListEvent.UpdateItem -> {
                 val item = event.item
                 val updatedItems = _listUiState.value.list.toMutableList()
-                updatedItems[event.index] = item
+                updatedItems[event.index] = ListItem(ingredient = item)
 
                 val updatedErrors = _listUiState.value.errorList.toMutableList()
                 // validating that input is not blank and that amount is a valid number
@@ -130,12 +136,26 @@ class ListViewModel @Inject constructor(
                 }
             }
 
+            is ListEvent.CheckItem -> {
+                viewModelScope.launch {
+                    val updatedItems = _listUiState.value.list.toMutableList()
+                    updatedItems[event.index] =
+                        updatedItems[event.index].copy(checked = event.checked)
+
+                    _listUiState.update {
+                        it.copy(list = updatedItems)
+                    }
+
+                    storageService.updateList(_listUiState.value.toUserList()) {}
+                }
+            }
+
             is ListEvent.ValidateAndSave -> {
                 viewModelScope.launch {
                     _listUiState.update {
                         it.copy(
-                            list = it.list.filterNot { it.isEmpty() },
-                            errorList = it.errorList.filterIndexed { index, _ -> !it.list[index].isEmpty() })
+                            list = it.list.filterNot { it.ingredient.isEmpty() },
+                            errorList = it.errorList.filterIndexed { index, _ -> !it.list[index].ingredient.isEmpty() })
                     }
                     storageService.updateList(_listUiState.value.toUserList()) {
                         if (it == null) postMessage("List is saved")

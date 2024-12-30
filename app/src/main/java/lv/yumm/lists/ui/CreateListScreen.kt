@@ -73,7 +73,7 @@ fun CreateListScreen (
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            itemsIndexed(uiState().list) { index, ingredient ->
+            itemsIndexed(uiState().list) { index, item ->
                 var isDeleteRevealed by remember { mutableStateOf(false) }
                 SwipeableItemWithActions(
                     modifier = Modifier.padding(vertical = 10.dp),
@@ -102,7 +102,7 @@ fun CreateListScreen (
                     }
                 ) {
                     IngredientCard(IngredientOptions(),
-                        ingredient,
+                        item.ingredient,
                         name = "Item",
                         nameError = uiState().errorList[index].nameError,
                         amountError = uiState().errorList[index].amountError,
@@ -111,7 +111,7 @@ fun CreateListScreen (
                             onEvent(
                                 ListEvent.UpdateItem(
                                     index,
-                                    ingredient.copy(name = it)
+                                    item.ingredient.copy(name = it)
                                 )
                             )
                         },
@@ -119,7 +119,7 @@ fun CreateListScreen (
                             onEvent(
                                 ListEvent.UpdateItem(
                                     index,
-                                    ingredient.copy(amount = it.toFloatOrNull() ?: 0f)
+                                    item.ingredient.copy(amount = it.toFloatOrNull() ?: 0f)
                                 )
                             )
                         },
@@ -127,7 +127,7 @@ fun CreateListScreen (
                             onEvent(
                                 ListEvent.UpdateItem(
                                     index,
-                                    ingredient.copy(unit = it)
+                                    item.ingredient.copy(unit = it)
                                 )
                             )
                         })

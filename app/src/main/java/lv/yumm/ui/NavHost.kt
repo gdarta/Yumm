@@ -3,6 +3,11 @@ package lv.yumm.ui
 import androidx.annotation.Keep
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,6 +59,7 @@ import lv.yumm.lists.ListEvent
 import lv.yumm.lists.ListViewModel
 import lv.yumm.lists.ui.CreateListScreen
 import lv.yumm.lists.ui.ListScreen
+import lv.yumm.lists.ui.ViewListScreen
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.ui.state.FloatingActionButtonState
 import timber.log.Timber
@@ -101,6 +107,9 @@ object CreateListScreen
 
 @Serializable
 object ListsScreen
+
+@Serializable
+object ViewListScreen
 
 fun getTitle(screen: NavDestination?) : String{
     return when {
@@ -205,11 +214,14 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
             NavHost(
                 navController = navController,
                 startDestination = RecipesScreen,
-                enterTransition = {
-                    EnterTransition.None
-                },
                 exitTransition = {
-                    ExitTransition.None
+                    scaleOutOfContainer(direction = ScaleTransitionDirection.INWARDS)
+                },
+                popEnterTransition = {
+                    scaleIntoContainer(direction = ScaleTransitionDirection.OUTWARDS)
+                },
+                popExitTransition = {
+                    scaleOutOfContainer()
                 }
             ) {
                 composable<RecipesScreen> {
@@ -300,16 +312,50 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         currentUserId = currentUser,
                         navigateToLogin = { navController.navigate(ProfileScreen) },
                         navigateToEdit = { navController.navigate(CreateListScreen) },
+                        navigateToView = { navController.navigate(ViewListScreen) },
                         lists = lists,
                         onEvent = { listViewModel.onEvent(it) }
                     )
                 }
+
+                composable<ViewListScreen> {
+                    ViewListScreen(
+                        uiState = listUiState
+                    ) { listViewModel.onEvent(it) }
+                }
             }
-            if (recipeUiState.isLoading || loginUiState.isLoading) {
+            if (recipeUiState.isLoading || loginUiState.isLoading || listUiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
         }
     }
+}
+
+enum class ScaleTransitionDirection {
+    INWARDS,
+    OUTWARDS
+}
+
+fun scaleIntoContainer(
+    direction: ScaleTransitionDirection = ScaleTransitionDirection.INWARDS,
+    initialScale: Float = if (direction == ScaleTransitionDirection.OUTWARDS) 0.9f else 1.1f
+): EnterTransition {
+    return scaleIn(
+        animationSpec = tween(220, delayMillis = 90),
+        initialScale = initialScale
+    ) + fadeIn(animationSpec = tween(220, delayMillis = 90))
+}
+
+fun scaleOutOfContainer(
+    direction: ScaleTransitionDirection = ScaleTransitionDirection.OUTWARDS,
+    targetScale: Float = if (direction == ScaleTransitionDirection.INWARDS) 0.9f else 1.1f
+): ExitTransition {
+    return scaleOut(
+        animationSpec = tween(
+            durationMillis = 220,
+            delayMillis = 90
+        ), targetScale = targetScale
+    ) + fadeOut(tween(delayMillis = 90))
 }
