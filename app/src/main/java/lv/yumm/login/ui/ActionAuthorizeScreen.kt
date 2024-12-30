@@ -3,8 +3,11 @@ package lv.yumm.login.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,6 +32,7 @@ import lv.yumm.ui.EditProfileAction
 import lv.yumm.ui.theme.Typography
 import timber.log.Timber
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ActionAuthorizeScreen(
     infoText: String,
@@ -59,7 +64,6 @@ fun ActionAuthorizeScreen(
     if (currentUser.value != null && uiState().verificationScreenState == null) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(10.dp)
                 .imePadding(),
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
@@ -113,7 +117,8 @@ fun ActionAuthorizeScreen(
                     )
                 }
             }
-            LoginButton(text = actionText) {
+            val imeVisible = WindowInsets.isImeVisible
+            LoginButton(modifier = Modifier.padding(bottom = if (imeVisible) 5.dp else 50.dp),text = actionText) {
                 when (actionType) {
                     EditProfileAction.EMAIL -> {
                         onEvent(LoginEvent.EditEmail(newEmail.value))

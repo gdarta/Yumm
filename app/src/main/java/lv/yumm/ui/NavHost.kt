@@ -50,10 +50,13 @@ import lv.yumm.recipes.ui.EditIngredientsScreen
 import lv.yumm.recipes.ui.HomeScreen
 import lv.yumm.recipes.ui.ViewRecipeScreen
 import lv.yumm.R
+import lv.yumm.lists.ListEvent
 import lv.yumm.lists.ListViewModel
 import lv.yumm.lists.ui.CreateListScreen
 import lv.yumm.lists.ui.ListScreen
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
+import lv.yumm.ui.state.FloatingActionButtonState
+import timber.log.Timber
 
 @Keep
 enum class EditProfileAction{
@@ -99,8 +102,6 @@ object CreateListScreen
 @Serializable
 object ListsScreen
 
-
-
 fun getTitle(screen: NavDestination?) : String{
     return when {
         screen?.hasRoute(route = RecipesScreen::class) == true -> "My Recipes"
@@ -113,42 +114,83 @@ fun getTitle(screen: NavDestination?) : String{
     }
 }
 
+val showBottomBarList = listOf(
+    HomeScreen::class.qualifiedName,
+    RecipesScreen::class.qualifiedName,
+    ViewRecipe::class.qualifiedName,
+    ListsScreen::class.qualifiedName,
+    ProfileScreen::class.qualifiedName
+)
+
 @Composable
 fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel, listViewModel: ListViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    var shouldShowActionButton by remember { mutableStateOf(false) }
 
+    val showBottomBar = remember { mutableStateOf(true) }
+
+    // Observe current navigation state
+    val actionButtonState = remember { mutableStateOf(FloatingActionButtonState()) }
     navBackStackEntry?.destination?.let { currentDestination ->
-        shouldShowActionButton = currentDestination.hasRoute(route = RecipesScreen::class) && recipeViewModel.currentUserId.value != EMPTY_USER_ID
+        val route = currentDestination.route
+
+        showBottomBar.value = route in showBottomBarList
+
+        actionButtonState.value =
+            when (route) {
+            RecipesScreen::class.qualifiedName -> {
+                FloatingActionButtonState(
+                    shouldShow = recipeViewModel.currentUserId.value != EMPTY_USER_ID,
+                    onClick = {
+                        navController.navigate(CreateRecipe)
+                        recipeViewModel.onEvent(RecipeEvent.CreateRecipe())
+                    }
+                )
+            }
+            ListsScreen::class.qualifiedName -> {
+                FloatingActionButtonState(
+                    shouldShow = recipeViewModel.currentUserId.value != EMPTY_USER_ID,
+                    onClick = {
+                        navController.navigate(CreateListScreen)
+                        listViewModel.onEvent(ListEvent.CreateNewList())
+                    }
+                )
+            }
+            else -> {
+                FloatingActionButtonState(
+                    shouldShow = false
+                )
+            }
+        }
     }
 
     val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
     val loginUiState by loginViewModel.loginUiState.collectAsStateWithLifecycle()
     val listUiState by listViewModel.listUiState.collectAsStateWithLifecycle()
-
     Scaffold(
         modifier = Modifier.systemBarsPadding(),
         topBar = { TopBar(title = getTitle(navBackStackEntry?.destination)) },
-        bottomBar = { BottomNavBar(
-            toRecipes = { navController.navigate(RecipesScreen) },
-            toHome = { navController.navigate(HomeScreen) },
-            toLists = { navController.navigate(ListsScreen) },
-            toProfile = { navController.navigate(ProfileScreen) },
-            toCalendar = {}) },
+        bottomBar = {
+            if (showBottomBar.value) {
+                BottomNavBar(
+                    toRecipes = { navController.navigate(RecipesScreen) },
+                    toHome = { navController.navigate(HomeScreen) },
+                    toLists = { navController.navigate(ListsScreen) },
+                    toProfile = { navController.navigate(ProfileScreen) },
+                    toCalendar = {}
+                )
+            }
+        },
         floatingActionButton = {
-            if (shouldShowActionButton) {
+            if (actionButtonState.value.shouldShow) {
                 Button(
                     shape = CircleShape,
                     content = { Icon(
                         painter = painterResource(R.drawable.ic_add),
-                        contentDescription = "Add recipe",
+                        contentDescription = "Add",
                         modifier = Modifier.size(50.dp)
                     ) },
-                    onClick = {
-                        navController.navigate(CreateRecipe)
-                        recipeViewModel.onEvent(RecipeEvent.CreateRecipe())
-                    })
+                    onClick = { actionButtonState.value.onClick() })
             }
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0)

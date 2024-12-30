@@ -3,6 +3,8 @@ package lv.yumm.lists
 import lv.yumm.recipes.data.Ingredient
 
 sealed class ListEvent {
+    class CreateNewList(): ListEvent()
+
     class UpdateTitle(val title: String): ListEvent()
 
     class AddItem(): ListEvent()

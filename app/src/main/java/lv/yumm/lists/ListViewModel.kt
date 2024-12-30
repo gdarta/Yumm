@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import lv.yumm.BaseViewModel
+import lv.yumm.lists.data.UserList
 import lv.yumm.lists.data.toUiState
 import lv.yumm.lists.data.toUserList
 import lv.yumm.lists.service.ListService
@@ -17,7 +18,6 @@ import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.isEmpty
 import lv.yumm.service.StorageService
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -62,8 +62,16 @@ class ListViewModel @Inject constructor(
         }
     }
 
+    private fun setListToUi(list: UserList) {
+        _listUiState.value = list.toUiState()
+    }
+
     fun onEvent(event: ListEvent) {
         when (event) {
+            is ListEvent.CreateNewList -> {
+                setListToUi(UserList())
+            }
+
             is ListEvent.UpdateTitle -> {
                 _listUiState.update {
                     it.copy(title = event.title)
