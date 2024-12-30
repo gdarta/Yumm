@@ -42,20 +42,43 @@ class ListServiceImpl @Inject constructor(
         return listCollection.document(uid).collection(LISTS).dataObjects<UserList>()
     }
 
+    override suspend fun getList(id: String): UserList? {
+        return Firebase.auth.currentUser?.let { user ->
+            _loading.value = true
+            listCollection.document(user.uid).collection(LISTS).document(id).get().addOnCompleteListener{
+                _loading.value = false
+            }.await().toObject(UserList::class.java)
+        }
+    }
+
     override suspend fun updateList(list: UserList, onResult: (Throwable?) -> Unit) {
-        Firebase.auth.currentUser?.let { user ->
-            val userLists = listCollection.document(user.uid).collection(LISTS)
-            if (list.id.isBlank()) {
-                val id = userLists.add(list)
-                    .await().id
-                userLists.document(id).set(list.copy(id = id, updatedAt = Timestamp.now())).addOnCompleteListener {
-                    onResult(it.exception)
-                }.await()
-            } else {
-                userLists.document(list.id).set(list.copy(updatedAt = Timestamp.now())).addOnCompleteListener {
-                    onResult(it.exception)
-                }.await()
+        if (list.list.isNotEmpty()) { // do not save list if it is empty
+            Firebase.auth.currentUser?.let { user -> // allow updates for lists only for authenticated users
+                val userLists = listCollection.document(user.uid).collection(LISTS)
+                if (list.id.isBlank()) {
+                    val id = userLists.add(list)
+                        .await().id
+                    userLists.document(id).set(list.copy(id = id, updatedAt = Timestamp.now()))
+                        .addOnCompleteListener {
+                            onResult(it.exception)
+                        }.await()
+                } else {
+                    userLists.document(list.id).set(list.copy(updatedAt = Timestamp.now()))
+                        .addOnCompleteListener {
+                            onResult(it.exception)
+                        }.await()
+                }
             }
+        } else {
+            onResult(Exception("No items provided"))
+        }
+    }
+
+    override suspend fun deleteList(id: String, onResult: (Throwable?) -> Unit) {
+        Firebase.auth.currentUser?.let { user ->
+            listCollection.document(user.uid).collection(LISTS).document(id).delete().addOnCompleteListener {
+                onResult(it.exception)
+            }.await()
         }
     }
 }

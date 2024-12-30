@@ -72,6 +72,15 @@ class ListViewModel @Inject constructor(
                 setListToUi(UserList())
             }
 
+            is ListEvent.DeleteList -> {
+                viewModelScope.launch {
+                    storageService.deleteList(event.id) {
+                        if (it == null) postMessage("List was deleted")
+                        else postMessage("Operation failed")
+                    }
+                }
+            }
+
             is ListEvent.UpdateTitle -> {
                 _listUiState.update {
                     it.copy(title = event.title)
@@ -123,7 +132,7 @@ class ListViewModel @Inject constructor(
                     }
                     storageService.updateList(_listUiState.value.toUserList()) {
                         if (it == null) postMessage("List is saved")
-                        else postMessage("An error occurred")
+                        else postMessage("List was dismissed")
                     }
                 }
             }

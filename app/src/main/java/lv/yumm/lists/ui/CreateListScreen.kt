@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,8 +33,11 @@ import lv.yumm.R
 import lv.yumm.lists.ListEvent
 import lv.yumm.lists.ListUiState
 import lv.yumm.recipes.IngredientOptions
+import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.IngredientCard
 import lv.yumm.recipes.ui.SwipeableItemWithActions
+import lv.yumm.ui.theme.Typography
+import lv.yumm.ui.theme.recipeTextFieldColors
 
 @Composable
 fun CreateListScreen (
@@ -56,6 +60,19 @@ fun CreateListScreen (
                 .weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            item {
+                TextField(
+                    value = uiState().title,
+                    onValueChange = {
+                        onEvent(ListEvent.UpdateTitle(it))
+                    },
+                    textStyle = Typography.titleLarge,
+                    label = { Text(text = "Title") },
+                    singleLine = true,
+                    colors = recipeTextFieldColors(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             itemsIndexed(uiState().list) { index, ingredient ->
                 var isDeleteRevealed by remember { mutableStateOf(false) }
                 SwipeableItemWithActions(
