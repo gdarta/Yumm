@@ -96,6 +96,7 @@ fun EditDirectionsScreen(
             shape = RoundedCornerShape(3.dp),
             modifier = Modifier.fillMaxWidth(),
             onClick = {
+                onEvent(RecipeEvent.ValidateDirections())
                 navigateBack()
             }
         )

@@ -382,6 +382,13 @@ class RecipeViewModel @Inject constructor(
                     it.copy(ingredients = ingredients)
                 }
             }
+
+            is RecipeEvent.ValidateDirections -> {
+                val directions = _recipeUiState.value.directions.filterNot { it.isEmpty() }
+                _recipeUiState.update {
+                    it.copy(directions = directions)
+                }
+            }
         }
     }
 }

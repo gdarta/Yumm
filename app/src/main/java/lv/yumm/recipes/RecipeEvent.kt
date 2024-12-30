@@ -20,6 +20,7 @@ sealed class RecipeEvent {
     class UpdatePortions(val portions: Int?): RecipeEvent()
 
     class ValidateIngredients(): RecipeEvent()
+    class ValidateDirections(): RecipeEvent()
 
     class DeleteIngredient(val index: Int): RecipeEvent()
     class AddDirection(): RecipeEvent()
