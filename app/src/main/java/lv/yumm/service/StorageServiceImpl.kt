@@ -14,7 +14,6 @@ import kotlinx.coroutines.tasks.await
 import lv.yumm.login.service.AccountService
 import lv.yumm.recipes.data.Recipe
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 @Singleton
@@ -98,7 +97,7 @@ class StorageServiceImpl @Inject constructor(
             onResult(error)
             if (error != null) {
                 Timber.e("Error setting id for recipe: ${error.message}")
-            } else if (recipe.isPublic) {
+            } else if (recipe.public) {
                 publishRecipe(updatedRecipe) {
                     onResult(it)
                 }
@@ -122,9 +121,9 @@ class StorageServiceImpl @Inject constructor(
             onResult(it.exception)
             if (it.exception != null) {
                 Timber.e("Error updating recipe with id: ${recipe.id}, ${it.exception?.message}")
-            } else if (recipe.isPublic) {
+            } else if (recipe.public) {
                 publishRecipe(updatedRecipe) {
-                    Timber.e("Error publishing recipe with id: ${recipe.id}, ${it?.message}")
+                    if (it != null) Timber.e("Error publishing recipe with id: ${recipe.id}, ${it.message}")
                     onResult(it)
                 }
             }
@@ -142,8 +141,12 @@ class StorageServiceImpl @Inject constructor(
             } catch (e: Exception) {
                 Timber.e("Error deleting image resource: ${e.message}")
             }
-            userCollection.document(recipe.id).delete().await()
-            if (recipe.isPublic) publicCollection.document(recipe.id).delete().await()
+            userCollection.document(recipe.id).delete().addOnCompleteListener{
+                Timber.d("Deleted private recipe with ${it.exception} and ${recipe}")
+                if (recipe.public) publicCollection.document(recipe.id).delete().addOnCompleteListener{
+                    Timber.d("Completed deleting public recipe with: ${it.exception}")
+                }
+            }.await()
             null
         } catch (e: Exception) {
             Timber.e("Error deleting recipe with id: ${recipe.id}, ${e.message}")

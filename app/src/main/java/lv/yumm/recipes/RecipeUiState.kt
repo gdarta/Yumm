@@ -62,7 +62,7 @@ fun RecipeUiState.toRecipe(): Recipe {
         complexity = this.difficulty.toInt(),
         duration = this.duration,
         type = this.category,
-        isPublic = this.isPublic,
+        public = this.isPublic,
         portions = 0 // TODO bla
     )
 }
@@ -78,7 +78,7 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         difficulty = this.complexity.toFloat(),
         duration = this.duration,
         category = this.type,
-        isPublic = this.isPublic,
+        isPublic = this.public,
         triedToSave = false
     )
 }

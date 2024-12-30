@@ -1,23 +1,14 @@
 package lv.yumm.recipes.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
-import lv.yumm.R
 import lv.yumm.recipes.RecipeCardUiState
 import lv.yumm.recipes.RecipeEvent
 
@@ -33,7 +24,7 @@ fun HomeScreen(
         modifier = Modifier.padding(horizontal = 10.dp)
     ) {
         itemsIndexed(items = recipes, key = { _, recipe -> recipe.id }) { index, recipe ->
-            RecipeCard(recipe, Modifier) {
+            RecipeCard(recipe, Modifier.shadow(10.dp)) {
                 navigateToView(recipe.id)
             }
         }

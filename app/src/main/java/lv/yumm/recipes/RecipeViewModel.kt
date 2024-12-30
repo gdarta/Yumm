@@ -124,7 +124,6 @@ class RecipeViewModel @Inject constructor(
                     }
                 }
             } else {
-                Timber.d("Updating recipe: $recipeState")
                 storageService.updateRecipe(recipeState.toRecipe()) {
                     if (it != null) postMessage("Error updating recipe")
                 }
