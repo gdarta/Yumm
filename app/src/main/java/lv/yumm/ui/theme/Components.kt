@@ -15,12 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -36,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -106,7 +105,10 @@ fun ConfirmationDialog(uiState: ConfirmationDialogUiState) {
                         containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.onSecondary
                     ),
-                    border = BorderStroke(width = 2.dp, color = MaterialTheme.colorScheme.primaryContainer),
+                    border = BorderStroke(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ),
                     shape = RoundedCornerShape(5.dp),
                     modifier = Modifier.wrapContentWidth()
                 ) {
@@ -179,7 +181,7 @@ fun CategoryBadge(
         color = MaterialTheme.colorScheme.tertiary,
         shadowElevation = 5.dp,
         shape = RoundedCornerShape(15.dp)
-    ){
+    ) {
         Text(
             text = text,
             color = MaterialTheme.colorScheme.onTertiary,
@@ -230,12 +232,12 @@ fun TextBadge(
         color = MaterialTheme.colorScheme.tertiary,
         shadowElevation = 5.dp,
         shape = RoundedCornerShape(15.dp),
-    ){
+    ) {
         Text(
             text = text,
             color = MaterialTheme.colorScheme.onTertiary,
             fontWeight = FontWeight.SemiBold,
-            maxLines  = 1,
+            maxLines = 1,
             modifier = Modifier
                 .padding(10.dp)
                 .basicMarquee(Int.MAX_VALUE)
@@ -245,19 +247,29 @@ fun TextBadge(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(title: String) {
-    CenterAlignedTopAppBar(
-        title = {
-            Text(
-                modifier = Modifier,
-                text = title,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        ),
-    )
+fun TopBar(
+    title: String,
+    leftButton: @Composable() (Modifier) -> Unit = {},
+    rightButton: @Composable() (Modifier) -> Unit = {}
+) {
+    Box(
+        modifier = Modifier
+            .height(60.dp)
+            .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.primary)
+            .wrapContentHeight(),
+    ) {
+        leftButton(Modifier.align(Alignment.CenterStart))
+        Text(
+            modifier = Modifier
+                .align(Alignment.Center),
+            text = title.uppercase(),
+            textAlign = TextAlign.Center,
+            style = Typography.bodyLarge.copy(fontSize = 22.sp),
+            color = MaterialTheme.colorScheme.onPrimary,
+        )
+        rightButton(Modifier.align(Alignment.CenterEnd))
+    }
 }
 
 @Composable
@@ -266,14 +278,14 @@ fun BottomNavBar(
     toLists: () -> Unit,
     toCalendar: () -> Unit,
     toRecipes: () -> Unit,
-    toProfile:() -> Unit,
+    toProfile: () -> Unit,
 ) {
     Row(
         horizontalArrangement = Arrangement.SpaceAround,
         modifier = Modifier
             .background(MaterialTheme.colorScheme.primary)
             .fillMaxWidth()
-    ){
+    ) {
         NavIcon(
             id = R.drawable.ic_home,
             description = "Home"
@@ -320,10 +332,11 @@ fun NavIcon(id: Int, description: String, onClick: () -> Unit) {
 fun LoadImageWithStates(url: String, modifier: Modifier) {
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current)
-        .data(url)
-        .size(coil.size.Size.ORIGINAL)
-        .scale(Scale.FIT)
-        .build())
+            .data(url)
+            .size(coil.size.Size.ORIGINAL)
+            .scale(Scale.FIT)
+            .build()
+    )
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -334,10 +347,12 @@ fun LoadImageWithStates(url: String, modifier: Modifier) {
                 // Placeholder while loading
                 PlaceholderImage()
             }
+
             is AsyncImagePainter.State.Error -> {
                 // Placeholder for error
                 PlaceholderImage()
             }
+
             else -> {
                 // Successfully loaded image
                 Image(
@@ -369,7 +384,7 @@ fun TopBarPreview() {
 @Preview
 @Composable
 fun BottomNavBarPreview() {
-    YummTheme { BottomNavBar({},{},{},{},{}) }
+    YummTheme { BottomNavBar({}, {}, {}, {}, {}) }
 }
 
 @Preview

@@ -10,62 +10,60 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import kotlinx.serialization.Serializable
-import lv.yumm.recipes.RecipeViewModel
-import lv.yumm.recipes.ui.CreateRecipeScreen
-import lv.yumm.recipes.ui.RecipesScreen
-import lv.yumm.ui.theme.BottomNavBar
-import lv.yumm.ui.theme.TopBar
-import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.toRoute
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import lv.yumm.login.LoginViewModel
-import lv.yumm.login.ui.ActionAuthorizeScreen
-import lv.yumm.login.ui.ProfileScreen
-import lv.yumm.recipes.RecipeEvent
-import lv.yumm.recipes.ui.EditDirectionsScreen
-import lv.yumm.recipes.ui.EditIngredientsScreen
-import lv.yumm.recipes.ui.HomeScreen
-import lv.yumm.recipes.ui.ViewRecipeScreen
+import kotlinx.serialization.Serializable
 import lv.yumm.R
 import lv.yumm.lists.ListEvent
 import lv.yumm.lists.ListViewModel
 import lv.yumm.lists.ui.CreateListScreen
 import lv.yumm.lists.ui.ListScreen
 import lv.yumm.lists.ui.ViewListScreen
+import lv.yumm.login.LoginViewModel
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
+import lv.yumm.login.ui.ActionAuthorizeScreen
+import lv.yumm.login.ui.ProfileScreen
+import lv.yumm.recipes.RecipeEvent
+import lv.yumm.recipes.RecipeViewModel
+import lv.yumm.recipes.ui.CreateRecipeScreen
+import lv.yumm.recipes.ui.EditDirectionsScreen
+import lv.yumm.recipes.ui.EditIngredientsScreen
+import lv.yumm.recipes.ui.HomeScreen
+import lv.yumm.recipes.ui.RecipesScreen
+import lv.yumm.recipes.ui.ViewRecipeScreen
 import lv.yumm.ui.state.FloatingActionButtonState
+import lv.yumm.ui.theme.BottomNavBar
+import lv.yumm.ui.theme.TopBar
 import timber.log.Timber
 
 @Keep
-enum class EditProfileAction{
+enum class EditProfileAction {
     DELETE,
     EMAIL,
     PASSWORD
@@ -111,7 +109,7 @@ object ListsScreen
 @Serializable
 object ViewListScreen
 
-fun getTitle(screen: NavDestination?) : String{
+fun getTitle(screen: NavDestination?): String {
     return when {
         screen?.hasRoute(route = RecipesScreen::class) == true -> "My Recipes"
         screen?.hasRoute(route = CreateRecipe::class) == true -> "Create a Recipe"
@@ -131,46 +129,65 @@ val showBottomBarList = listOf(
     ProfileScreen::class.qualifiedName
 )
 
+val showBackButtonList = listOf(
+    ViewRecipe::class.qualifiedName,
+    CreateRecipe::class.qualifiedName,
+    EditIngredients::class.qualifiedName,
+    EditDirections::class.qualifiedName,
+    ActionAuthorizeScreen::class.qualifiedName + "/{infoText}/{actionText}/{event}",
+    CreateListScreen::class.qualifiedName,
+    ViewListScreen::class.qualifiedName
+)
+
 @Composable
-fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel, listViewModel: ListViewModel) {
+fun YummNavHost(
+    recipeViewModel: RecipeViewModel,
+    loginViewModel: LoginViewModel,
+    listViewModel: ListViewModel
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     val showBottomBar = remember { mutableStateOf(true) }
+    val showBackButton = remember { mutableStateOf(false) }
 
     // Observe current navigation state
     val actionButtonState = remember { mutableStateOf(FloatingActionButtonState()) }
     navBackStackEntry?.destination?.let { currentDestination ->
         val route = currentDestination.route
+        Timber.d("Route: ${route}")
 
         showBottomBar.value = route in showBottomBarList
+        showBackButton.value = route in showBackButtonList
 
         actionButtonState.value =
             when (route) {
-            RecipesScreen::class.qualifiedName -> {
-                FloatingActionButtonState(
-                    shouldShow = recipeViewModel.currentUserId.value != EMPTY_USER_ID,
-                    onClick = {
-                        navController.navigate(CreateRecipe)
-                        recipeViewModel.onEvent(RecipeEvent.CreateRecipe())
-                    }
-                )
+                RecipesScreen::class.qualifiedName -> {
+                    FloatingActionButtonState(
+                        shouldShow = recipeViewModel.currentUserId.value != EMPTY_USER_ID,
+                        onClick = {
+                            navController.navigate(CreateRecipe)
+                            recipeViewModel.onEvent(RecipeEvent.CreateRecipe())
+                        }
+                    )
+                }
+
+                ListsScreen::class.qualifiedName -> {
+                    FloatingActionButtonState(
+                        shouldShow = recipeViewModel.currentUserId.value != EMPTY_USER_ID,
+                        onClick = {
+                            navController.navigate(CreateListScreen)
+                            listViewModel.onEvent(ListEvent.CreateNewList())
+                        }
+                    )
+                }
+
+                else -> {
+                    FloatingActionButtonState(
+                        shouldShow = false
+                    )
+                }
             }
-            ListsScreen::class.qualifiedName -> {
-                FloatingActionButtonState(
-                    shouldShow = recipeViewModel.currentUserId.value != EMPTY_USER_ID,
-                    onClick = {
-                        navController.navigate(CreateListScreen)
-                        listViewModel.onEvent(ListEvent.CreateNewList())
-                    }
-                )
-            }
-            else -> {
-                FloatingActionButtonState(
-                    shouldShow = false
-                )
-            }
-        }
     }
 
     val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
@@ -178,7 +195,25 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
     val listUiState by listViewModel.listUiState.collectAsStateWithLifecycle()
     Scaffold(
         modifier = Modifier.systemBarsPadding(),
-        topBar = { TopBar(title = getTitle(navBackStackEntry?.destination)) },
+        topBar = {
+            TopBar(
+                title = getTitle(navBackStackEntry?.destination),
+                leftButton = {
+                    if (showBackButton.value) {
+                        IconButton(
+                            onClick = { navController.popBackStack() }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_back),
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                }
+            )
+        },
         bottomBar = {
             if (showBottomBar.value) {
                 BottomNavBar(
@@ -194,11 +229,13 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
             if (actionButtonState.value.shouldShow) {
                 Button(
                     shape = CircleShape,
-                    content = { Icon(
-                        painter = painterResource(R.drawable.ic_add),
-                        contentDescription = "Add",
-                        modifier = Modifier.size(50.dp)
-                    ) },
+                    content = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_add),
+                            contentDescription = "Add",
+                            modifier = Modifier.size(50.dp)
+                        )
+                    },
                     onClick = { actionButtonState.value.onClick() })
             }
         },
@@ -252,8 +289,8 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         { recipeUiState },
                         onEvent = { recipeViewModel.onEvent(it) },
                         navigateToRecipesScreen = { navController.navigate(RecipesScreen) },
-                        navigateToEditIngredientsScreen = {navController.navigate(EditIngredients)},
-                        navigateToEditDirectionsScreen = { navController.navigate(EditDirections)})
+                        navigateToEditIngredientsScreen = { navController.navigate(EditIngredients) },
+                        navigateToEditDirectionsScreen = { navController.navigate(EditDirections) })
                 }
                 composable<ViewRecipe> {
                     ViewRecipeScreen(
@@ -282,7 +319,11 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
                         navigateToProfileScreen = { navController.navigate(ProfileScreen) },
-                        navigateToAction = { info, action, event -> navController.navigate(ActionAuthorizeScreen(info, action, event)) }
+                        navigateToAction = { info, action, event ->
+                            navController.navigate(
+                                ActionAuthorizeScreen(info, action, event)
+                            )
+                        }
                     )
                 }
                 composable<ActionAuthorizeScreen> { navBackStackEntry ->
@@ -333,6 +374,7 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
     }
 }
 
+// https://medium.com/@nitheeshag/navigation-in-jetpack-compose-with-animations-724037d7b119, retrieved on 30/12/2024
 enum class ScaleTransitionDirection {
     INWARDS,
     OUTWARDS
