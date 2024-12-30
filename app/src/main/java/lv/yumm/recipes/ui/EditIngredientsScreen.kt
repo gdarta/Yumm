@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -28,6 +27,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,6 +47,7 @@ import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.ui.theme.recipeTextFieldColors
+import timber.log.Timber
 
 @Composable
 fun EditIngredientsScreen(
@@ -62,7 +63,8 @@ fun EditIngredientsScreen(
             .imePadding()
             .padding(all = 10.dp)
             .padding(horizontal = 20.dp),
-    ){
+    ) {
+        val hasError = remember(uiState.ingredients) { mutableStateListOf(*uiState.ingredients.map { false }.toTypedArray()) }
         LazyColumn( //todo drag and reorder
             state = listState,
             modifier = Modifier
@@ -70,6 +72,13 @@ fun EditIngredientsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             itemsIndexed(uiState.ingredients) { index, ingredient ->
+                var nameEmpty by remember { mutableStateOf(false) }
+                var amntError by remember { mutableStateOf(false) }
+                var msrEmpty by remember { mutableStateOf(false) }
+                LaunchedEffect(nameEmpty, amntError, msrEmpty) {
+                    hasError[index] = nameEmpty || amntError || msrEmpty
+                    hasError.forEach{ Timber.d("error array : $it") }
+                }
                 var isDeleteRevealed by remember { mutableStateOf(false) }
                 SwipeableItemWithActions(
                     modifier = Modifier.padding(vertical = 10.dp),
@@ -96,10 +105,14 @@ fun EditIngredientsScreen(
                             )
                         }
                     }
-                ){
+                ) {
                     IngredientCard(uiState,
                         ingredient,
+                        nameError = nameEmpty,
+                        amountError = amntError,
+                        measurementError = msrEmpty,
                         onNameChange = {
+                            nameEmpty = if (it.isEmpty()) true else false
                             onEvent(
                                 RecipeEvent.UpdateIngredient(
                                     index,
@@ -108,6 +121,7 @@ fun EditIngredientsScreen(
                             )
                         },
                         onAmountChange = {
+                            amntError = if (it.isEmpty() || it.toFloatOrNull() == null) true else false
                             onEvent(
                                 RecipeEvent.UpdateIngredient(
                                     index,
@@ -116,6 +130,7 @@ fun EditIngredientsScreen(
                             )
                         },
                         onMeasurementChange = {
+                            msrEmpty = if (it.isEmpty()) true else false
                             onEvent(
                                 RecipeEvent.UpdateIngredient(
                                     index,
@@ -134,16 +149,21 @@ fun EditIngredientsScreen(
             onClick = {
                 onEvent(RecipeEvent.AddIngredient())
                 scope.launch {
-                    listState.animateScrollToItem(index = (uiState.ingredients.size - 1).coerceAtLeast(0))
+                    listState.animateScrollToItem(
+                        index = (uiState.ingredients.size - 1).coerceAtLeast(
+                            0
+                        )
+                    )
                 }
             }
         )
         Button(
             content = { Text(text = "Save and return") },
             shape = RoundedCornerShape(3.dp),
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
+            enabled = (!hasError.contains(true)),
             onClick = {
+                onEvent(RecipeEvent.ValidateIngredients())
                 navigateBack()
             }
         )
@@ -155,28 +175,37 @@ fun EditIngredientsScreen(
 fun IngredientCard(
     uiState: RecipeUiState,
     ingredient: Ingredient,
+    nameError: Boolean,
+    amountError: Boolean,
+    measurementError: Boolean,
     onNameChange: (String) -> Unit,
     onAmountChange: (String) -> Unit,
     onMeasurementChange: (String) -> Unit
 ) {
-    var ingredientField by remember { mutableStateOf(
-        TextFieldValue(
-            text = ingredient.name,
-            selection = TextRange(ingredient.name.length)
+    var ingredientField by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = ingredient.name,
+                selection = TextRange(ingredient.name.length)
+            )
         )
-    ) }
-    var amountField by remember { mutableStateOf(
-        TextFieldValue(
-            text = ingredient.amount?.toString() ?: "",
-            selection = TextRange(ingredient.amount.toString().length)
+    }
+    var amountField by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = ingredient.amount?.toString() ?: "",
+                selection = TextRange(ingredient.amount.toString().length)
+            )
         )
-    ) }
-    var unitField by remember { mutableStateOf(
-        TextFieldValue(
-            text = ingredient.unit,
-            selection = TextRange(ingredient.unit.length)
+    }
+    var unitField by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = ingredient.unit,
+                selection = TextRange(ingredient.unit.length)
+            )
         )
-    ) }
+    }
     LaunchedEffect(ingredient) {
         ingredientField = TextFieldValue(
             text = ingredient.name,
@@ -210,7 +239,8 @@ fun IngredientCard(
                 modifier = Modifier.fillMaxWidth(),
                 colors = recipeTextFieldColors(),
                 maxLines = 1,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                isError = nameError
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(20.dp)
@@ -227,7 +257,8 @@ fun IngredientCard(
                         keyboardType = KeyboardType.Decimal,
                         imeAction = ImeAction.Next
                     ),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    isError = amountError
                 )
                 ExposedDropdownMenuFilter(
                     input = unitField,
@@ -240,7 +271,8 @@ fun IngredientCard(
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Done
                     ),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    isError = measurementError
                 )
             }
         }
@@ -255,7 +287,8 @@ fun ExposedDropdownMenuFilter(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     filterOptions: (String) -> List<String>,
     onValueChange: (TextFieldValue) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -275,7 +308,8 @@ fun ExposedDropdownMenuFilter(
             maxLines = 1,
             label = { Text(text = label) },
             modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
-            colors = recipeTextFieldColors()
+            colors = recipeTextFieldColors(),
+            isError = isError
         )
         if (filterOptions(input.text).isNotEmpty()) {
             ExposedDropdownMenu(

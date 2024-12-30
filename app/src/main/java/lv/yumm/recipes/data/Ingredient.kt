@@ -18,6 +18,14 @@ data class Ingredient(
     }
 }
 
+fun Ingredient.hasEmpty(): Boolean {
+    return name.isBlank() || amount == null || unit.isBlank()
+}
+
+fun Ingredient.isEmpty(): Boolean {
+    return name.isBlank() && amount == null && unit.isBlank()
+}
+
 fun String.isUnit(): String? {
     val validUnits = listOf(
         Ingredient.MILLIGRAM,

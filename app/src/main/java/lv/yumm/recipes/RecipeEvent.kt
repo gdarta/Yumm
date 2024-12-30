@@ -19,6 +19,8 @@ sealed class RecipeEvent {
     class UpdateDuration(val duration: List<Long>): RecipeEvent()
     class UpdatePortions(val portions: Int?): RecipeEvent()
 
+    class ValidateIngredients(): RecipeEvent()
+
     class DeleteIngredient(val index: Int): RecipeEvent()
     class AddDirection(): RecipeEvent()
     class DeleteDirection(val index: Int): RecipeEvent()

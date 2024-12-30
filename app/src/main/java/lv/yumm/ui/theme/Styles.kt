@@ -16,7 +16,8 @@ fun recipeTextFieldColors(): TextFieldColors {
         unfocusedIndicatorColor = MaterialTheme.colorScheme.secondary,
         focusedLabelColor = MaterialTheme.colorScheme.primary,
         unfocusedLabelColor = MaterialTheme.colorScheme.secondary,
-        errorContainerColor = Color.Transparent
+        errorContainerColor = Color.Transparent,
+        errorIndicatorColor = MaterialTheme.colorScheme.error
     )
 }
 

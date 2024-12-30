@@ -19,6 +19,8 @@ import lv.yumm.BaseViewModel
 import lv.yumm.login.service.AccountService
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
+import lv.yumm.recipes.data.hasEmpty
+import lv.yumm.recipes.data.isEmpty
 import lv.yumm.service.StorageService
 import lv.yumm.ui.state.ConfirmationDialogUiState
 import timber.log.Timber
@@ -371,6 +373,13 @@ class RecipeViewModel @Inject constructor(
                     _recipeUiState.update {
                         it.copy(portions = event.portions)
                     }
+                }
+            }
+
+            is RecipeEvent.ValidateIngredients -> {
+                val ingredients = _recipeUiState.value.ingredients.filterNot { it.isEmpty() || it.hasEmpty() }
+                _recipeUiState.update {
+                    it.copy(ingredients = ingredients)
                 }
             }
         }
