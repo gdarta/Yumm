@@ -35,9 +35,6 @@ class RecipeViewModel @Inject constructor(
     private val _publicRecipeStream = storageService.publicRecipes
     private val _userRecipeStream = storageService.userRecipes
 
-    private val _currentUserId = MutableStateFlow(EMPTY_USER_ID)
-    val currentUserId = _currentUserId.asStateFlow()
-
     val recipeStream: StateFlow<List<Recipe>> = _userRecipeStream
         .stateIn(
             scope = viewModelScope,
@@ -91,7 +88,7 @@ class RecipeViewModel @Inject constructor(
             accountService.currentUser.collectLatest { user ->
                 // when auth state changes, query the database again
                 // a bit stinky
-                _currentUserId.value = user
+                postUserId(user)
                 if (user != EMPTY_USER_ID){
                     storageService.refreshUserRecipes(user).collectLatest { recipes ->
                         _userRecipeCardUiList.update {

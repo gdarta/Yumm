@@ -52,6 +52,7 @@ import lv.yumm.recipes.ui.ViewRecipeScreen
 import lv.yumm.R
 import lv.yumm.lists.ListViewModel
 import lv.yumm.lists.ui.CreateListScreen
+import lv.yumm.lists.ui.ListScreen
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 
 @Keep
@@ -95,6 +96,10 @@ data class ActionAuthorizeScreen(
 @Serializable
 object CreateListScreen
 
+@Serializable
+object ListsScreen
+
+
 
 fun getTitle(screen: NavDestination?) : String{
     return when {
@@ -103,6 +108,7 @@ fun getTitle(screen: NavDestination?) : String{
         screen?.hasRoute(route = EditIngredients::class) == true -> "Edit Ingredients"
         screen?.hasRoute(route = EditDirections::class) == true -> "Edit Directions"
         screen?.hasRoute(route = ActionAuthorizeScreen::class) == true -> "Verify Identity"
+        screen?.hasRoute(route = ListsScreen::class) == true -> "My Shopping Lists"
         else -> "Yumm"
     }
 }
@@ -127,7 +133,7 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
         bottomBar = { BottomNavBar(
             toRecipes = { navController.navigate(RecipesScreen) },
             toHome = { navController.navigate(HomeScreen) },
-            toLists = { navController.navigate(CreateListScreen) },
+            toLists = { navController.navigate(ListsScreen) },
             toProfile = { navController.navigate(ProfileScreen) },
             toCalendar = {}) },
         floatingActionButton = {
@@ -217,9 +223,6 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         navController.popBackStack()
                     }
                 }
-                composable<SplashScreen> {
-                    SplashScreen()
-                }
                 composable<ProfileScreen> {
                     ProfileScreen(
                         uiState = { loginUiState },
@@ -246,6 +249,17 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         navigateBack = { navController.popBackStack() },
                         uiState = { listUiState }
                     ) { listViewModel.onEvent(it) }
+                }
+
+                composable<ListsScreen> {
+                    val lists by listViewModel.userListsUiState.collectAsStateWithLifecycle()
+                    val currentUser by listViewModel.currentUserId.collectAsStateWithLifecycle()
+                    ListScreen(
+                        currentUserId = currentUser,
+                        navigateToLogin = { navController.navigate(ProfileScreen) },
+                        lists = lists,
+                        onEvent = { listViewModel.onEvent(it) }
+                    )
                 }
             }
             if (recipeUiState.isLoading || loginUiState.isLoading) {

@@ -4,16 +4,20 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import lv.yumm.BaseViewModel
+import lv.yumm.lists.data.toUiState
 import lv.yumm.lists.data.toUserList
 import lv.yumm.lists.service.ListService
 import lv.yumm.login.service.AccountService
+import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.isEmpty
 import lv.yumm.service.StorageService
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,6 +33,34 @@ class ListViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(),
         initialValue = ListUiState()
     )
+
+    private val _userListsUiState = MutableStateFlow<List<ListUiState>>(emptyList())
+    val userListsUiState = _userListsUiState.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = emptyList()
+    )
+
+    init {
+        viewModelScope.launch {
+            storageService.userLists.collectLatest {
+                _userListsUiState.value = it.toUiState()
+            }
+        }
+        // listen to auth state changes
+        viewModelScope.launch {
+            accountService.currentUser.collectLatest { uid ->
+                postUserId(uid)
+                if (uid != EMPTY_USER_ID) {
+                    storageService.refreshUserLists(uid).collectLatest {
+                        _userListsUiState.value = it.toUiState()
+                    }
+                } else {
+                    _userListsUiState.value = emptyList<ListUiState>()
+                }
+            }
+        }
+    }
 
     fun onEvent(event: ListEvent) {
         when (event) {

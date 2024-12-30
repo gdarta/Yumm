@@ -6,18 +6,27 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import timber.log.Timber
 
 
 open class BaseViewModel: ViewModel() {
+    private val _currentUserId = MutableStateFlow(EMPTY_USER_ID)
+    val currentUserId = _currentUserId.asStateFlow()
+
     private val _message = MutableLiveData<Event<String>>()
     val message : LiveData<Event<String>>
         get() = _message
 
     // Post in background thread
     fun postMessage(message: String) {
-        Timber.d("posting message")
         _message.value = (Event(message))
+    }
+
+    fun postUserId(uid: String) {
+        _currentUserId.value = uid
     }
 }
 
