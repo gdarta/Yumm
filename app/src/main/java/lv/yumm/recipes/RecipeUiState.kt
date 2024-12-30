@@ -21,6 +21,7 @@ data class RecipeUiState (
     val directions: List<String> = emptyList(),
     val difficulty: Float = 3f,
     val duration: Long = 10,
+    val portions: Int = 0,
 
     val triedToSave: Boolean = false,
 
@@ -63,7 +64,7 @@ fun RecipeUiState.toRecipe(): Recipe {
         duration = this.duration,
         type = this.category,
         public = this.isPublic,
-        portions = 0 // TODO bla
+        portions = this.portions
     )
 }
 

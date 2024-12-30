@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -331,19 +332,11 @@ fun LoadImageWithStates(url: String, modifier: Modifier) {
         when (painter.state) {
             is AsyncImagePainter.State.Loading -> {
                 // Placeholder while loading
-                Image(
-                    painter = ColorPainter(Color.Gray),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
+                PlaceholderImage()
             }
             is AsyncImagePainter.State.Error -> {
                 // Placeholder for error
-                Image(
-                    painter = ColorPainter(Color.Red),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
+                PlaceholderImage()
             }
             else -> {
                 // Successfully loaded image
@@ -356,6 +349,15 @@ fun LoadImageWithStates(url: String, modifier: Modifier) {
             }
         }
     }
+}
+
+@Composable
+fun PlaceholderImage() {
+    Image(
+        painter = ColorPainter(Color.Gray),
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
 @Preview

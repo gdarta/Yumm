@@ -53,19 +53,21 @@ fun ViewRecipeScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Box {
-                    AsyncImage(
-                        model = uiState().imageUrl,
-                        contentDescription = null,
-                        placeholder = painterResource(R.drawable.ic_pasta_filled),
-                        fallback = painterResource(R.drawable.ic_pasta_filled),
-                        error = painterResource(R.drawable.ic_pasta_filled), // todo icon for placeholder brr
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .shadow(elevation = 5.dp, shape = RoundedCornerShape(16.dp))
-                    )
+                    if (uiState().imageUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = uiState().imageUrl,
+                            contentDescription = null,
+                            placeholder = painterResource(R.drawable.ic_pasta_filled),
+                            fallback = painterResource(R.drawable.ic_pasta_filled),
+                            error = painterResource(R.drawable.ic_pasta_filled), // todo icon for placeholder brr
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .shadow(elevation = 5.dp, shape = RoundedCornerShape(16.dp))
+                        )
+                    }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(
@@ -75,7 +77,7 @@ fun ViewRecipeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.TopCenter)
-                            .offset(y = 150.dp)
+                            .offset(y = if (uiState().imageUrl.isNotEmpty()) 150.dp else 0.dp)
                             .background(
                                 Brush.verticalGradient(
                                     colorStops = arrayOf(

@@ -38,12 +38,14 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import lv.yumm.R
+import lv.yumm.login.ui.LoginButton
 import lv.yumm.recipes.RecipeCardUiState
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.data.RecipeType
@@ -57,69 +59,103 @@ import kotlin.math.roundToInt
 
 @Composable
 fun RecipesScreen(
+    currentUserId: String,
     recipes: List<RecipeCardUiState>,
+    navigateToLogin: () -> Unit,
     navigateToEdit: () -> Unit,
     navigateToView: (String) -> Unit,
     onEvent: (RecipeEvent) -> Unit
 ) {
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.padding(horizontal = 10.dp)
-    ) {
-        itemsIndexed(items = recipes, key = { _, recipe -> recipe.id }) { index, recipe ->
-            SwipeableItemWithActions(
-                modifier = Modifier.padding(vertical = 10.dp),
-                isLeftRevealed = recipe.isDeleteRevealed,
-                onLeftExpanded = { onEvent(RecipeEvent.OnDeleteRevealed(recipe.id)) },
-                onLeftCollapsed = { onEvent(RecipeEvent.OnDeleteCollapsed(recipe.id)) },
-                isRightRevealed = recipe.isEditRevealed,
-                onRightExpanded =  { onEvent(RecipeEvent.OnEditRevealed(recipe.id)) },
-                onRightCollapsed = { onEvent(RecipeEvent.OnEditCollapsed(recipe.id)) },
-                leftAction = {
-                    Surface(
-                        onClick = {
-                            onEvent(RecipeEvent.DeleteRecipe(recipe.id))
-                            onEvent(RecipeEvent.OnDeleteCollapsed(recipe.id))
-                        },
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(80.dp),
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        shape = RoundedCornerShape(18.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_delete),
-                            tint = Color.White,
-                            contentDescription = "delete item"
-                        )
+    if (currentUserId != "col" && recipes.isNotEmpty()) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(horizontal = 10.dp)
+        ) {
+            itemsIndexed(items = recipes, key = { _, recipe -> recipe.id }) { index, recipe ->
+                SwipeableItemWithActions(
+                    modifier = Modifier.padding(vertical = 10.dp),
+                    isLeftRevealed = recipe.isDeleteRevealed,
+                    onLeftExpanded = { onEvent(RecipeEvent.OnDeleteRevealed(recipe.id)) },
+                    onLeftCollapsed = { onEvent(RecipeEvent.OnDeleteCollapsed(recipe.id)) },
+                    isRightRevealed = recipe.isEditRevealed,
+                    onRightExpanded = { onEvent(RecipeEvent.OnEditRevealed(recipe.id)) },
+                    onRightCollapsed = { onEvent(RecipeEvent.OnEditCollapsed(recipe.id)) },
+                    leftAction = {
+                        Surface(
+                            onClick = {
+                                onEvent(RecipeEvent.DeleteRecipe(recipe.id))
+                                onEvent(RecipeEvent.OnDeleteCollapsed(recipe.id))
+                            },
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(80.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(18.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_delete),
+                                tint = Color.White,
+                                contentDescription = "delete item"
+                            )
+                        }
+                    },
+                    rightAction = {
+                        Surface(
+                            onClick = {
+                                onEvent(RecipeEvent.SetRecipeToUi(false, recipe.id))
+                                onEvent(RecipeEvent.OnEditCollapsed(recipe.id))
+                                navigateToEdit()
+                            },
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(80.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = RoundedCornerShape(18.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_edit),
+                                tint = Color.White,
+                                contentDescription = "edit item"
+                            )
+                        }
+                    },
+                ) {
+                    RecipeCard(recipe, Modifier) {
+                        onEvent(RecipeEvent.OnCardClicked(recipe.id))
+                        navigateToView(recipe.id)
                     }
-                },
-                rightAction = {
-                    Surface(
-                        onClick = {
-                            onEvent(RecipeEvent.SetRecipeToUi(false, recipe.id))
-                            onEvent(RecipeEvent.OnEditCollapsed(recipe.id))
-                            navigateToEdit()
-                        },
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .width(80.dp),
-                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                        shape = RoundedCornerShape(18.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_edit),
-                            tint = Color.White,
-                            contentDescription = "edit item"
-                        )
-                    }
-                },
-            ) {
-                RecipeCard(recipe, Modifier) {
-                    onEvent(RecipeEvent.OnCardClicked(recipe.id))
-                    navigateToView(recipe.id)
                 }
             }
+        }
+    } else if (currentUserId == "col") {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp)
+        ) {
+            Text(
+                text = "To save and create recipes, log in or create an account",
+                style = Typography.titleMedium,
+                textAlign = TextAlign.Center
+            )
+            LoginButton(
+                text = "Log in"
+            ) { navigateToLogin() }
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp)
+        ) {
+            Text(
+                text = "Empty here, click + to create a recipe...",
+                style = Typography.titleMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
     }
 }

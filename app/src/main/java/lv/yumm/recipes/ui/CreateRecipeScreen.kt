@@ -10,12 +10,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -38,11 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,6 +65,7 @@ import lv.yumm.recipes.data.toTimestamp
 import lv.yumm.ui.theme.CategoryBadge
 import lv.yumm.ui.theme.ConfirmationDialog
 import lv.yumm.ui.theme.ErrorDialog
+import lv.yumm.ui.theme.PlaceholderImage
 import lv.yumm.ui.theme.RatingBar
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
@@ -93,7 +100,8 @@ fun CreateRecipeScreen(
     LazyColumn(
         modifier = Modifier
             .padding(all = 10.dp)
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 20.dp)
+            .imePadding(),
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -131,9 +139,9 @@ fun CreateRecipeScreen(
                 AsyncImage(
                     model = uiState().imageUrl,
                     contentDescription = null,
-                    placeholder = painterResource(R.drawable.ic_pasta_filled),
-                    fallback = painterResource(R.drawable.ic_pasta_filled),
-                    error = painterResource(R.drawable.ic_pasta_filled), // todo icon for placeholder brr
+                    placeholder = ColorPainter(Color.Gray),
+                    fallback = ColorPainter(Color.Gray),
+                    error = ColorPainter(Color.Gray), // todo icon for placeholder brr
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .height(100.dp)
@@ -232,6 +240,25 @@ fun CreateRecipeScreen(
         item {
             EditRow {
                 Text(
+                    text = "Portions: ",
+                    style = Typography.titleMedium,
+                    color = if (!uiState().durationError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
+                )
+                TextField(
+                    value = uiState().portions.toString(),
+                    onValueChange = {
+                        onEvent(RecipeEvent.UpdatePortions(it.toIntOrNull()))
+                    },
+                    maxLines = 1,
+                    colors = recipeTextFieldColors(),
+                    modifier = Modifier.width(50.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+        }
+        item {
+            EditRow {
+                Text(
                     text = "Ingredients:",
                     style = Typography.titleMedium,
                     color = if (!uiState().ingredientsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
@@ -287,7 +314,9 @@ fun CreateRecipeScreen(
             )
         }
         item {
-            EditRow {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
                 Button(
                     content = { Text(text = "Save recipe") },
                     shape = RoundedCornerShape(3.dp),

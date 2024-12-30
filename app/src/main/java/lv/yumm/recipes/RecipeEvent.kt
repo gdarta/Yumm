@@ -10,15 +10,18 @@ sealed class RecipeEvent {
     class SaveRecipe(val public: Boolean, val navigateBack: () -> Unit): RecipeEvent()
     class SetRecipeToUi(val public: Boolean, val id: String): RecipeEvent()
     class AddIngredient(): RecipeEvent()
+
     class UpdateTitle(val title: String): RecipeEvent()
     class UpdateDescription(val description: String): RecipeEvent()
     class UpdateIngredient(val index: Int, val ingredient: Ingredient): RecipeEvent()
-    class DeleteIngredient(val index: Int): RecipeEvent()
-    class AddDirection(): RecipeEvent()
     class UpdateDirection(val index: Int, val direction: String): RecipeEvent()
-    class DeleteDirection(val index: Int): RecipeEvent()
     class UpdateDifficulty(val difficulty: Float): RecipeEvent()
     class UpdateDuration(val duration: List<Long>): RecipeEvent()
+    class UpdatePortions(val portions: Int?): RecipeEvent()
+
+    class DeleteIngredient(val index: Int): RecipeEvent()
+    class AddDirection(): RecipeEvent()
+    class DeleteDirection(val index: Int): RecipeEvent()
     class UploadPicture(val uri: Uri?): RecipeEvent()
     class UpdateCategory(val type: RecipeType): RecipeEvent()
 

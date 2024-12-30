@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.compose.NavHost
@@ -42,6 +47,7 @@ import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
 import lv.yumm.recipes.ui.HomeScreen
 import lv.yumm.recipes.ui.ViewRecipeScreen
+import lv.yumm.R
 
 @Keep
 enum class EditProfileAction{
@@ -124,7 +130,12 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
         floatingActionButton = {
             if (shouldShowActionButton) {
                 Button(
-                    content = { Text("Add recipe") },
+                    shape = CircleShape,
+                    content = { Icon(
+                        painter = painterResource(R.drawable.ic_add),
+                        contentDescription = "Add recipe",
+                        modifier = Modifier.size(50.dp)
+                    ) },
                     onClick = {
                         navController.navigate(CreateRecipe)
                         recipeViewModel.onEvent(RecipeEvent.CreateRecipe())
@@ -152,13 +163,17 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
             ) {
                 composable<RecipesScreen> {
                     val state by recipeViewModel.userRecipeCardUiList.collectAsStateWithLifecycle()
-                    RecipesScreen(state,
-                        { navController.navigate(CreateRecipe) },
+                    val currentUser by recipeViewModel.currentUserId.collectAsStateWithLifecycle()
+                    RecipesScreen(
+                        currentUser,
+                        state,
+                        navigateToEdit = { navController.navigate(CreateRecipe) },
                         navigateToView = {
                             recipeViewModel.onEvent(RecipeEvent.SetRecipeToUi(false, it))
                             navController.navigate(ViewRecipe)
                         },
-                        { recipeViewModel.onEvent(it) })
+                        navigateToLogin = { navController.navigate(ProfileScreen) },
+                        onEvent = { recipeViewModel.onEvent(it) })
                 }
                 composable<HomeScreen> {
                     val state by recipeViewModel.publicRecipeCardUiList.collectAsStateWithLifecycle()
