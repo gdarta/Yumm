@@ -5,6 +5,7 @@ import lv.yumm.recipes.data.Ingredient
 sealed class ListEvent {
     class CreateNewList(): ListEvent()
     class DeleteList(val id: String): ListEvent()
+    class OpenList(val id: String): ListEvent()
 
     class UpdateTitle(val title: String): ListEvent()
 

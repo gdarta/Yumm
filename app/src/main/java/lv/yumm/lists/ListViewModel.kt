@@ -63,13 +63,20 @@ class ListViewModel @Inject constructor(
     }
 
     private fun setListToUi(list: UserList) {
-        _listUiState.value = list.toUiState()
+        _listUiState.value = list.toUiState().copy(errorList = list.list.map { ItemError() } )
     }
 
     fun onEvent(event: ListEvent) {
         when (event) {
             is ListEvent.CreateNewList -> {
                 setListToUi(UserList())
+            }
+
+            is ListEvent.OpenList -> {
+                viewModelScope.launch {
+                    val list = storageService.getList(event.id) ?: UserList()
+                    setListToUi(list)
+                }
             }
 
             is ListEvent.DeleteList -> {

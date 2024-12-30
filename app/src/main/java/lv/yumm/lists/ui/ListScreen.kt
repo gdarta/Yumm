@@ -35,6 +35,7 @@ import lv.yumm.lists.ListUiState
 import lv.yumm.lists.data.toFormattedDate
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.login.ui.LoginButton
+import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.ui.SwipeableItemWithActions
 import lv.yumm.ui.theme.Typography
 
@@ -42,6 +43,7 @@ import lv.yumm.ui.theme.Typography
 fun ListScreen(
     currentUserId: String,
     navigateToLogin: () -> Unit,
+    navigateToEdit: () -> Unit,
     lists: List<ListUiState>,
     onEvent: (ListEvent) -> Unit
 ) {
@@ -54,6 +56,7 @@ fun ListScreen(
         ) {
             itemsIndexed(items = lists, key = { _, list -> list.id }) { index, list ->
                 var isDeleteRevealed by remember { mutableStateOf(false) }
+                var isEditRevealed by remember { mutableStateOf(false) }
                 SwipeableItemWithActions(
                     modifier = Modifier,
                     shape = RoundedCornerShape(10.dp),
@@ -76,6 +79,28 @@ fun ListScreen(
                                 painter = painterResource(R.drawable.ic_delete),
                                 tint = Color.White,
                                 contentDescription = "delete item"
+                            )
+                        }
+                    },
+                    isRightRevealed = isEditRevealed,
+                    onRightExpanded = { isEditRevealed = true },
+                    onRightCollapsed = { isEditRevealed = false },
+                    rightAction = {
+                        Surface(
+                            onClick = {
+                                onEvent(ListEvent.OpenList(list.id))
+                                navigateToEdit()
+                            },
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(80.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_edit),
+                                tint = Color.White,
+                                contentDescription = "edit item"
                             )
                         }
                     }

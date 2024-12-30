@@ -299,6 +299,7 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                     ListScreen(
                         currentUserId = currentUser,
                         navigateToLogin = { navController.navigate(ProfileScreen) },
+                        navigateToEdit = { navController.navigate(CreateListScreen) },
                         lists = lists,
                         onEvent = { listViewModel.onEvent(it) }
                     )
