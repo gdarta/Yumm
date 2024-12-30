@@ -43,6 +43,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import lv.yumm.R
+import lv.yumm.recipes.IngredientOptions
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
 import lv.yumm.recipes.data.Ingredient
@@ -106,7 +107,7 @@ fun EditIngredientsScreen(
                         }
                     }
                 ) {
-                    IngredientCard(uiState,
+                    IngredientCard(IngredientOptions(),
                         ingredient,
                         nameError = nameEmpty,
                         amountError = amntError,
@@ -173,14 +174,15 @@ fun EditIngredientsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IngredientCard(
-    uiState: RecipeUiState,
+    uiState: IngredientOptions,
     ingredient: Ingredient,
     nameError: Boolean,
     amountError: Boolean,
     measurementError: Boolean,
     onNameChange: (String) -> Unit,
     onAmountChange: (String) -> Unit,
-    onMeasurementChange: (String) -> Unit
+    onMeasurementChange: (String) -> Unit,
+    name: String = "Ingredient"
 ) {
     var ingredientField by remember {
         mutableStateOf(
@@ -193,7 +195,7 @@ fun IngredientCard(
     var amountField by remember {
         mutableStateOf(
             TextFieldValue(
-                text = ingredient.amount?.toString() ?: "",
+                text = ingredient.amount.toString(),
                 selection = TextRange(ingredient.amount.toString().length)
             )
         )
@@ -212,7 +214,9 @@ fun IngredientCard(
             selection = TextRange(ingredient.name.length)
         )
         amountField = TextFieldValue(
-            text = ingredient.amount?.toString() ?: "",
+            text = if (ingredient.amount > 0f) {
+                if (ingredient.amount % ingredient.amount.toInt() == 0f) ingredient.amount.toInt().toString() else ingredient.amount.toString()
+            } else "",
             selection = TextRange(ingredient.amount.toString().length)
         )
         unitField = TextFieldValue(
@@ -235,7 +239,7 @@ fun IngredientCard(
                     ingredientField = it
                     onNameChange(it.text)
                 },
-                label = { Text(text = "Ingredient") },
+                label = { Text(text = name) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = recipeTextFieldColors(),
                 maxLines = 1,

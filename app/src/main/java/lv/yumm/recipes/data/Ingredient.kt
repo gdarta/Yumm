@@ -23,7 +23,7 @@ fun Ingredient.hasEmpty(): Boolean {
 }
 
 fun Ingredient.isEmpty(): Boolean {
-    return name.isBlank() && amount <= 0f && amount.isNaN() && unit.isBlank()
+    return name.isBlank() && (amount <= 0f || amount.isNaN()) && unit.isBlank()
 }
 
 fun String.isUnit(): String? {

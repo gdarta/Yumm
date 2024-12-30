@@ -50,6 +50,8 @@ import lv.yumm.recipes.ui.EditIngredientsScreen
 import lv.yumm.recipes.ui.HomeScreen
 import lv.yumm.recipes.ui.ViewRecipeScreen
 import lv.yumm.R
+import lv.yumm.lists.ListViewModel
+import lv.yumm.lists.ui.CreateListScreen
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 
 @Keep
@@ -90,6 +92,9 @@ data class ActionAuthorizeScreen(
     val event: EditProfileAction
 )
 
+@Serializable
+object CreateListScreen
+
 
 fun getTitle(screen: NavDestination?) : String{
     return when {
@@ -103,7 +108,7 @@ fun getTitle(screen: NavDestination?) : String{
 }
 
 @Composable
-fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel) {
+fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel, listViewModel: ListViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     var shouldShowActionButton by remember { mutableStateOf(false) }
@@ -114,21 +119,16 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
 
     val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()
     val loginUiState by loginViewModel.loginUiState.collectAsStateWithLifecycle()
+    val listUiState by listViewModel.listUiState.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.systemBarsPadding(),
         topBar = { TopBar(title = getTitle(navBackStackEntry?.destination)) },
         bottomBar = { BottomNavBar(
-            toRecipes = {
-                navController.navigate(RecipesScreen)
-            },
-            toHome = {
-                navController.navigate(HomeScreen)
-            },
-            toLists = {},
-            toProfile = {
-                navController.navigate(ProfileScreen)
-            },
+            toRecipes = { navController.navigate(RecipesScreen) },
+            toHome = { navController.navigate(HomeScreen) },
+            toLists = { navController.navigate(CreateListScreen) },
+            toProfile = { navController.navigate(ProfileScreen) },
             toCalendar = {}) },
         floatingActionButton = {
             if (shouldShowActionButton) {
@@ -238,6 +238,14 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
                         onEvent = { loginViewModel.onEvent(it) },
                         navigateToProfileScreen = { navController.navigate(ProfileScreen) }
                     )
+                }
+
+                // Lists
+                composable<CreateListScreen> {
+                    CreateListScreen(
+                        navigateBack = { navController.popBackStack() },
+                        uiState = { listUiState }
+                    ) { listViewModel.onEvent(it) }
                 }
             }
             if (recipeUiState.isLoading || loginUiState.isLoading) {

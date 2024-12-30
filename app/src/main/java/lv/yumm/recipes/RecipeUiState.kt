@@ -29,9 +29,6 @@ data class RecipeUiState (
     val showErrorDialog: Boolean = false,
     val confirmationDialog: ConfirmationDialogUiState? = null
 ) {
-    val amountOptionValues: List<String> = listOf("0.5", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
-    val msrOptionValues: List<String> = unitStrings
-
     val titleError: Boolean = this.title.isBlank() && this.triedToSave
     val categoryError: Boolean = this.category == null && this.triedToSave
     val difficultyError: Boolean = this.difficulty <= 0 && this.triedToSave
@@ -42,7 +39,12 @@ data class RecipeUiState (
     val editScreenHasError: Boolean = (titleError || categoryError || difficultyError || durationError || ingredientsEmptyError || directionsEmptyError)
 
     val hasOpenDialogs: Boolean = this.editDurationDialog || this.showErrorDialog || this.confirmationDialog != null
+}
 
+data class IngredientOptions(
+    val amountOptionValues: List<String> = listOf("0.5", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"),
+    val msrOptionValues: List<String> = unitStrings
+) {
     fun filteredAmountValues(input: String): List<String> {
         return amountOptionValues.filter { it.startsWith(input) }
     }
