@@ -70,6 +70,7 @@ import lv.yumm.ui.theme.RatingBar
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.YummTheme
 import lv.yumm.ui.theme.recipeTextFieldColors
+import java.util.Locale
 
 @Composable
 fun CreateRecipeScreen(
@@ -244,16 +245,7 @@ fun CreateRecipeScreen(
                     style = Typography.titleMedium,
                     color = if (!uiState().durationError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
                 )
-                TextField(
-                    value = uiState().portions.toString(),
-                    onValueChange = {
-                        onEvent(RecipeEvent.UpdatePortions(it.toIntOrNull()))
-                    },
-                    maxLines = 1,
-                    colors = recipeTextFieldColors(),
-                    modifier = Modifier.width(50.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
+                ChoosePortions(uiState().portions) { onEvent(RecipeEvent.UpdatePortions(it)) }
             }
         }
         item {
@@ -352,7 +344,7 @@ fun EditRow(content: @Composable RowScope.() -> Unit) {
 @Composable
 fun IngredientText(ingredient: Ingredient) {
     Text(
-        text = "${ingredient.name}, ${ingredient.amount} ${ingredient.unit}",
+        text = "${ingredient.name}, ${String.format(Locale("en"), "%.1f", ingredient.amount)} ${ingredient.unit}",
         color = MaterialTheme.colorScheme.onBackground
     )
 }

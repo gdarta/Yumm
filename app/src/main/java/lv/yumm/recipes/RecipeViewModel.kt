@@ -371,7 +371,7 @@ class RecipeViewModel @Inject constructor(
             is RecipeEvent.UpdatePortions -> {
                 event.portions?.let {
                     _recipeUiState.update {
-                        it.copy(portions = event.portions)
+                        it.copy(portions = event.portions.coerceAtLeast(1))
                     }
                 }
             }
@@ -387,6 +387,17 @@ class RecipeViewModel @Inject constructor(
                 val directions = _recipeUiState.value.directions.filterNot { it.isEmpty() }
                 _recipeUiState.update {
                     it.copy(directions = directions)
+                }
+            }
+
+            is RecipeEvent.UpdatePortionView -> {
+                val recipe = _recipeUiState.value
+                val multiplier = event.portions.coerceAtLeast(1) / recipe.portions.toFloat()
+                val updatedIngredients = recipe.ingredients.map { ingredient ->
+                    ingredient.copy(amount = ingredient.amount * multiplier)
+                }
+                _recipeUiState.update {
+                    it.copy(portions = event.portions.coerceAtLeast(1), ingredients = updatedIngredients)
                 }
             }
         }

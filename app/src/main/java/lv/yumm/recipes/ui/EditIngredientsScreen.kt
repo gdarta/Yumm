@@ -112,7 +112,7 @@ fun EditIngredientsScreen(
                         amountError = amntError,
                         measurementError = msrEmpty,
                         onNameChange = {
-                            nameEmpty = if (it.isEmpty()) true else false
+                            nameEmpty = it.isEmpty()
                             onEvent(
                                 RecipeEvent.UpdateIngredient(
                                     index,
@@ -121,11 +121,11 @@ fun EditIngredientsScreen(
                             )
                         },
                         onAmountChange = {
-                            amntError = if (it.isEmpty() || it.toFloatOrNull() == null) true else false
+                            amntError = it.isEmpty() || it.toFloatOrNull() == null
                             onEvent(
                                 RecipeEvent.UpdateIngredient(
                                     index,
-                                    ingredient.copy(amount = it.toFloatOrNull())
+                                    ingredient.copy(amount = it.toFloatOrNull() ?: 0f)
                                 )
                             )
                         },

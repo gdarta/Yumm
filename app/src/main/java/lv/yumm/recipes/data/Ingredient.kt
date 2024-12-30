@@ -2,7 +2,7 @@ package lv.yumm.recipes.data
 
 data class Ingredient(
     val name: String = "",
-    val amount: Float? = null,
+    val amount: Float = 0f,
     val unit: String = "",
 ) {
     companion object{
@@ -19,11 +19,11 @@ data class Ingredient(
 }
 
 fun Ingredient.hasEmpty(): Boolean {
-    return name.isBlank() || amount == null || unit.isBlank()
+    return name.isBlank() || amount <= 0f || amount.isNaN() || unit.isBlank()
 }
 
 fun Ingredient.isEmpty(): Boolean {
-    return name.isBlank() && amount == null && unit.isBlank()
+    return name.isBlank() && amount <= 0f && amount.isNaN() && unit.isBlank()
 }
 
 fun String.isUnit(): String? {

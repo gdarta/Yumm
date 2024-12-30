@@ -80,7 +80,8 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         duration = this.duration,
         category = this.type,
         isPublic = this.public,
-        triedToSave = false
+        triedToSave = false,
+        portions = this.portions
     )
 }
 

@@ -38,4 +38,6 @@ sealed class RecipeEvent {
     class OnEditRevealed(val id: String): RecipeEvent()
     class OnDeleteCollapsed(val id: String): RecipeEvent()
     class OnEditCollapsed(val id: String): RecipeEvent()
+
+    class UpdatePortionView(val portions: Int): RecipeEvent()
 }

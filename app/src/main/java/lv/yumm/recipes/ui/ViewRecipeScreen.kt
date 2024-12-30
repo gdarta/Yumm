@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -119,6 +121,14 @@ fun ViewRecipeScreen(
                     text = uiState().description,
                     modifier = Modifier.fillMaxWidth()
                 )
+                EditRow {
+                    Text(
+                        text = "Portions:",
+                        style = Typography.titleMedium,
+                        color = if (!uiState().ingredientsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
+                    )
+                    ChoosePortions(uiState().portions) { onEvent(RecipeEvent.UpdatePortionView(it)) }
+                }
                 Surface(
                     shape = RoundedCornerShape(10.dp),
                     shadowElevation = 5.dp,
@@ -178,6 +188,38 @@ fun ViewRecipeScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun ChoosePortions(portions: Int, onChange: (Int) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = {
+                onChange(portions - 1)
+            },
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_remove),
+                contentDescription = "minus 1"
+            )
+        }
+        Text(
+            text = portions.toString()
+        )
+        IconButton(
+            onClick = {
+                onChange(portions + 1)
+            },
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_add),
+                contentDescription = "minus 1"
+            )
         }
     }
 }
