@@ -39,6 +39,8 @@ import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.toRoute
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import lv.yumm.login.LoginViewModel
 import lv.yumm.login.ui.ActionAuthorizeScreen
 import lv.yumm.login.ui.ProfileScreen
@@ -48,6 +50,7 @@ import lv.yumm.recipes.ui.EditIngredientsScreen
 import lv.yumm.recipes.ui.HomeScreen
 import lv.yumm.recipes.ui.ViewRecipeScreen
 import lv.yumm.R
+import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 
 @Keep
 enum class EditProfileAction{
@@ -106,7 +109,7 @@ fun YummNavHost(recipeViewModel: RecipeViewModel, loginViewModel: LoginViewModel
     var shouldShowActionButton by remember { mutableStateOf(false) }
 
     navBackStackEntry?.destination?.let { currentDestination ->
-        shouldShowActionButton = currentDestination.hasRoute(route = RecipesScreen::class)
+        shouldShowActionButton = currentDestination.hasRoute(route = RecipesScreen::class) && recipeViewModel.currentUserId.value != EMPTY_USER_ID
     }
 
     val recipeUiState by recipeViewModel.recipeUiState.collectAsStateWithLifecycle()

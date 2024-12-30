@@ -2,22 +2,22 @@ package lv.yumm.login.service
 
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import timber.log.Timber
 import javax.inject.Inject
 import kotlin.text.isWhitespace
 
 class AccountServiceImpl @Inject constructor(
     private val auth: FirebaseAuth
 ) : AccountService {
+    companion object{
+        const val EMPTY_USER_ID = "col"
+    }
 
     private val _loading = MutableStateFlow<Boolean>(false)
     override val loading: Flow<Boolean>
@@ -26,7 +26,7 @@ class AccountServiceImpl @Inject constructor(
     override val currentUser: Flow<String>
         get() = callbackFlow {
             val listener = FirebaseAuth.AuthStateListener { auth ->
-                this.trySend(auth.currentUser?.uid ?: "col")
+                this.trySend(auth.currentUser?.uid ?: EMPTY_USER_ID)
             }
             auth.addAuthStateListener(listener)
             awaitClose { auth.removeAuthStateListener(listener) }

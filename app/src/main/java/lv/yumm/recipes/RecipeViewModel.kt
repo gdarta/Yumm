@@ -17,6 +17,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import lv.yumm.BaseViewModel
 import lv.yumm.login.service.AccountService
+import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.hasEmpty
@@ -28,15 +29,13 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecipeViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
     private val storageService: StorageService,
     private val accountService: AccountService,
-    //private val recipeRepository: DefaultRecipeRepository,
 ) : BaseViewModel() {
     private val _publicRecipeStream = storageService.publicRecipes
     private val _userRecipeStream = storageService.userRecipes
 
-    private val _currentUserId = MutableStateFlow("")
+    private val _currentUserId = MutableStateFlow(EMPTY_USER_ID)
     val currentUserId = _currentUserId.asStateFlow()
 
     val recipeStream: StateFlow<List<Recipe>> = _userRecipeStream
@@ -93,7 +92,7 @@ class RecipeViewModel @Inject constructor(
                 // when auth state changes, query the database again
                 // a bit stinky
                 _currentUserId.value = user
-                if (user != "col"){
+                if (user != EMPTY_USER_ID){
                     storageService.refreshUserRecipes(user).collectLatest { recipes ->
                         _userRecipeCardUiList.update {
                             recipes.toRecipeCardUiState()

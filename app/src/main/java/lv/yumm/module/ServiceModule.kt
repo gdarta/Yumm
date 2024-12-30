@@ -11,6 +11,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
+import lv.yumm.lists.service.ListService
+import lv.yumm.lists.service.ListServiceImpl
 import lv.yumm.login.service.AccountService
 import lv.yumm.login.service.AccountServiceImpl
 import lv.yumm.service.LogService
@@ -35,6 +37,14 @@ object ServiceModule {
     @Provides
     fun provideFirebaseAuth(): FirebaseAuth {
         return Firebase.auth
+    }
+
+    @Provides
+    fun provideListService(
+        firestore: FirebaseFirestore,
+        auth: AccountService
+    ): ListService {
+        return ListServiceImpl(firestore, auth)
     }
 
     @Provides

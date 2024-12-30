@@ -21,7 +21,7 @@ data class RecipeUiState (
     val directions: List<String> = emptyList(),
     val difficulty: Float = 3f,
     val duration: Long = 10,
-    val portions: Int = 0,
+    val portions: Int = 1,
 
     val triedToSave: Boolean = false,
 

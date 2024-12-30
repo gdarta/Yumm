@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.await
 import lv.yumm.login.service.AccountService
+import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Recipe
 import timber.log.Timber
 import javax.inject.Inject
@@ -26,16 +27,11 @@ class StorageServiceImpl @Inject constructor(
         private const val RECIPES = "recipes"
         private const val USERS = "users"
         private const val PUBLIC_RECIPES = "public_recipes"
-        private const val PUBLIC = "public"
-        private const val PRIVATE = "private"
-        private const val SAVE_RECIPE_TRACE = "saveRecipe"
-        private const val UPDATE_RECIPE_TRACE = "updateRecipe"
+
+        const val MISSING_AUTH = "User is not authenticated!"
     }
 
-    private val collection get() = firestore.collection(RECIPES)
-        //todo .whereEqualTo(USER_ID_FIELD, auth.currentUserId)
-
-    private val userCollection get() = firestore.collection(RECIPES).document(USERS).collection(Firebase.auth.currentUser?.uid ?: "col")
+    private val userCollection get() = firestore.collection(RECIPES).document(USERS).collection(Firebase.auth.currentUser?.uid ?: EMPTY_USER_ID)
 
     private val publicCollection get() = firestore.collection(PUBLIC_RECIPES)
 
@@ -83,71 +79,91 @@ class StorageServiceImpl @Inject constructor(
     // adds a new recipe, onResult is called three times: once for when url for image is retrieved,
     // once for when the recipe is saved and once for publishing it, if it is set to be public
     override  suspend fun insertRecipe(recipe: Recipe, onResult: (Throwable?) -> Unit) {
-        var updatedRecipe = recipe.copy(authorUID = Firebase.auth.currentUser?.uid ?: "col") // set user id for recipe
-        uploading.emit(true)
-        getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
-            onResult(error)
-            if (error == null)
-                updatedRecipe = updatedRecipe.copy(imageUrl = uri.toString()) // set url for image
-        }
-        userCollection.add(updatedRecipe).addOnCompleteListener {
-            updatedRecipe = updatedRecipe.copy(id = it.result.id)
-        }.await()
-        updateRecipe(updatedRecipe) { error -> // set id for recipe after upload
-            onResult(error)
-            if (error != null) {
-                Timber.e("Error setting id for recipe: ${error.message}")
-            } else if (recipe.public) {
-                publishRecipe(updatedRecipe) {
-                    onResult(it)
+        Firebase.auth.currentUser?.let { user ->
+            var updatedRecipe = recipe.copy(
+                authorUID = user.uid
+            ) // set user id for recipe
+            uploading.emit(true)
+            getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
+                onResult(error)
+                if (error == null)
+                    updatedRecipe =
+                        updatedRecipe.copy(imageUrl = uri.toString()) // set url for image
+            }
+            userCollection.add(updatedRecipe).addOnCompleteListener {
+                updatedRecipe = updatedRecipe.copy(id = it.result.id)
+            }.await()
+            updateRecipe(updatedRecipe) { error -> // set id for recipe after upload
+                onResult(error)
+                if (error != null) {
+                    Timber.e("Error setting id for recipe: ${error.message}")
+                } else if (recipe.public) {
+                    publishRecipe(updatedRecipe) {
+                        onResult(it)
+                    }
                 }
             }
-        }
-        uploading.emit(false)
+            uploading.emit(false)
+        } ?: onResult(Exception(MISSING_AUTH))
     }
 
     // updating given recipe if it exists, onResult is called twice if recipe is set to be public
     override suspend fun updateRecipe(recipe: Recipe, onResult: (Throwable?) -> Unit) {
-        uploading.emit(true)
-        var updatedRecipe = recipe.copy(authorUID = Firebase.auth.currentUser?.uid ?: "col")
-        if (isContentUrl(recipe.imageUrl)) {
-            getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
-                // if new image, get download url
-                if (error == null)
-                    updatedRecipe = updatedRecipe.copy(imageUrl = uri.toString())
-            }
-        }
-        userCollection.document(recipe.id).set(updatedRecipe).addOnCompleteListener {
-            onResult(it.exception)
-            if (it.exception != null) {
-                Timber.e("Error updating recipe with id: ${recipe.id}, ${it.exception?.message}")
-            } else if (recipe.public) {
-                publishRecipe(updatedRecipe) {
-                    if (it != null) Timber.e("Error publishing recipe with id: ${recipe.id}, ${it.message}")
-                    onResult(it)
+        Firebase.auth.currentUser?.let { user ->
+            uploading.emit(true)
+            var updatedRecipe = recipe.copy(authorUID = user.uid)
+            if (isContentUrl(recipe.imageUrl)) {
+                getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
+                    // if new image, get download url
+                    if (error == null) {
+                        updatedRecipe = updatedRecipe.copy(imageUrl = uri.toString())
+                        userCollection.document(recipe.id).set(updatedRecipe).addOnCompleteListener {
+                            onResult(it.exception)
+                            if (it.exception != null) {
+                                Timber.e("Error updating recipe with id: ${recipe.id}, ${it.exception?.message}")
+                            } else if (recipe.public) {
+                                publishRecipe(updatedRecipe) {
+                                    if (it != null) Timber.e("Error publishing recipe with id: ${recipe.id}, ${it.message}")
+                                    onResult(it)
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                // if not new image, set new recipe
+                userCollection.document(recipe.id).set(updatedRecipe).addOnCompleteListener {
+                    onResult(it.exception)
+                    if (it.exception != null) {
+                        Timber.e("Error updating recipe with id: ${recipe.id}, ${it.exception?.message}")
+                    } else if (recipe.public) {
+                        publishRecipe(updatedRecipe) {
+                            if (it != null) Timber.e("Error publishing recipe with id: ${recipe.id}, ${it.message}")
+                            onResult(it)
+                        }
+                    }
                 }
             }
-        }
-        uploading.emit(false)
+            uploading.emit(false)
+        } ?: onResult(Exception(MISSING_AUTH))
     }
 
     // deletes recipe, returns error if action failed
     // if deleting image did not succeed, does not throw error
     override suspend fun deleteRecipe(recipe: Recipe): Throwable? {
         return try {
-            try {
-                val photoStorageRef = storage.getReferenceFromUrl(recipe.imageUrl)
-                photoStorageRef.delete().await()
-            } catch (e: Exception) {
-                Timber.e("Error deleting image resource: ${e.message}")
-            }
-            userCollection.document(recipe.id).delete().addOnCompleteListener{
-                Timber.d("Deleted private recipe with ${it.exception} and ${recipe}")
-                if (recipe.public) publicCollection.document(recipe.id).delete().addOnCompleteListener{
-                    Timber.d("Completed deleting public recipe with: ${it.exception}")
+            Firebase.auth.currentUser?.let {
+                try {
+                    val photoStorageRef = storage.getReferenceFromUrl(recipe.imageUrl)
+                    photoStorageRef.delete().await()
+                } catch (e: Exception) {
+                    Timber.e("Error deleting image resource: ${e.message}")
                 }
-            }.await()
-            null
+                userCollection.document(recipe.id).delete().addOnCompleteListener {
+                    if (recipe.public) publicCollection.document(recipe.id).delete()
+                }.await()
+                null
+            } ?: throw Exception(MISSING_AUTH)
         } catch (e: Exception) {
             Timber.e("Error deleting recipe with id: ${recipe.id}, ${e.message}")
             e.cause
