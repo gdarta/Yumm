@@ -251,7 +251,6 @@ fun YummNavHost(
                     toHome = { navController.navigate(HomeScreen) },
                     toLists = { navController.navigate(ListsScreen) },
                     toProfile = { navController.navigate(ProfileScreen) },
-                    toCalendar = {}
                 )
             }
         },

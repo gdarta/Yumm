@@ -1,8 +1,12 @@
 package lv.yumm.recipes.data
 
+import com.google.firebase.Timestamp
+
 data class Recipe (
     val id: String = "",
     val authorUID: String = "",
+    val authorName: String? = null,
+    val updatedAt: Timestamp? = null,
     val public: Boolean = false,
     val title: String = "",
     val description: String = "",

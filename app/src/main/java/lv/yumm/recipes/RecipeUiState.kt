@@ -13,6 +13,8 @@ data class RecipeUiState (
     val isLoading: Boolean = false,
     val isPublic: Boolean = false,
 
+    val userName: String? = null,
+
     val imageUrl: String = "",
     val category: RecipeType? = null,
     val title: String = "c",
@@ -66,7 +68,8 @@ fun RecipeUiState.toRecipe(): Recipe {
         duration = this.duration,
         type = this.category,
         public = this.isPublic,
-        portions = this.portions
+        portions = this.portions,
+        authorName = this.userName
     )
 }
 
@@ -83,7 +86,8 @@ fun Recipe.toRecipeUiState(): RecipeUiState {
         category = this.type,
         isPublic = this.public,
         triedToSave = false,
-        portions = this.portions
+        portions = this.portions,
+        userName = this.authorName
     )
 }
 

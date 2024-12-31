@@ -2,8 +2,10 @@ package lv.yumm.service
 
 import android.net.Uri
 import androidx.core.net.toUri
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.dataObjects
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -36,13 +38,19 @@ class StorageServiceImpl @Inject constructor(
     private val publicCollection get() = firestore.collection(PUBLIC_RECIPES)
 
     override fun refreshUserRecipes(uid: String): Flow<List<Recipe>> {
-        return firestore.collection(RECIPES).document(USERS).collection(uid).dataObjects<Recipe>()
+        return firestore.collection(RECIPES).document(USERS).collection(uid)
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+            .dataObjects<Recipe>()
     }
     override val userRecipes: Flow<List<Recipe>>
-        get() = userCollection.dataObjects<Recipe>()
+        get() = userCollection
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+            .dataObjects<Recipe>()
 
     override val publicRecipes: Flow<List<Recipe>>
-        get() = publicCollection.dataObjects<Recipe>()
+        get() = publicCollection
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+            .dataObjects<Recipe>()
 
     private val uploading = MutableStateFlow<Boolean>(false)
     override val uploadingFlow: Flow<Boolean>
@@ -81,11 +89,12 @@ class StorageServiceImpl @Inject constructor(
     override  suspend fun insertRecipe(recipe: Recipe, onResult: (Throwable?) -> Unit) {
         Firebase.auth.currentUser?.let { user ->
             var updatedRecipe = recipe.copy(
-                authorUID = user.uid
+                authorUID = user.uid,
+                authorName = user.displayName,
+                updatedAt = Timestamp.now()
             ) // set user id for recipe
             uploading.emit(true)
             getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
-                onResult(error)
                 if (error == null)
                     updatedRecipe =
                         updatedRecipe.copy(imageUrl = uri.toString()) // set url for image
@@ -111,7 +120,11 @@ class StorageServiceImpl @Inject constructor(
     override suspend fun updateRecipe(recipe: Recipe, onResult: (Throwable?) -> Unit) {
         Firebase.auth.currentUser?.let { user ->
             uploading.emit(true)
-            var updatedRecipe = recipe.copy(authorUID = user.uid)
+            var updatedRecipe = recipe.copy(
+                authorUID = user.uid,
+                authorName = user.displayName,
+                updatedAt = Timestamp.now()
+            )
             if (isContentUrl(recipe.imageUrl)) {
                 getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
                     // if new image, get download url

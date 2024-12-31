@@ -40,6 +40,7 @@ import kotlinx.coroutines.launch
 import lv.yumm.R
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeUiState
+import lv.yumm.ui.theme.Typography
 
 @Composable
 fun EditDirectionsScreen(
@@ -111,9 +112,9 @@ fun DirectionCard(textField: TextFieldValue, number: Int, updateDirection: (Stri
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_list_reorder),
-            contentDescription = null,
+        Text(
+            text = "$number.",
+            style = Typography.titleMedium
         )
         SwipeableItemWithActions(
             shape = RoundedCornerShape(5.dp),

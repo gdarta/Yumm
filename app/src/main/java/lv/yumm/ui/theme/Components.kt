@@ -257,7 +257,8 @@ fun TopBar(
             .height(60.dp)
             .fillMaxWidth()
             .background(color = MaterialTheme.colorScheme.primary)
-            .wrapContentHeight(),
+            .wrapContentHeight()
+            .padding(horizontal = 10.dp),
     ) {
         leftButton(Modifier.align(Alignment.CenterStart))
         Text(
@@ -276,7 +277,6 @@ fun TopBar(
 fun BottomNavBar(
     toHome: () -> Unit,
     toLists: () -> Unit,
-    toCalendar: () -> Unit,
     toRecipes: () -> Unit,
     toProfile: () -> Unit,
 ) {
@@ -298,10 +298,6 @@ fun BottomNavBar(
             id = R.drawable.ic_list,
             description = "Home"
         ) { toLists() }
-        NavIcon(
-            id = R.drawable.ic_calendar,
-            description = "Home"
-        ) { toCalendar() }
         NavIcon(
             id = R.drawable.ic_profile,
             description = "Home"
@@ -384,7 +380,7 @@ fun TopBarPreview() {
 @Preview
 @Composable
 fun BottomNavBarPreview() {
-    YummTheme { BottomNavBar({}, {}, {}, {}, {}) }
+    YummTheme { BottomNavBar({}, {}, {}, {}) }
 }
 
 @Preview

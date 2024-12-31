@@ -121,6 +121,11 @@ fun ViewRecipeScreen(
                     text = uiState().description,
                     modifier = Modifier.fillMaxWidth()
                 )
+                Text(
+                    text = "Author: ${uiState().userName ?: "Unknown"}",
+                    style = Typography.titleMedium,
+                    color = if (!uiState().ingredientsEmptyError) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error
+                )
                 EditRow {
                     Text(
                         text = "Portions:",

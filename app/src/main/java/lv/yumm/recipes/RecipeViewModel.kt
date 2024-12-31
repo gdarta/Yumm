@@ -110,12 +110,6 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-    fun onError(error: Throwable?) {
-        error?.let {
-            Timber.e("Error happened with message: ${it.message}")
-        }
-    }
-
     fun insertNewOrUpdate(public: Boolean) {
         val recipeState = recipeUiState.value.copy(isPublic = public)
         viewModelScope.launch {
@@ -143,7 +137,7 @@ class RecipeViewModel @Inject constructor(
         viewModelScope.launch {
             val recipe = storageService.getUserRecipe(id)
             recipe?.let {
-                onError(storageService.deleteRecipe(recipe)?.cause)
+                if (storageService.deleteRecipe(recipe) != null) postMessage("Error deleting recipe")
             }
         }
     }
@@ -266,9 +260,9 @@ class RecipeViewModel @Inject constructor(
                         }
                         val uploadResult = storageService.uploadPhoto(event.uri)
                         if (uploadResult == null){
-                            //todo
+                            postMessage("Photo uploaded to server")
                         } else {
-                            onError(uploadResult)
+                            postMessage("Error uploading photo")
                         }
                     }
                 }
