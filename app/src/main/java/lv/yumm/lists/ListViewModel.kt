@@ -85,7 +85,7 @@ class ListViewModel @Inject constructor(
     }
 
     private fun setListToUi(list: UserList) {
-        _listUiState.value = list.toUiState().copy(errorList = list.list.map { ItemError() } )
+        _listUiState.value = list.toUiState().copy(errorList = list.list.map { IngredientError() } )
     }
 
     fun onEvent(event: ListEvent) {
@@ -120,7 +120,7 @@ class ListViewModel @Inject constructor(
                 _listUiState.update {
                     it.copy(
                         list = it.list + ListItem(),
-                        errorList = it.errorList + ItemError()
+                        errorList = it.errorList + IngredientError()
                     )
                 }
             }
@@ -132,7 +132,7 @@ class ListViewModel @Inject constructor(
 
                 val updatedErrors = _listUiState.value.errorList.toMutableList()
                 // validating that input is not blank and that amount is a valid number
-                updatedErrors[event.index] = ItemError(
+                updatedErrors[event.index] = IngredientError(
                     item.name.isBlank(), (item.amount <= 0f || item.amount.isNaN()), item.unit.isBlank()
                 )
 

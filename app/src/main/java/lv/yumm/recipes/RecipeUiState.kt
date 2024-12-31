@@ -1,6 +1,7 @@
 package lv.yumm.recipes
 
 import androidx.compose.runtime.Immutable
+import lv.yumm.lists.IngredientError
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
 import lv.yumm.recipes.data.RecipeType
@@ -25,6 +26,8 @@ data class RecipeUiState (
     val duration: Long = 10,
     val portions: Int = 1,
 
+    val ingredientErrorList: List<IngredientError> = emptyList(),
+
     val triedToSave: Boolean = false,
 
     val editDurationDialog: Boolean = false,
@@ -37,6 +40,8 @@ data class RecipeUiState (
     val durationError: Boolean = this.duration <= 0 && this.triedToSave
     val ingredientsEmptyError: Boolean = this.ingredients.isEmpty() && this.triedToSave
     val directionsEmptyError: Boolean = this.directions.isEmpty() && this.triedToSave
+
+    val ingredientScreenError: Boolean = ingredientErrorList.find { it.nameError || it.amountError || it.unitError } != null
 
     val editScreenHasError: Boolean = (titleError || categoryError || difficultyError || durationError || ingredientsEmptyError || directionsEmptyError)
 

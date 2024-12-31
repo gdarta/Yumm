@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import lv.yumm.BaseViewModel
+import lv.yumm.lists.IngredientError
 import lv.yumm.login.service.AccountService
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Ingredient
@@ -159,12 +160,6 @@ class RecipeViewModel @Inject constructor(
             if (!_recipeUiState.value.editScreenHasError) {
                 insertNewOrUpdate(public)
                 navigateBack()
-            } else {
-                _recipeUiState.update {
-                    if (!it.hasOpenDialogs) {
-                        it.copy(showErrorDialog = true)
-                    } else it
-                }
             }
         }
     }
@@ -176,7 +171,7 @@ class RecipeViewModel @Inject constructor(
             }
             is RecipeEvent.AddIngredient -> {
                 _recipeUiState.update { uiState ->
-                    uiState.copy(ingredients = uiState.ingredients + Ingredient())
+                    uiState.copy(ingredients = uiState.ingredients + Ingredient(), ingredientErrorList = uiState.ingredientErrorList + IngredientError())
                 }
             }
             is RecipeEvent.UpdateTitle -> {
@@ -190,17 +185,26 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.UpdateIngredient -> {
+                val ingredient = event.ingredient
                 val updatedIngredients = _recipeUiState.value.ingredients.toMutableList()
                 updatedIngredients[event.index] = event.ingredient
+
+                val updatedErrors = _recipeUiState.value.ingredientErrorList.toMutableList()
+                // validating that input is not blank and that amount is a valid number
+                updatedErrors[event.index] = IngredientError(
+                    ingredient.name.isBlank(), (ingredient.amount <= 0f || ingredient.amount.isNaN()), ingredient.unit.isBlank()
+                )
                 _recipeUiState.update {
-                    it.copy(ingredients = updatedIngredients)
+                    it.copy(ingredients = updatedIngredients, ingredientErrorList = updatedErrors)
                 }
             }
             is RecipeEvent.DeleteIngredient -> {
                 val updatedIngredients = _recipeUiState.value.ingredients.toMutableList()
                 updatedIngredients.removeAt(event.index)
+                val updatedErrors = _recipeUiState.value.ingredientErrorList.toMutableList()
+                updatedErrors.removeAt(event.index)
                 _recipeUiState.update {
-                    it.copy(ingredients = updatedIngredients)
+                    it.copy(ingredients = updatedIngredients, ingredientErrorList = updatedErrors)
                 }
             }
             is RecipeEvent.AddDirection -> {
@@ -367,9 +371,11 @@ class RecipeViewModel @Inject constructor(
             }
 
             is RecipeEvent.ValidateIngredients -> {
-                val ingredients = _recipeUiState.value.ingredients.filterNot { it.isEmpty() || it.hasEmpty() }
+                val ingredients = _recipeUiState.value.ingredients.filterNot { it.isEmpty() }
+                val errorList =
+                    _recipeUiState.value.ingredientErrorList.filterIndexed { index, item -> !_recipeUiState.value.ingredients[index].isEmpty() }
                 _recipeUiState.update {
-                    it.copy(ingredients = ingredients)
+                    it.copy(ingredients = ingredients, ingredientErrorList = errorList)
                 }
             }
 

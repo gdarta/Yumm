@@ -121,8 +121,6 @@ class StorageServiceImpl @Inject constructor(
         Firebase.auth.currentUser?.let { user ->
             uploading.emit(true)
             var updatedRecipe = recipe.copy(
-                authorUID = user.uid,
-                authorName = user.displayName,
                 updatedAt = Timestamp.now()
             )
             if (isContentUrl(recipe.imageUrl)) {

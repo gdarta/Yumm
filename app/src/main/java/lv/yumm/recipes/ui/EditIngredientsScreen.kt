@@ -73,13 +73,6 @@ fun EditIngredientsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             itemsIndexed(uiState.ingredients) { index, ingredient ->
-                var nameEmpty by remember { mutableStateOf(false) }
-                var amntError by remember { mutableStateOf(false) }
-                var msrEmpty by remember { mutableStateOf(false) }
-                LaunchedEffect(nameEmpty, amntError, msrEmpty) {
-                    hasError[index] = nameEmpty || amntError || msrEmpty
-                    hasError.forEach{ Timber.d("error array : $it") }
-                }
                 var isDeleteRevealed by remember { mutableStateOf(false) }
                 SwipeableItemWithActions(
                     modifier = Modifier.padding(vertical = 10.dp),
@@ -109,11 +102,10 @@ fun EditIngredientsScreen(
                 ) {
                     IngredientCard(IngredientOptions(),
                         ingredient,
-                        nameError = nameEmpty,
-                        amountError = amntError,
-                        measurementError = msrEmpty,
+                        nameError = uiState.ingredientErrorList[index].nameError,
+                        amountError = uiState.ingredientErrorList[index].amountError,
+                        measurementError = uiState.ingredientErrorList[index].unitError,
                         onNameChange = {
-                            nameEmpty = it.isEmpty()
                             onEvent(
                                 RecipeEvent.UpdateIngredient(
                                     index,
@@ -122,7 +114,6 @@ fun EditIngredientsScreen(
                             )
                         },
                         onAmountChange = {
-                            amntError = it.isEmpty() || it.toFloatOrNull() == null
                             onEvent(
                                 RecipeEvent.UpdateIngredient(
                                     index,
@@ -131,7 +122,6 @@ fun EditIngredientsScreen(
                             )
                         },
                         onMeasurementChange = {
-                            msrEmpty = if (it.isEmpty()) true else false
                             onEvent(
                                 RecipeEvent.UpdateIngredient(
                                     index,
@@ -162,7 +152,7 @@ fun EditIngredientsScreen(
             content = { Text(text = "Save and return") },
             shape = RoundedCornerShape(3.dp),
             modifier = Modifier.fillMaxWidth(),
-            enabled = (!hasError.contains(true)),
+            enabled = !uiState.ingredientScreenError,
             onClick = {
                 onEvent(RecipeEvent.ValidateIngredients())
                 navigateBack()

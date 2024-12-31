@@ -9,7 +9,6 @@ sealed class RecipeEvent {
     class DeleteRecipe(val id: String): RecipeEvent()
     class SaveRecipe(val public: Boolean, val navigateBack: () -> Unit): RecipeEvent()
     class SetRecipeToUi(val public: Boolean, val id: String): RecipeEvent()
-    class AddIngredient(): RecipeEvent()
 
     class UpdateTitle(val title: String): RecipeEvent()
     class UpdateDescription(val description: String): RecipeEvent()
@@ -18,15 +17,17 @@ sealed class RecipeEvent {
     class UpdateDifficulty(val difficulty: Float): RecipeEvent()
     class UpdateDuration(val duration: List<Long>): RecipeEvent()
     class UpdatePortions(val portions: Int?): RecipeEvent()
+    class UpdateCategory(val type: RecipeType): RecipeEvent()
 
     class ValidateIngredients(): RecipeEvent()
     class ValidateDirections(): RecipeEvent()
 
-    class DeleteIngredient(val index: Int): RecipeEvent()
+    class AddIngredient(): RecipeEvent()
     class AddDirection(): RecipeEvent()
+    class DeleteIngredient(val index: Int): RecipeEvent()
     class DeleteDirection(val index: Int): RecipeEvent()
+
     class UploadPicture(val uri: Uri?): RecipeEvent()
-    class UpdateCategory(val type: RecipeType): RecipeEvent()
 
     class SetDurationDialog(val open: Boolean): RecipeEvent()
     class SetErrorDialog(val open: Boolean): RecipeEvent()
