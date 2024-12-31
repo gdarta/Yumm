@@ -56,6 +56,14 @@ class StorageServiceImpl @Inject constructor(
     override val uploadingFlow: Flow<Boolean>
         get() = uploading
 
+    override suspend fun searchPublicRecipes(searchPhrase: String): Flow<List<Recipe>> {
+        val searchQuery = publicCollection
+            .whereArrayContains("keywords", searchPhrase.lowercase())
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+
+        return searchQuery.dataObjects<Recipe>()
+    }
+
     override suspend fun getUserRecipe(id: String): Recipe? {
         return try {
             uploading.value = true
@@ -91,7 +99,9 @@ class StorageServiceImpl @Inject constructor(
             var updatedRecipe = recipe.copy(
                 authorUID = user.uid,
                 authorName = user.displayName,
-                updatedAt = Timestamp.now()
+                updatedAt = Timestamp.now(),
+                keywords = listOf(recipe.title.lowercase(), recipe.type?.name?.lowercase() ?: "")
+                    .flatMap { it.split(" ").filter { word -> word.isNotEmpty() } }.flatMap { word -> generateSubstrings(word) }
             ) // set user id for recipe
             uploading.emit(true)
             getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
@@ -121,7 +131,11 @@ class StorageServiceImpl @Inject constructor(
         Firebase.auth.currentUser?.let { user ->
             uploading.emit(true)
             var updatedRecipe = recipe.copy(
-                updatedAt = Timestamp.now()
+                updatedAt = Timestamp.now(),
+                authorUID = user.uid,
+                authorName = user.displayName,
+                keywords = listOf(recipe.title.lowercase(), recipe.type?.name?.lowercase() ?: "")
+                    .flatMap { it.split(" ").filter { word -> word.isNotEmpty() } }.flatMap { word -> generateSubstrings(word) }
             )
             if (isContentUrl(recipe.imageUrl)) {
                 getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
@@ -220,8 +234,9 @@ class StorageServiceImpl @Inject constructor(
         return url.startsWith("content://")
     }
 
-    private fun isStorageUrl(url: String): Boolean {
-        return url.startsWith("https://")
+    fun generateSubstrings(input: String): List<String> {
+        if (input.length < 3) return listOf(input) // Return an empty list if the input is too short
+        return (3..input.length).map { input.substring(0, it) }
     }
 
     private fun String.resizedName(): String {

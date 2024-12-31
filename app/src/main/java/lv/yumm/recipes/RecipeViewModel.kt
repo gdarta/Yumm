@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,12 +37,11 @@ class RecipeViewModel @Inject constructor(
     private val _publicRecipeStream = storageService.publicRecipes
     private val _userRecipeStream = storageService.userRecipes
 
-    val recipeStream: StateFlow<List<Recipe>> = _userRecipeStream
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = emptyList(),
-        )
+    private val _searchPhrase = MutableStateFlow("")
+    val searchPhrase = _searchPhrase.asStateFlow()
+
+    private val _filteredPublicRecipes = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
+    val filteredPublicRecipes = _filteredPublicRecipes.asStateFlow()
 
     private val _recipeList = MutableStateFlow<List<Recipe>>(emptyList())
 
@@ -70,12 +70,7 @@ class RecipeViewModel @Inject constructor(
                 started = SharingStarted.Lazily,
                 initialValue = emptyList(),
             ).collectLatest { recipes ->
-                _userRecipeCardUiList.update {
-                    recipes.toRecipeCardUiState()
-                }
-                _recipeList.update {
-                    recipes
-                }
+                updateUiRecipeLists(recipes)
             }
         }
         viewModelScope.launch {
@@ -92,23 +87,37 @@ class RecipeViewModel @Inject constructor(
                 postUserId(user)
                 if (user != EMPTY_USER_ID){
                     storageService.refreshUserRecipes(user).collectLatest { recipes ->
-                        _userRecipeCardUiList.update {
-                            recipes.toRecipeCardUiState()
-                        }
-                        _recipeList.update {
-                            recipes
-                        }
+                        updateUiRecipeLists(recipes)
                     }
                 } else {
-                    _userRecipeCardUiList.update {
-                        emptyList()
-                    }
-                    _recipeList.update {
-                        emptyList()
-                    }
+                    updateUiRecipeLists(emptyList())
                 }
             }
         }
+    }
+
+    // update list of recipes for user
+    private fun updateUiRecipeLists(recipes: List<Recipe>) {
+        _userRecipeCardUiList.update {
+            recipes.toRecipeCardUiState()
+        }
+        _recipeList.update {
+            recipes
+        }
+    }
+
+    fun updateFilteredStream(recipes: List<Recipe>) {
+        _filteredPublicRecipes.update {
+            recipes.toRecipeCardUiState()
+        }
+    }
+
+    fun updateSearchPhrase(phrase: String) {
+        _searchPhrase.value = phrase
+    }
+
+    suspend fun processSearchQueryForPublicRecipeStream() : Flow<List<Recipe>> {
+        return storageService.searchPublicRecipes(_searchPhrase.value)
     }
 
     fun insertNewOrUpdate(public: Boolean) {
@@ -175,13 +184,17 @@ class RecipeViewModel @Inject constructor(
                 }
             }
             is RecipeEvent.UpdateTitle -> {
-                _recipeUiState.update {
-                    it.copy(title = event.title)
+                if (event.title.length <= 60){
+                    _recipeUiState.update {
+                        it.copy(title = event.title)
+                    }
                 }
             }
             is RecipeEvent.UpdateDescription -> {
-                _recipeUiState.update {
-                    it.copy(description = event.description)
+                if (event.description.length <= 440){
+                    _recipeUiState.update {
+                        it.copy(description = event.description)
+                    }
                 }
             }
             is RecipeEvent.UpdateIngredient -> {

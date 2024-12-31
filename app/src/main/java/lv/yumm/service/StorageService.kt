@@ -11,6 +11,8 @@ interface StorageService {
 
     fun refreshUserRecipes(uid: String): Flow<List<Recipe>>
 
+    suspend fun searchPublicRecipes(searchPhrase: String): Flow<List<Recipe>>
+
     suspend fun getPublicRecipe(id: String): Recipe?
     suspend fun getUserRecipe(id: String): Recipe?
 

@@ -7,6 +7,7 @@ data class Recipe (
     val authorUID: String = "",
     val authorName: String? = null,
     val updatedAt: Timestamp? = null,
+    val keywords: List<String> = emptyList(),
     val public: Boolean = false,
     val title: String = "",
     val description: String = "",

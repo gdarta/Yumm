@@ -23,6 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import lv.yumm.R
 import lv.yumm.lists.ListEvent
@@ -52,6 +55,7 @@ import lv.yumm.login.ui.ActionAuthorizeScreen
 import lv.yumm.login.ui.ProfileScreen
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeViewModel
+import lv.yumm.recipes.toRecipeCardUiState
 import lv.yumm.recipes.ui.CreateRecipeScreen
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
@@ -306,7 +310,22 @@ fun YummNavHost(
                 }
                 composable<HomeScreen> {
                     val state by recipeViewModel.publicRecipeCardUiList.collectAsStateWithLifecycle()
-                    HomeScreen(state,
+                    val phrase by recipeViewModel.searchPhrase.collectAsStateWithLifecycle()
+                    val filteredState by recipeViewModel.filteredPublicRecipes.collectAsStateWithLifecycle()
+                    LaunchedEffect(phrase) {
+                        Timber.d("launched effect for recipes")
+                        if (phrase.length > 2) {
+                            Timber.d("search phrase for recipes")
+                            recipeViewModel.processSearchQueryForPublicRecipeStream().collectLatest { recipes ->
+                                Timber.d("recipes collected $recipes")
+                                recipeViewModel.updateFilteredStream(recipes)
+                            }
+                        }
+                    }
+                    HomeScreen(
+                        searchPhrase = phrase,
+                        onSearch = { recipeViewModel.updateSearchPhrase(it) },
+                        recipes = if (phrase.length < 3) state else filteredState,
                         navigateToView = {
                             recipeViewModel.onEvent(RecipeEvent.SetRecipeToUi(true, it))
                             navController.navigate(ViewRecipe)
