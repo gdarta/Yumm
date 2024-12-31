@@ -313,24 +313,22 @@ fun YummNavHost(
                     val phrase by recipeViewModel.searchPhrase.collectAsStateWithLifecycle()
                     val filteredState by recipeViewModel.filteredPublicRecipes.collectAsStateWithLifecycle()
                     LaunchedEffect(phrase) {
-                        Timber.d("launched effect for recipes")
                         if (phrase.length > 2) {
-                            Timber.d("search phrase for recipes")
                             recipeViewModel.processSearchQueryForPublicRecipeStream().collectLatest { recipes ->
-                                Timber.d("recipes collected $recipes")
                                 recipeViewModel.updateFilteredStream(recipes)
                             }
                         }
                     }
                     HomeScreen(
+                        loading = recipeUiState.isLoading,
                         searchPhrase = phrase,
                         onSearch = { recipeViewModel.updateSearchPhrase(it) },
                         recipes = if (phrase.length < 3) state else filteredState,
                         navigateToView = {
                             recipeViewModel.onEvent(RecipeEvent.SetRecipeToUi(true, it))
                             navController.navigate(ViewRecipe)
-                        },
-                        { recipeViewModel.onEvent(it) })
+                        }
+                        )
                 }
                 composable<CreateRecipe> {
                     CreateRecipeScreen(

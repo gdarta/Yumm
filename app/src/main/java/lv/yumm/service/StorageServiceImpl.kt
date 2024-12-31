@@ -96,13 +96,13 @@ class StorageServiceImpl @Inject constructor(
     // once for when the recipe is saved and once for publishing it, if it is set to be public
     override  suspend fun insertRecipe(recipe: Recipe, onResult: (Throwable?) -> Unit) {
         Firebase.auth.currentUser?.let { user ->
+            // set user id and other utility fields for recipe
             var updatedRecipe = recipe.copy(
                 authorUID = user.uid,
                 authorName = user.displayName,
                 updatedAt = Timestamp.now(),
-                keywords = listOf(recipe.title.lowercase(), recipe.type?.name?.lowercase() ?: "")
-                    .flatMap { it.split(" ").filter { word -> word.isNotEmpty() } }.flatMap { word -> generateSubstrings(word) }
-            ) // set user id for recipe
+                keywords = listOf(recipe.title.lowercase(), recipe.type?.name?.lowercase() ?: "").generateKeywords()
+            )
             uploading.emit(true)
             getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
                 if (error == null)
@@ -134,8 +134,7 @@ class StorageServiceImpl @Inject constructor(
                 updatedAt = Timestamp.now(),
                 authorUID = user.uid,
                 authorName = user.displayName,
-                keywords = listOf(recipe.title.lowercase(), recipe.type?.name?.lowercase() ?: "")
-                    .flatMap { it.split(" ").filter { word -> word.isNotEmpty() } }.flatMap { word -> generateSubstrings(word) }
+                keywords = listOf(recipe.title.lowercase(), recipe.type?.name?.lowercase() ?: "").generateKeywords()
             )
             if (isContentUrl(recipe.imageUrl)) {
                 getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
@@ -237,6 +236,13 @@ class StorageServiceImpl @Inject constructor(
     fun generateSubstrings(input: String): List<String> {
         if (input.length < 3) return listOf(input) // Return an empty list if the input is too short
         return (3..input.length).map { input.substring(0, it) }
+    }
+
+    private fun List<String>.generateKeywords(): List<String> {
+        return this.flatMap {
+            it.split(" ")
+                .filter { word -> word.isNotEmpty() }
+        }.flatMap { word -> generateSubstrings(word) }.filter{ !it.contains(Regex("[^\\p{L}]")) }
     }
 
     private fun String.resizedName(): String {
