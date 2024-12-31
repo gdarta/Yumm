@@ -10,7 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,9 +17,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import lv.yumm.login.ui.LoginUiState
+import lv.yumm.login.LoginEvent
+import lv.yumm.login.LoginUiState
 import lv.yumm.ui.theme.Typography
-import lv.yumm.ui.theme.recipeTextFieldColors
 
 @Composable
 fun RegisterScreen(
@@ -50,24 +49,23 @@ fun RegisterScreen(
         LoginTextField(
             value = uiState().displayName,
             onValueChange = { onEvent(LoginEvent.UpdateDisplayName(it)) },
-            label = "Display name"
+            label = "Display name",
+            isError = uiState().displayNameEmpty
         )
-        LoginTextField(
+        PasswordTextField(
             value = uiState().password,
             onValueChange = { onEvent(LoginEvent.UpdatePassword(it)) },
             label = "Password",
             isError = uiState().passwordEmpty,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = PasswordVisualTransformation()
         )
-        LoginTextField(
+        PasswordTextField(
             value = uiState().confirmPassword,
             onValueChange = { onEvent(LoginEvent.UpdateConfirmPassword(it)) },
             label = "Confirm password",
             isError = uiState().confirmPasswordError,
             errorText = "Password does not match",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = PasswordVisualTransformation()
         )
         LoginButton(text = "Sign up") { onEvent(LoginEvent.SignUp()) }
         Text(

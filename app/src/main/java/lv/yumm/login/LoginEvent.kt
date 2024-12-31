@@ -1,4 +1,4 @@
-package lv.yumm.login.ui
+package lv.yumm.login
 
 sealed class LoginEvent {
     class UpdateEmail(val email: String): LoginEvent()

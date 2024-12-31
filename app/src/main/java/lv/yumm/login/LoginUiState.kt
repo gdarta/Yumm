@@ -1,4 +1,4 @@
-package lv.yumm.login.ui
+package lv.yumm.login
 
 data class LoginUiState(
     val isLoading: Boolean = false,

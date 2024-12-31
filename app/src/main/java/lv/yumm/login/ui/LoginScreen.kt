@@ -1,30 +1,36 @@
 package lv.yumm.login.ui
 
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import lv.yumm.login.ui.LoginUiState
+import lv.yumm.login.LoginEvent
+import lv.yumm.login.LoginUiState
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.loginTextFieldColors
-import lv.yumm.ui.theme.recipeTextFieldColors
+import lv.yumm.R
 
 @Composable
 fun LoginScreen(
@@ -73,13 +79,12 @@ fun LoginFields(
             isError = uiState().emailEmpty,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
-        LoginTextField(
+        PasswordTextField(
             value = uiState().password,
             onValueChange = { onEvent(LoginEvent.UpdatePassword(it)) },
             label = "Password",
             isError = uiState().passwordEmpty,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = PasswordVisualTransformation()
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
     }
 }
@@ -113,6 +118,58 @@ fun LoginTextField(
         },
         label = {
             Text(text = label)
+        }
+    )
+}
+
+@Composable
+fun PasswordTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    isError: Boolean = false,
+    errorText: String? = null,
+    keyboardOptions: KeyboardOptions? = null,
+) {
+    var visible by remember { mutableStateOf(false) }
+    TextField(
+        value = value,
+        onValueChange = { onValueChange(it) },
+        textStyle = Typography.bodyMedium,
+        colors = loginTextFieldColors(),
+        maxLines = 1,
+        keyboardOptions = keyboardOptions ?: KeyboardOptions.Default,
+        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+        isError = isError,
+        supportingText = {
+            if (isError) {
+                Text(
+                    text = errorText ?: "Field must not be empty!",
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        label = {
+            Text(text = label)
+        },
+        trailingIcon = {
+            IconButton(
+                onClick = { visible = !visible }
+            ) {
+                if (visible) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_not_visible),
+                        contentDescription = "Set password not visible",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_visible),
+                        contentDescription = "Set password visible",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     )
 }

@@ -64,7 +64,6 @@ import lv.yumm.ui.state.FloatingActionButtonState
 import lv.yumm.ui.state.RightTopBarButtonState
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
-import timber.log.Timber
 
 @Keep
 enum class EditProfileAction {
