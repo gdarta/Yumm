@@ -68,6 +68,22 @@ class ListViewModel @Inject constructor(
         }
     }
 
+    private fun combineIngredientLists(list1: List<Ingredient>, list2: List<Ingredient>): List<Ingredient> {
+        val combinedMap = mutableMapOf<Pair<String, String>, Ingredient>()
+
+        (list1 + list2).forEach { ingredient ->
+            val key = Pair(ingredient.name.lowercase(), ingredient.unit.lowercase())
+            val existing = combinedMap[key]
+            if (existing != null) {
+                combinedMap[key] = existing.copy(amount = existing.amount + ingredient.amount)
+            } else {
+                combinedMap[key] = ingredient
+            }
+        }
+
+        return combinedMap.values.toList()
+    }
+
     private fun setListToUi(list: UserList) {
         _listUiState.value = list.toUiState().copy(errorList = list.list.map { ItemError() } )
     }
@@ -163,7 +179,29 @@ class ListViewModel @Inject constructor(
                     }
                 }
             }
+
+            is ListEvent.AddIngredientsToUserList -> {
+                viewModelScope.launch {
+                    storageService.getList(event.listId)?.let { userList ->
+                        val newList = combineIngredientLists(userList.list.map { it.ingredient }, event.ingredients)
+                        storageService.updateList(userList.copy(list = newList.map { ListItem(false, it) } )) {
+                            if (it == null) postMessage("List was updated")
+                        }
+                    }
+                }
+            }
+
+            is ListEvent.CreateListFromIngredients -> {
+                viewModelScope.launch {
+                    val newUserList = UserList(
+                        title = event.title,
+                        list = event.ingredients.map { ListItem(false, it) }
+                    )
+                    storageService.updateList(newUserList) {
+                        if (it == null) postMessage("New list created")
+                    }
+                }
+            }
         }
     }
-
 }

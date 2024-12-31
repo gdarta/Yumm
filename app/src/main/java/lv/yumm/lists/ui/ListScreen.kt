@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.google.firebase.Timestamp
 import lv.yumm.R
 import lv.yumm.lists.ListEvent
 import lv.yumm.lists.ListUiState
@@ -106,25 +107,14 @@ fun ListScreen(
                         }
                     }
                 ) {
-                    Surface(
+                    UserListCard(
                         onClick = {
                             onEvent(ListEvent.OpenList(list.id))
                             navigateToView()
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        tonalElevation = 5.dp,
-                        shadowElevation = 5.dp,
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text(
-                            text = if (list.title.isNotBlank()) list.title else list.updatedAt?.seconds?.toFormattedDate()
-                                ?: "...",
-                            style = Typography.titleMedium,
-                            modifier = Modifier.padding(15.dp),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                        title = list.title,
+                        updatedAt = list.updatedAt
+                    )
                 }
             }
         }
@@ -158,5 +148,25 @@ fun ListScreen(
                 text = "Log in"
             ) { navigateToLogin() }
         }
+    }
+}
+
+@Composable
+fun UserListCard(onClick: () -> Unit, title: String, updatedAt: Timestamp?) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 5.dp,
+        shadowElevation = 5.dp,
+        shape = RoundedCornerShape(10.dp)
+    ) {
+        Text(
+            text = if (title.isNotBlank()) title else updatedAt?.seconds?.toFormattedDate()
+                ?: "...",
+            style = Typography.titleMedium,
+            modifier = Modifier.padding(15.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

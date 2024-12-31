@@ -17,4 +17,7 @@ sealed class ListEvent {
     class CheckItem(val index: Int, val checked: Boolean): ListEvent()
 
     class ValidateAndSave(): ListEvent()
+
+    class AddIngredientsToUserList(val ingredients: List<Ingredient>, val listId: String) : ListEvent()
+    class CreateListFromIngredients(val title: String, val ingredients: List<Ingredient>) : ListEvent()
 }

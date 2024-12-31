@@ -42,6 +42,7 @@ import kotlinx.serialization.Serializable
 import lv.yumm.R
 import lv.yumm.lists.ListEvent
 import lv.yumm.lists.ListViewModel
+import lv.yumm.lists.ui.AddRecipeToListScreen
 import lv.yumm.lists.ui.CreateListScreen
 import lv.yumm.lists.ui.ListScreen
 import lv.yumm.lists.ui.ViewListScreen
@@ -58,6 +59,7 @@ import lv.yumm.recipes.ui.HomeScreen
 import lv.yumm.recipes.ui.RecipesScreen
 import lv.yumm.recipes.ui.ViewRecipeScreen
 import lv.yumm.ui.state.FloatingActionButtonState
+import lv.yumm.ui.state.RightTopBarButtonState
 import lv.yumm.ui.theme.BottomNavBar
 import lv.yumm.ui.theme.TopBar
 import timber.log.Timber
@@ -109,6 +111,9 @@ object ListsScreen
 @Serializable
 object ViewListScreen
 
+@Serializable
+object AddRecipeToListScreen
+
 fun getTitle(screen: NavDestination?): String {
     return when {
         screen?.hasRoute(route = RecipesScreen::class) == true -> "My Recipes"
@@ -136,7 +141,8 @@ val showBackButtonList = listOf(
     EditDirections::class.qualifiedName,
     ActionAuthorizeScreen::class.qualifiedName + "/{infoText}/{actionText}/{event}",
     CreateListScreen::class.qualifiedName,
-    ViewListScreen::class.qualifiedName
+    ViewListScreen::class.qualifiedName,
+    AddRecipeToListScreen::class.qualifiedName
 )
 
 @Composable
@@ -153,12 +159,20 @@ fun YummNavHost(
 
     // Observe current navigation state
     val actionButtonState = remember { mutableStateOf(FloatingActionButtonState()) }
+    val rightButtonState = remember { mutableStateOf(RightTopBarButtonState()) }
     navBackStackEntry?.destination?.let { currentDestination ->
         val route = currentDestination.route
         Timber.d("Route: ${route}")
 
         showBottomBar.value = route in showBottomBarList
         showBackButton.value = route in showBackButtonList
+
+        rightButtonState.value = if (route == ViewRecipe::class.qualifiedName)
+            RightTopBarButtonState(
+                shouldShow = true,
+                onClick = { navController.navigate(AddRecipeToListScreen) }) else RightTopBarButtonState(
+            shouldShow = false
+        )
 
         actionButtonState.value =
             when (route) {
@@ -198,13 +212,29 @@ fun YummNavHost(
         topBar = {
             TopBar(
                 title = getTitle(navBackStackEntry?.destination),
-                leftButton = {
+                leftButton = { modifier ->
                     if (showBackButton.value) {
                         IconButton(
+                            modifier = modifier,
                             onClick = { navController.popBackStack() }
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_back),
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                },
+                rightButton = { modifier ->
+                    if (rightButtonState.value.shouldShow) {
+                        IconButton(
+                            modifier = modifier,
+                            onClick = { rightButtonState.value.onClick() }
+                        ) {
+                            Icon(
+                                painter = painterResource(rightButtonState.value.resId),
                                 contentDescription = "Back",
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 modifier = Modifier.size(20.dp)
@@ -250,7 +280,7 @@ fun YummNavHost(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = RecipesScreen,
+                startDestination = HomeScreen,
                 exitTransition = {
                     scaleOutOfContainer(direction = ScaleTransitionDirection.INWARDS)
                 },
@@ -345,7 +375,6 @@ fun YummNavHost(
                         uiState = { listUiState }
                     ) { listViewModel.onEvent(it) }
                 }
-
                 composable<ListsScreen> {
                     val lists by listViewModel.userListsUiState.collectAsStateWithLifecycle()
                     val currentUser by listViewModel.currentUserId.collectAsStateWithLifecycle()
@@ -363,6 +392,17 @@ fun YummNavHost(
                     ViewListScreen(
                         uiState = listUiState
                     ) { listViewModel.onEvent(it) }
+                }
+
+                composable<AddRecipeToListScreen> {
+                    val lists by listViewModel.userListsUiState.collectAsStateWithLifecycle()
+                    AddRecipeToListScreen(
+                        recipeIngredients = recipeUiState.ingredients,
+                        userLists = lists
+                    ) {
+                        listViewModel.onEvent(it)
+                        navController.popBackStack()
+                    }
                 }
             }
             if (recipeUiState.isLoading || loginUiState.isLoading || listUiState.isLoading) {
