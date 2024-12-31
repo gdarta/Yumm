@@ -24,26 +24,28 @@ class StorageServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: AccountService,
     private val storage: FirebaseStorage
-): StorageService {
+) : StorageService {
     companion object {
         private const val RECIPES = "recipes"
-        private const val USERS = "users"
         private const val PUBLIC_RECIPES = "public_recipes"
 
         const val MISSING_AUTH = "User is not authenticated!"
     }
 
-    private val userCollection get() = firestore.collection(RECIPES).document(USERS).collection(Firebase.auth.currentUser?.uid ?: EMPTY_USER_ID)
+    private val userCollection get() = firestore.collection(RECIPES)
 
     private val publicCollection get() = firestore.collection(PUBLIC_RECIPES)
 
     override fun refreshUserRecipes(uid: String): Flow<List<Recipe>> {
-        return firestore.collection(RECIPES).document(USERS).collection(uid)
+        return firestore.collection(RECIPES)
+            .whereEqualTo("authorUID", Firebase.auth.currentUser?.uid)
             .orderBy("updatedAt", Query.Direction.DESCENDING)
             .dataObjects<Recipe>()
     }
+
     override val userRecipes: Flow<List<Recipe>>
         get() = userCollection
+            .whereEqualTo("authorUID", Firebase.auth.currentUser?.uid)
             .orderBy("updatedAt", Query.Direction.DESCENDING)
             .dataObjects<Recipe>()
 
@@ -64,10 +66,18 @@ class StorageServiceImpl @Inject constructor(
         return searchQuery.dataObjects<Recipe>()
     }
 
+    override suspend fun searchUserRecipes(searchPhrase: String): Flow<List<Recipe>> {
+        val searchQuery = userCollection
+            .whereArrayContains("keywords", searchPhrase.lowercase())
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+
+        return searchQuery.dataObjects<Recipe>()
+    }
+
     override suspend fun getUserRecipe(id: String): Recipe? {
         return try {
             uploading.value = true
-            val recipe = userCollection.document(id).get().addOnCompleteListener{
+            val recipe = userCollection.document(id).get().addOnCompleteListener {
                 uploading.value = false
             }.await().toObject(Recipe::class.java)
             recipe
@@ -81,7 +91,7 @@ class StorageServiceImpl @Inject constructor(
     override suspend fun getPublicRecipe(id: String): Recipe? {
         return try {
             uploading.value = true
-            val recipe = publicCollection.document(id).get().addOnCompleteListener{
+            val recipe = publicCollection.document(id).get().addOnCompleteListener {
                 uploading.value = false
             }.await().toObject(Recipe::class.java)
             recipe
@@ -94,14 +104,18 @@ class StorageServiceImpl @Inject constructor(
 
     // adds a new recipe, onResult is called three times: once for when url for image is retrieved,
     // once for when the recipe is saved and once for publishing it, if it is set to be public
-    override  suspend fun insertRecipe(recipe: Recipe, onResult: (Throwable?) -> Unit) {
+    override suspend fun insertRecipe(recipe: Recipe, onResult: (Throwable?) -> Unit) {
         Firebase.auth.currentUser?.let { user ->
             // set user id and other utility fields for recipe
             var updatedRecipe = recipe.copy(
                 authorUID = user.uid,
                 authorName = user.displayName,
                 updatedAt = Timestamp.now(),
-                keywords = listOf(recipe.title.lowercase(), recipe.type?.name?.lowercase() ?: "").generateKeywords()
+                keywords = listOf(
+                    recipe.title.lowercase(),
+                    recipe.type?.name?.lowercase() ?: "",
+                    user.displayName?.lowercase() ?: ""
+                ).generateKeywords()
             )
             uploading.emit(true)
             getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
@@ -134,24 +148,29 @@ class StorageServiceImpl @Inject constructor(
                 updatedAt = Timestamp.now(),
                 authorUID = user.uid,
                 authorName = user.displayName,
-                keywords = listOf(recipe.title.lowercase(), recipe.type?.name?.lowercase() ?: "").generateKeywords()
+                keywords = listOf(
+                    recipe.title.lowercase(),
+                    recipe.type?.name?.lowercase() ?: "",
+                    user.displayName?.lowercase() ?: ""
+                ).generateKeywords()
             )
             if (isContentUrl(recipe.imageUrl)) {
                 getResizedImageUrl(recipe.imageUrl.toUri()) { uri, error ->
                     // if new image, get download url
                     if (error == null) {
                         updatedRecipe = updatedRecipe.copy(imageUrl = uri.toString())
-                        userCollection.document(recipe.id).set(updatedRecipe).addOnCompleteListener {
-                            onResult(it.exception)
-                            if (it.exception != null) {
-                                Timber.e("Error updating recipe with id: ${recipe.id}, ${it.exception?.message}")
-                            } else if (recipe.public) {
-                                publishRecipe(updatedRecipe) {
-                                    if (it != null) Timber.e("Error publishing recipe with id: ${recipe.id}, ${it.message}")
-                                    onResult(it)
+                        userCollection.document(recipe.id).set(updatedRecipe)
+                            .addOnCompleteListener {
+                                onResult(it.exception)
+                                if (it.exception != null) {
+                                    Timber.e("Error updating recipe with id: ${recipe.id}, ${it.exception?.message}")
+                                } else if (recipe.public) {
+                                    publishRecipe(updatedRecipe) {
+                                        if (it != null) Timber.e("Error publishing recipe with id: ${recipe.id}, ${it.message}")
+                                        onResult(it)
+                                    }
                                 }
                             }
-                        }
                     }
                 }
             } else {
@@ -242,11 +261,16 @@ class StorageServiceImpl @Inject constructor(
         return this.flatMap {
             it.split(" ")
                 .filter { word -> word.isNotEmpty() }
-        }.flatMap { word -> generateSubstrings(word) }.filter{ !it.contains(Regex("[^\\p{L}]")) }
+        }.flatMap { word -> generateSubstrings(word) }.filter { !it.contains(Regex("[^\\p{L}]")) }
     }
 
     private fun String.resizedName(): String {
         val extIndex = this.lastIndexOf('.')
-        return if (extIndex != -1) "${this.substring(0, extIndex)}_200x200${this.substring(extIndex)}" else "${this}_200x200"
+        return if (extIndex != -1) "${
+            this.substring(
+                0,
+                extIndex
+            )
+        }_200x200${this.substring(extIndex)}" else "${this}_200x200"
     }
 }

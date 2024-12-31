@@ -39,7 +39,7 @@ fun HomeScreen(
                 onSearch(it)
             },
             placeholder = {
-                Text("Search...")
+                Text("Search all recipes...")
             },
             leadingIcon = {
                 Icon(

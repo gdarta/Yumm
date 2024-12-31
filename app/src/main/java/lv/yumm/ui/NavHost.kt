@@ -40,7 +40,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import lv.yumm.R
 import lv.yumm.lists.ListEvent
@@ -55,7 +54,6 @@ import lv.yumm.login.ui.ActionAuthorizeScreen
 import lv.yumm.login.ui.ProfileScreen
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeViewModel
-import lv.yumm.recipes.toRecipeCardUiState
 import lv.yumm.recipes.ui.CreateRecipeScreen
 import lv.yumm.recipes.ui.EditDirectionsScreen
 import lv.yumm.recipes.ui.EditIngredientsScreen
@@ -166,7 +164,6 @@ fun YummNavHost(
     val rightButtonState = remember { mutableStateOf(RightTopBarButtonState()) }
     navBackStackEntry?.destination?.let { currentDestination ->
         val route = currentDestination.route
-        Timber.d("Route: ${route}")
 
         showBottomBar.value = route in showBottomBarList
         showBackButton.value = route in showBackButtonList
@@ -297,9 +294,21 @@ fun YummNavHost(
                 composable<RecipesScreen> {
                     val state by recipeViewModel.userRecipeCardUiList.collectAsStateWithLifecycle()
                     val currentUser by recipeViewModel.currentUserId.collectAsStateWithLifecycle()
+
+                    val phrase by recipeViewModel.searchPhraseUser.collectAsStateWithLifecycle()
+                    val filteredState by recipeViewModel.filteredUserRecipes.collectAsStateWithLifecycle()
+                    LaunchedEffect(phrase) {
+                        if (phrase.length > 2) {
+                            recipeViewModel.processSearchQueryForUserRecipeStream().collectLatest { recipes ->
+                                recipeViewModel.updateUserFilteredStream(recipes)
+                            }
+                        }
+                    }
                     RecipesScreen(
-                        currentUser,
-                        state,
+                        currentUserId = currentUser,
+                        searchPhrase = phrase,
+                        onSearch = { recipeViewModel.updateUserSearchPhrase(it) },
+                        recipes = if (phrase.length < 3) state else filteredState,
                         navigateToEdit = { navController.navigate(CreateRecipe) },
                         navigateToView = {
                             recipeViewModel.onEvent(RecipeEvent.SetRecipeToUi(false, it))
@@ -310,7 +319,7 @@ fun YummNavHost(
                 }
                 composable<HomeScreen> {
                     val state by recipeViewModel.publicRecipeCardUiList.collectAsStateWithLifecycle()
-                    val phrase by recipeViewModel.searchPhrase.collectAsStateWithLifecycle()
+                    val phrase by recipeViewModel.searchPhrasePublic.collectAsStateWithLifecycle()
                     val filteredState by recipeViewModel.filteredPublicRecipes.collectAsStateWithLifecycle()
                     LaunchedEffect(phrase) {
                         if (phrase.length > 2) {

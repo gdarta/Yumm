@@ -1,20 +1,17 @@
 package lv.yumm.recipes
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import lv.yumm.BaseViewModel
 import lv.yumm.lists.IngredientError
@@ -22,7 +19,6 @@ import lv.yumm.login.service.AccountService
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
-import lv.yumm.recipes.data.hasEmpty
 import lv.yumm.recipes.data.isEmpty
 import lv.yumm.service.StorageService
 import lv.yumm.ui.state.ConfirmationDialogUiState
@@ -34,14 +30,23 @@ class RecipeViewModel @Inject constructor(
     private val storageService: StorageService,
     private val accountService: AccountService,
 ) : BaseViewModel() {
-    private val _publicRecipeStream = storageService.publicRecipes
-    private val _userRecipeStream = storageService.userRecipes
-
-    private val _searchPhrase = MutableStateFlow("")
-    val searchPhrase = _searchPhrase.asStateFlow()
+    // for querying all public recipes
+    private val _searchPhrasePublic = MutableStateFlow("")
+    val searchPhrasePublic = _searchPhrasePublic.asStateFlow()
 
     private val _filteredPublicRecipes = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
     val filteredPublicRecipes = _filteredPublicRecipes.asStateFlow()
+
+    // for querying all user recipes
+    private val _searchPhraseUser = MutableStateFlow("")
+    val searchPhraseUser = _searchPhraseUser.asStateFlow()
+
+    private val _filteredUserRecipes = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
+    val filteredUserRecipes = _filteredUserRecipes.asStateFlow()
+
+    // recipe streams from database
+    private val _publicRecipeStream = storageService.publicRecipes
+    private val _userRecipeStream = storageService.userRecipes
 
     private val _recipeList = MutableStateFlow<List<Recipe>>(emptyList())
 
@@ -51,6 +56,7 @@ class RecipeViewModel @Inject constructor(
     private val _publicRecipeCardUiList = MutableStateFlow<List<RecipeCardUiState>>(emptyList())
     val publicRecipeCardUiList = _publicRecipeCardUiList.asStateFlow()
 
+    // UI state for single recipe
     private val _recipeUiState = MutableStateFlow(RecipeUiState())
     val recipeUiState = combine(
         _recipeUiState,
@@ -70,6 +76,7 @@ class RecipeViewModel @Inject constructor(
                 started = SharingStarted.Lazily,
                 initialValue = emptyList(),
             ).collectLatest { recipes ->
+                Timber.d("Collected recipes $recipes")
                 updateUiRecipeLists(recipes)
             }
         }
@@ -106,6 +113,22 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
+    // searching user recipes
+    fun updateUserFilteredStream(recipes: List<Recipe>) {
+        _filteredUserRecipes.update {
+            recipes.toRecipeCardUiState()
+        }
+    }
+
+    fun updateUserSearchPhrase(phrase: String) {
+        _searchPhraseUser.value = phrase
+    }
+
+    suspend fun processSearchQueryForUserRecipeStream() : Flow<List<Recipe>> {
+        return storageService.searchUserRecipes(_searchPhraseUser.value)
+    }
+
+    // searching all recipes
     fun updateFilteredStream(recipes: List<Recipe>) {
         _filteredPublicRecipes.update {
             recipes.toRecipeCardUiState()
@@ -113,11 +136,11 @@ class RecipeViewModel @Inject constructor(
     }
 
     fun updateSearchPhrase(phrase: String) {
-        _searchPhrase.value = phrase
+        _searchPhrasePublic.value = phrase
     }
 
     suspend fun processSearchQueryForPublicRecipeStream() : Flow<List<Recipe>> {
-        return storageService.searchPublicRecipes(_searchPhrase.value)
+        return storageService.searchPublicRecipes(_searchPhrasePublic.value)
     }
 
     fun insertNewOrUpdate(public: Boolean) {
@@ -133,6 +156,9 @@ class RecipeViewModel @Inject constructor(
                 storageService.updateRecipe(recipeState.toRecipe()) {
                     if (it != null) postMessage("Error updating recipe")
                 }
+            }
+            storageService.refreshUserRecipes(currentUserId.value).collectLatest { recipes ->
+                updateUiRecipeLists(recipes)
             }
         }
     }
