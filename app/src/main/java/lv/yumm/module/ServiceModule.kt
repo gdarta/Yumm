@@ -15,8 +15,6 @@ import lv.yumm.lists.service.ListService
 import lv.yumm.lists.service.ListServiceImpl
 import lv.yumm.login.service.AccountService
 import lv.yumm.login.service.AccountServiceImpl
-import lv.yumm.service.LogService
-import lv.yumm.service.LogServiceImpl
 import lv.yumm.service.StorageService
 import lv.yumm.service.StorageServiceImpl
 
@@ -62,10 +60,4 @@ object ServiceModule {
     ): AccountService {
         return AccountServiceImpl(auth)
     }
-
-    @Provides
-    fun provideLogService(impl: LogServiceImpl): LogService {
-        return LogServiceImpl()
-    }
-
 }

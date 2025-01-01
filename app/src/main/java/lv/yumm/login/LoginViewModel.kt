@@ -12,14 +12,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import lv.yumm.BaseViewModel
 import lv.yumm.login.service.AccountService
-import lv.yumm.service.LogService
 import lv.yumm.service.StorageService
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val logService: LogService,
     private val storageService: StorageService,
     private val accountService: AccountService
 ) : BaseViewModel() {

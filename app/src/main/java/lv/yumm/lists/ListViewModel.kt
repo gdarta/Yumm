@@ -24,7 +24,6 @@ import javax.inject.Inject
 @HiltViewModel
 class ListViewModel @Inject constructor(
     private val storageService: ListService,
-    private val recipeService: StorageService,
     private val accountService: AccountService,
 ) : BaseViewModel() {
 
@@ -168,10 +167,10 @@ class ListViewModel @Inject constructor(
 
             is ListEvent.ValidateAndSave -> {
                 viewModelScope.launch {
-                    // when updating or inserting a list, do not save empty items and uncheck previously checked items
+                    // when updating or inserting a list, do not save empty items
                     _listUiState.update {
                         it.copy(
-                            list = it.list.filterNot { it.ingredient.isEmpty() }.map { it.copy(checked = false) },
+                            list = it.list.filterNot { it.ingredient.isEmpty() },
                             errorList = it.errorList.filterIndexed { index, _ -> !it.list[index].ingredient.isEmpty() })
                     }
                     storageService.updateList(_listUiState.value.toUserList()) {
