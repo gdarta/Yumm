@@ -88,8 +88,8 @@ fun ProfileInfo(
         verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(10.dp)
     ) {
         EditRow {
