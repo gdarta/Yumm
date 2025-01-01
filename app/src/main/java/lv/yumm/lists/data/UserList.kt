@@ -1,7 +1,6 @@
 package lv.yumm.lists.data
 
 import com.google.firebase.Timestamp
-import com.google.type.DateTime
 import lv.yumm.lists.ListItem
 import lv.yumm.lists.ListUiState
 import lv.yumm.recipes.data.Ingredient

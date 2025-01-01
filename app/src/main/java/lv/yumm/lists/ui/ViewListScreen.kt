@@ -21,6 +21,7 @@ import lv.yumm.lists.ListEvent
 import lv.yumm.lists.ListUiState
 import lv.yumm.lists.data.toFormattedDate
 import lv.yumm.recipes.ui.EditRow
+import lv.yumm.recipes.ui.IngredientText
 import lv.yumm.ui.theme.Typography
 import java.util.Locale
 
@@ -52,17 +53,7 @@ fun ViewListScreen(
             ) {
                 onEvent(ListEvent.CheckItem(index, !item.checked))
             }) {
-                Text(
-                    text = "${item.ingredient.name}, ${
-                        String.format(
-                            Locale("en"),
-                            "%.1f",
-                            item.ingredient.amount
-                        )
-                    } ${item.ingredient.unit}",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.alpha(if (item.checked) 0.4f else 1f)
-                )
+                IngredientText(item.ingredient)
                 Checkbox(
                     checked = item.checked,
                     onCheckedChange = { onEvent(ListEvent.CheckItem(index, it)) })

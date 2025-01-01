@@ -182,7 +182,7 @@ class RecipeViewModel @Inject constructor(
         viewModelScope.launch {
             val recipe = if (public) storageService.getPublicRecipe(id) ?: Recipe() else storageService.getUserRecipe(id) ?: Recipe()
             _recipeUiState.update {
-                recipe.toRecipeUiState()
+                recipe.toRecipeUiState().copy(ingredientErrorList = recipe.ingredients.map { IngredientError() })
             }
         }
     }

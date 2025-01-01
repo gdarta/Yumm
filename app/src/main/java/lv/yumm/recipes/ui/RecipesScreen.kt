@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 import lv.yumm.R
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.login.ui.LoginButton
+import lv.yumm.login.ui.LoginToProceedScreen
 import lv.yumm.recipes.RecipeCardUiState
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.data.RecipeType
@@ -173,22 +174,10 @@ fun RecipesScreen(
                 }
             }
         } else {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 10.dp)
-            ) {
-                Text(
-                    text = "To save and create recipes, log in or create an account",
-                    style = Typography.titleMedium,
-                    textAlign = TextAlign.Center
-                )
-                LoginButton(
-                    text = "Log in"
-                ) { navigateToLogin() }
-            }
+            LoginToProceedScreen(
+                navigateToLogin,
+                "To save and create recipes, log in or create an account"
+            )
         }
     }
 }

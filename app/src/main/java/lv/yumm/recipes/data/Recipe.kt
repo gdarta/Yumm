@@ -26,7 +26,8 @@ enum class RecipeType {
     DINNER,
     SALAD,
     DESSERT,
-    SNACK
+    SNACK,
+    DRINK
 }
 
 fun Long.toTimestamp(): String {

@@ -168,9 +168,10 @@ class ListViewModel @Inject constructor(
 
             is ListEvent.ValidateAndSave -> {
                 viewModelScope.launch {
+                    // when updating or inserting a list, do not save empty items and uncheck previously checked items
                     _listUiState.update {
                         it.copy(
-                            list = it.list.filterNot { it.ingredient.isEmpty() },
+                            list = it.list.filterNot { it.ingredient.isEmpty() }.map { it.copy(checked = false) },
                             errorList = it.errorList.filterIndexed { index, _ -> !it.list[index].ingredient.isEmpty() })
                     }
                     storageService.updateList(_listUiState.value.toUserList()) {

@@ -23,66 +23,76 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import lv.yumm.lists.ListEvent
 import lv.yumm.lists.ListUiState
-import lv.yumm.lists.data.UserList
+import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.login.ui.LoginButton
+import lv.yumm.login.ui.LoginToProceedScreen
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.recipeTextFieldColors
 
 @Composable
 fun AddRecipeToListScreen(
+    currentUserId: String,
+    navigateToLogin: () -> Unit,
     recipeIngredients: List<Ingredient>,
     userLists: List<ListUiState>,
     onEvent: (ListEvent) -> Unit
 ) {
-    var title by rememberSaveable { mutableStateOf("") }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-            .imePadding(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Add items to one of your existing lists:",
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(vertical = 20.dp)
-        )
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(10.dp)
+    if (currentUserId != EMPTY_USER_ID){
+        var title by rememberSaveable { mutableStateOf("") }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+                .imePadding(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(userLists) { list ->
-                UserListCard(
-                    onClick = {
-                        onEvent(ListEvent.AddIngredientsToUserList(recipeIngredients, list.id))
-                    },
-                    title = list.title,
-                    updatedAt = list.updatedAt
-                )
+            Text(
+                text = "Add items to one of your existing lists:",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(vertical = 20.dp)
+            )
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(10.dp)
+            ) {
+                items(userLists) { list ->
+                    UserListCard(
+                        onClick = {
+                            onEvent(ListEvent.AddIngredientsToUserList(recipeIngredients, list.id))
+                        },
+                        title = list.title,
+                        updatedAt = list.updatedAt
+                    )
+                }
+            }
+            Text(
+                text = "... or create a new list:",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            TextField(
+                value = title,
+                onValueChange = { title = it },
+                textStyle = Typography.titleMedium,
+                label = { Text(text = "Title") },
+                singleLine = true,
+                colors = recipeTextFieldColors(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 20.dp)
+            )
+            LoginButton(text = "Create new list", modifier = Modifier.padding(bottom = 30.dp)) {
+                onEvent(ListEvent.CreateListFromIngredients(title, recipeIngredients))
             }
         }
-        Text(
-            text = "... or create a new list:",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold
+    } else {
+        LoginToProceedScreen(
+            navigateToLogin,
+            "To save and create lists, log in or create an account"
         )
-        TextField(
-            value = title,
-            onValueChange = { title = it },
-            textStyle = Typography.titleMedium,
-            label = { Text(text = "Title") },
-            singleLine = true,
-            colors = recipeTextFieldColors(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 20.dp)
-        )
-        LoginButton(text = "Create new list", modifier = Modifier.padding(bottom = 30.dp)) {
-            onEvent(ListEvent.CreateListFromIngredients(title, recipeIngredients))
-        }
     }
 }

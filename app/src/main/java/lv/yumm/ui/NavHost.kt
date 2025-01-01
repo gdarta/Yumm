@@ -433,6 +433,8 @@ fun YummNavHost(
                 composable<AddRecipeToListScreen> {
                     val lists by listViewModel.userListsUiState.collectAsStateWithLifecycle()
                     AddRecipeToListScreen(
+                        currentUserId = listViewModel.currentUserId.value,
+                        navigateToLogin = {navController.navigate(ProfileScreen)},
                         recipeIngredients = recipeUiState.ingredients,
                         userLists = lists
                     ) {

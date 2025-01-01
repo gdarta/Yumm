@@ -1,6 +1,5 @@
 package lv.yumm.login.ui
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,10 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -33,11 +32,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import lv.yumm.R
 import lv.yumm.login.LoginEvent
 import lv.yumm.login.LoginUiState
 import lv.yumm.ui.theme.Typography
 import lv.yumm.ui.theme.loginTextFieldColors
-import lv.yumm.R
 
 @Composable
 fun LoginScreen(
@@ -66,7 +65,11 @@ fun LoginScreen(
                 navigateToResetPassword()
             }
         )
-        LoginButton(text = "Log in", modifier = Modifier.padding(bottom = 30.dp)) { onEvent(LoginEvent.LogIn()) }
+        LoginButton(text = "Log in", modifier = Modifier.padding(bottom = 30.dp)) {
+            onEvent(
+                LoginEvent.LogIn()
+            )
+        }
         Text(
             text = "Do not have an account?"
         )
@@ -208,5 +211,28 @@ fun LoginButton(
         shape = RoundedCornerShape(3.dp)
     ) {
         Text(text = text, style = Typography.titleMedium)
+    }
+}
+
+@Composable
+fun LoginToProceedScreen(
+    navigateToLogin: () -> Unit,
+    infoText: String,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.CenterVertically),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 10.dp)
+    ) {
+        Text(
+            text = infoText,
+            style = Typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+        LoginButton(
+            text = "Log in"
+        ) { navigateToLogin() }
     }
 }

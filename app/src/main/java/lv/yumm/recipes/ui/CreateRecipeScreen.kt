@@ -344,7 +344,7 @@ fun EditRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> U
 @Composable
 fun IngredientText(ingredient: Ingredient) {
     Text(
-        text = "${ingredient.name}, ${String.format(Locale("en"), "%.1f", ingredient.amount)} ${ingredient.unit}",
+        text = "${ingredient.name}, ${if (ingredient.amount % ingredient.amount.toInt() == 0f) ingredient.amount.toInt().toString() else String.format(Locale("en"), "%.1f", ingredient.amount)} ${ingredient.unit}",
         color = MaterialTheme.colorScheme.onBackground
     )
 }
