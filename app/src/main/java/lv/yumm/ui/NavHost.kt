@@ -52,6 +52,7 @@ import lv.yumm.login.LoginViewModel
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.login.ui.ActionAuthorizeScreen
 import lv.yumm.login.ui.ProfileScreen
+import lv.yumm.login.ui.ResetPasswordScreen
 import lv.yumm.recipes.RecipeEvent
 import lv.yumm.recipes.RecipeViewModel
 import lv.yumm.recipes.ui.CreateRecipeScreen
@@ -95,6 +96,9 @@ object SplashScreen
 
 @Serializable
 object ProfileScreen
+
+@Serializable
+object ResetPassword
 
 @Serializable
 data class ActionAuthorizeScreen(
@@ -143,7 +147,8 @@ val showBackButtonList = listOf(
     ActionAuthorizeScreen::class.qualifiedName + "/{infoText}/{actionText}/{event}",
     CreateListScreen::class.qualifiedName,
     ViewListScreen::class.qualifiedName,
-    AddRecipeToListScreen::class.qualifiedName
+    AddRecipeToListScreen::class.qualifiedName,
+    ResetPassword::class.qualifiedName
 )
 
 @Composable
@@ -372,7 +377,7 @@ fun YummNavHost(
                     ProfileScreen(
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
-                        navigateToProfileScreen = { navController.navigate(ProfileScreen) },
+                        navigateToResetPassword = { navController.navigate(ResetPassword) },
                         navigateToAction = { info, action, event ->
                             navController.navigate(
                                 ActionAuthorizeScreen(info, action, event)
@@ -388,8 +393,15 @@ fun YummNavHost(
                         actionType = args.event,
                         uiState = { loginUiState },
                         onEvent = { loginViewModel.onEvent(it) },
-                        navigateToProfileScreen = { navController.navigate(ProfileScreen) }
+                        navigateToProfileScreen = { navController.navigate(ProfileScreen) },
+                        navigateToResetPassword = { navController.navigate(ResetPassword)}
                     )
+                }
+
+                composable<ResetPassword> {
+                    ResetPasswordScreen(
+                        uiState = { loginUiState },
+                    ) { loginViewModel.onEvent(it) }
                 }
 
                 // Lists

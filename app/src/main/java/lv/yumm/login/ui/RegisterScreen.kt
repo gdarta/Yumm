@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,7 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import lv.yumm.login.LoginEvent
 import lv.yumm.login.LoginUiState
@@ -37,7 +40,9 @@ fun RegisterScreen(
     ) {
         Text(
             text = uiState().credentialError ?: "",
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
         LoginTextField(
             value = uiState().email,

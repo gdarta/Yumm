@@ -342,6 +342,12 @@ class LoginViewModel @Inject constructor(
                     )
                 }
             }
+
+            is LoginEvent.ResetPassword -> {
+                accountService.resetPassword(_loginUiState.value.email) {
+                    postMessage("Reset e-mail sent")
+                }
+            }
         }
     }
 
@@ -364,6 +370,7 @@ class LoginViewModel @Inject constructor(
             "ERROR_INVALID_CREDENTIAL", "ERROR_INVALID_EMAIL", "ERROR_WRONG_PASSWORD", "ERROR_USER_MISMATCH", "" -> "Incorrect e-mail or password."
             "ERROR_USER_NOT_FOUND" -> "A user with these credentials does not exist."
             "ERROR_TOO_MANY_REQUESTS" -> "Too many requests. Try again later."
+            "ERROR_WEAK_PASSWORD" -> "Password must be at least 6 characters long."
             else -> "An error occurred."
         }
     }

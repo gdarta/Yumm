@@ -1,12 +1,17 @@
 package lv.yumm.login.ui
 
 import android.graphics.drawable.Icon
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -25,6 +30,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import lv.yumm.login.LoginEvent
 import lv.yumm.login.LoginUiState
@@ -36,21 +43,30 @@ import lv.yumm.R
 fun LoginScreen(
     uiState: () -> LoginUiState,
     onEvent: (LoginEvent) -> Unit,
-    navigateToSignUp: () -> Unit
+    navigateToSignUp: () -> Unit,
+    navigateToResetPassword: () -> Unit
 ) {
-
     Column(
         modifier = Modifier
+            .verticalScroll(rememberScrollState())
             .fillMaxSize()
-            .padding(top = 50.dp),
-        verticalArrangement = Arrangement.spacedBy(30.dp, Alignment.Top),
+            .padding(top = 50.dp)
+            .imePadding(),
+        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         LoginFields(
             uiState = uiState,
             onEvent = { onEvent(it) }
         )
-        LoginButton(text = "Log in") { onEvent(LoginEvent.LogIn()) }
+        Text(
+            text = "Forgot password?",
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable {
+                navigateToResetPassword()
+            }
+        )
+        LoginButton(text = "Log in", modifier = Modifier.padding(bottom = 30.dp)) { onEvent(LoginEvent.LogIn()) }
         Text(
             text = "Do not have an account?"
         )
@@ -70,7 +86,9 @@ fun LoginFields(
     ) {
         Text(
             text = uiState().credentialError ?: "",
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
         LoginTextField(
             value = uiState().email,

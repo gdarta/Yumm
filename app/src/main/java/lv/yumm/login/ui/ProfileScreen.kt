@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -35,10 +36,10 @@ import lv.yumm.ui.theme.recipeTextFieldColors
 fun ProfileScreen(
     uiState: () -> LoginUiState,
     onEvent: (LoginEvent) -> Unit,
-    navigateToProfileScreen: () -> Unit,
+    navigateToResetPassword: () -> Unit,
     navigateToAction: (String, String, EditProfileAction) -> Unit
 ) {
-    val currentUser = remember { mutableStateOf(Firebase.auth.currentUser) }
+    val currentUser = rememberSaveable { mutableStateOf(Firebase.auth.currentUser) }
     DisposableEffect(currentUser) {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
             currentUser.value = auth.currentUser
@@ -49,7 +50,7 @@ fun ProfileScreen(
         }
     }
 
-    val register = remember { mutableStateOf(false) }
+    val register = rememberSaveable { mutableStateOf(false) }
 
     if (currentUser.value != null) {
         currentUser.value?.let {
@@ -67,7 +68,7 @@ fun ProfileScreen(
             )
         }
     } else if (!register.value) {
-        LoginScreen(uiState, onEvent) { register.value = true }
+        LoginScreen(uiState, onEvent, { register.value = true }, navigateToResetPassword)
     } else {
         RegisterScreen(uiState, onEvent) { register.value = false }
     }

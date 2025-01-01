@@ -40,4 +40,6 @@ interface AccountService {
         onReAuthenticate: (Throwable?) -> Unit,
         onResult: (Throwable?) -> Unit
     )
+
+    fun resetPassword(email: String, onResult: (Throwable?) -> Unit)
 }

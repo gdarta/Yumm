@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -37,9 +38,10 @@ fun ActionAuthorizeScreen(
     actionType: EditProfileAction,
     uiState: () -> LoginUiState,
     onEvent: (LoginEvent) -> Unit,
-    navigateToProfileScreen: () -> Unit
+    navigateToProfileScreen: () -> Unit,
+    navigateToResetPassword: () -> Unit
 ) {
-    val currentUser = remember { mutableStateOf(Firebase.auth.currentUser) }
+    val currentUser = rememberSaveable { mutableStateOf(Firebase.auth.currentUser) }
     DisposableEffect(Unit) {
         val authStateListener = FirebaseAuth.AuthStateListener { auth ->
             currentUser.value = auth.currentUser
@@ -55,9 +57,9 @@ fun ActionAuthorizeScreen(
         onEvent(LoginEvent.ClearVerifyScreen())
     }
 
-    val newEmail = remember { mutableStateOf("") }
-    val newPassword = remember { mutableStateOf("") }
-    val newPasswordConfirm = remember { mutableStateOf("") }
+    val newEmail = rememberSaveable { mutableStateOf("") }
+    val newPassword = rememberSaveable { mutableStateOf("") }
+    val newPasswordConfirm = rememberSaveable { mutableStateOf("") }
     if (currentUser.value != null && uiState().verificationScreenState == null) {
         Column(
             modifier = Modifier
@@ -149,6 +151,6 @@ fun ActionAuthorizeScreen(
             }
         )
     } else {
-        LoginScreen(uiState, onEvent, navigateToProfileScreen)
+        LoginScreen(uiState, onEvent, navigateToProfileScreen, navigateToResetPassword)
     }
 }

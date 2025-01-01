@@ -191,4 +191,11 @@ class AccountServiceImpl @Inject constructor(
                 }
             }
     }
+
+    override fun resetPassword(email: String, onResult: (Throwable?) -> Unit) {
+        Firebase.auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                onResult(task.exception)
+            }
+    }
 }
