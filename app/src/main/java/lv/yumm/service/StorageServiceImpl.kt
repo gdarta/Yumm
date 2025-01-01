@@ -22,7 +22,6 @@ import javax.inject.Inject
 @Singleton
 class StorageServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val auth: AccountService,
     private val storage: FirebaseStorage
 ) : StorageService {
     companion object {
@@ -245,6 +244,34 @@ class StorageServiceImpl @Inject constructor(
                 onResult(null, it.exception)
                 Timber.e("Failure in getting resized image url: ${it.exception?.message}")
             }
+        }
+    }
+
+    override fun deletePublicRecipesByUserId(uid: String, onResult: (Throwable?) -> Unit) {
+        deleteRecipes(uid, publicCollection.whereEqualTo("authorUID", uid)) { onResult(it) }
+    }
+
+    override fun deletePrivateRecipesByUserId(uid: String, onResult: (Throwable?) -> Unit) {
+        deleteRecipes(uid, userCollection.whereEqualTo("authorUID", uid)) { onResult(it) }
+    }
+
+    private fun deleteRecipes(uid: String, query: Query, onResult: (Throwable?) -> Unit) {
+        query.get().addOnSuccessListener { querySnapshot ->
+            val batch = firestore.batch()
+            for (document in querySnapshot.documents) {
+                batch.delete(document.reference)
+            }
+
+            batch.commit().addOnCompleteListener {
+                    onResult(it.exception)
+            }.addOnSuccessListener {
+                Timber.i("Successfully deleted records for user: $uid")
+            }.addOnFailureListener { exception ->
+                Timber.e("Error deleting records: ${exception.message}")
+            }
+        }.addOnFailureListener { exception ->
+            onResult(exception)
+            Timber.e("Error querying documents: ${exception.message}")
         }
     }
 

@@ -7,9 +7,11 @@ import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import lv.yumm.BaseViewModel
 import lv.yumm.login.service.AccountService
 import lv.yumm.service.StorageService
@@ -38,6 +40,14 @@ class LoginViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(),
         initialValue = LoginUiState()
     )
+
+    init {
+        viewModelScope.launch {
+            accountService.currentUser.collectLatest {
+                postUserId(it)
+            }
+        }
+    }
 
     fun createAnonymousAccount() {
         accountService.createAnonymousAccount { }
@@ -209,29 +219,37 @@ class LoginViewModel @Inject constructor(
         when (event) {
             is LoginEvent.UpdateEmail -> {
                 clearErrors()
-                _loginUiState.update {
-                    it.copy(email = event.email)
+                if (event.email.length <= 50) {
+                    _loginUiState.update {
+                        it.copy(email = event.email)
+                    }
                 }
             }
 
             is LoginEvent.UpdatePassword -> {
                 clearErrors()
-                _loginUiState.update {
-                    it.copy(password = event.password)
+                if (event.password.length <= 50) {
+                    _loginUiState.update {
+                        it.copy(password = event.password)
+                    }
                 }
             }
 
             is LoginEvent.UpdateConfirmPassword -> {
                 clearErrors()
-                _loginUiState.update {
-                    it.copy(confirmPassword = event.password)
+                if (event.password.length <= 50) {
+                    _loginUiState.update {
+                        it.copy(confirmPassword = event.password)
+                    }
                 }
             }
 
             is LoginEvent.UpdateDisplayName -> {
                 clearErrors()
-                _loginUiState.update {
-                    it.copy(displayName = event.name)
+                if (event.name.length <= 50) {
+                    _loginUiState.update {
+                        it.copy(displayName = event.name)
+                    }
                 }
             }
 
@@ -270,10 +288,11 @@ class LoginViewModel @Inject constructor(
                             handleApiError(error)
                         }
                     },
-                    onResult = {
-                        _loginUiState.update { LoginUiState() }
-                        reloadUser()
-                        postMessage("Account deleted")
+                    onResult = { error ->
+                        if (error == null) {
+                            _loginUiState.update { LoginUiState() }
+                            postMessage("Account deleted")
+                        }
                     }
                 )
             }
@@ -342,8 +361,17 @@ class LoginViewModel @Inject constructor(
             }
 
             is LoginEvent.ResetPassword -> {
-                accountService.resetPassword(_loginUiState.value.email) {
-                    postMessage("Reset e-mail sent")
+                if (_loginUiState.value.email.length <= 50){
+                    if (_loginUiState.value.email.isNotBlank()) {
+                        accountService.resetPassword(_loginUiState.value.email) {
+                            if (it == null) postMessage("Reset e-mail sent")
+                            else handleApiError(it as FirebaseAuthException)
+                        }
+                    } else {
+                        _loginUiState.update {
+                            it.copy(emailEmpty = true)
+                        }
+                    }
                 }
             }
         }
@@ -365,10 +393,11 @@ class LoginViewModel @Inject constructor(
     private fun getApiErrorText(error: FirebaseAuthException): String {
         return when (error.errorCode) {
             "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL", "ERROR_EMAIL_ALREADY_IN_USE" -> "This e-mail is already taken."
-            "ERROR_INVALID_CREDENTIAL", "ERROR_INVALID_EMAIL", "ERROR_WRONG_PASSWORD", "ERROR_USER_MISMATCH", "" -> "Incorrect e-mail or password."
+            "ERROR_INVALID_CREDENTIAL", "ERROR_WRONG_PASSWORD", "ERROR_USER_MISMATCH", "" -> "Incorrect e-mail or password."
             "ERROR_USER_NOT_FOUND" -> "A user with these credentials does not exist."
             "ERROR_TOO_MANY_REQUESTS" -> "Too many requests. Try again later."
             "ERROR_WEAK_PASSWORD" -> "Password must be at least 6 characters long."
+            "ERROR_INVALID_EMAIL" -> "Invalid e-mail."
             else -> "An error occurred."
         }
     }

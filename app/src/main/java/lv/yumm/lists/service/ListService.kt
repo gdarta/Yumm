@@ -12,4 +12,6 @@ interface ListService {
     suspend fun getList(id: String): UserList?
     suspend fun updateList(list: UserList, onResult: (Throwable?) -> Unit)
     suspend fun deleteList(id: String, onResult: (Throwable?) -> Unit)
+
+    fun deleteListsByUserId(uid: String, onResult: (Throwable?) -> Unit)
 }

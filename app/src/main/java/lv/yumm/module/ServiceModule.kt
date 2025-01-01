@@ -39,25 +39,25 @@ object ServiceModule {
 
     @Provides
     fun provideListService(
-        firestore: FirebaseFirestore,
-        auth: AccountService
+        firestore: FirebaseFirestore
     ): ListService {
-        return ListServiceImpl(firestore, auth)
+        return ListServiceImpl(firestore)
     }
 
     @Provides
     fun provideStorageService(
         firestore: FirebaseFirestore,
-        auth: AccountService,
         storage: FirebaseStorage
     ): StorageService {
-        return StorageServiceImpl(firestore, auth, storage)
+        return StorageServiceImpl(firestore, storage)
     }
 
     @Provides
     fun provideAccountService(
-        auth: FirebaseAuth
+        auth: FirebaseAuth,
+        recipes: StorageService,
+        lists: ListService
     ): AccountService {
-        return AccountServiceImpl(auth)
+        return AccountServiceImpl(auth, recipes, lists)
     }
 }

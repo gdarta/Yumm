@@ -9,11 +9,16 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import lv.yumm.lists.service.ListService
+import lv.yumm.service.StorageService
+import timber.log.Timber
 import javax.inject.Inject
 import kotlin.text.isWhitespace
 
 class AccountServiceImpl @Inject constructor(
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val recipes: StorageService,
+    private val lists: ListService
 ) : AccountService {
     companion object{
         const val EMPTY_USER_ID = "col"
@@ -104,13 +109,34 @@ class AccountServiceImpl @Inject constructor(
 
         user?.reauthenticate(credential)
             ?.addOnCompleteListener {
-                _loading.value = false
+                onReAuthenticate(it.exception)
                 if (it.isSuccessful) {
-                    user.delete().addOnCompleteListener {
-                        onResult(it.exception)
+                    recipes.deletePublicRecipesByUserId(user.uid) { error ->
+                        if (error == null) {
+                            recipes.deletePrivateRecipesByUserId(user.uid) { privateError ->
+                                if (privateError == null) {
+                                    lists.deleteListsByUserId(user.uid) { listError ->
+                                        if (listError == null) {
+                                            user.delete().addOnCompleteListener {
+                                                _loading.value = false
+                                                Timber.d("Result for deleting user ${it.exception?.message}")
+                                                onResult(it.exception)
+                                            }
+                                        } else {
+                                            _loading.value = false
+                                            onResult(listError)
+                                        }
+                                    }
+                                } else {
+                                    _loading.value = false
+                                    onResult(privateError)
+                                }
+                            }
+                        } else {
+                            _loading.value = false
+                            onResult(error)
+                        }
                     }
-                } else {
-                    onReAuthenticate(it.exception)
                 }
             }
     }

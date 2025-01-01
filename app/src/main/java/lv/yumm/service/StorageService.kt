@@ -22,4 +22,7 @@ interface StorageService {
     suspend fun deleteRecipe(recipe: Recipe): Throwable?
     suspend fun uploadPhoto(uri: Uri): Throwable?
     fun publishRecipe(recipe: Recipe, onResult: (Throwable?) -> Unit)
+
+    fun deletePublicRecipesByUserId(uid: String, onResult: (Throwable?) -> Unit)
+    fun deletePrivateRecipesByUserId(uid: String, onResult: (Throwable?) -> Unit)
 }

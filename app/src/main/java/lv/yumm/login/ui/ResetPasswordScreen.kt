@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -50,6 +51,12 @@ fun ResetPasswordScreen(
             text = "In order to reset your password, provide the e-mail associated with the account.",
             textAlign = TextAlign.Center,
             style = Typography.bodyLarge
+        )
+        Text(
+            text = uiState().credentialError ?: "",
+            textAlign = TextAlign.Center,
+            style = Typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error
         )
         LoginTextField(
             value = uiState().email,
