@@ -199,10 +199,12 @@ fun PasswordTextField(
 fun LoginButton(
     modifier: Modifier = Modifier,
     text: String,
+    enabled: Boolean = true,
     onclick: () -> Unit,
 ) {
     Button(
         modifier = modifier,
+        enabled = enabled,
         onClick = onclick,
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,

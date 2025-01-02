@@ -80,12 +80,16 @@ fun AddRecipeToListScreen(
                 textStyle = Typography.titleMedium,
                 label = { Text(text = "Title") },
                 singleLine = true,
+                isError = title.length > 50,
+                supportingText = {
+                    if (title.length > 50) Text(text = "Title must be under 50 characters.")
+                },
                 colors = recipeTextFieldColors(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 20.dp)
             )
-            LoginButton(text = "Create new list", modifier = Modifier.padding(bottom = 30.dp)) {
+            LoginButton(enabled = title.length <= 50, text = "Create new list", modifier = Modifier.padding(bottom = 30.dp)) {
                 onEvent(ListEvent.CreateListFromIngredients(title, recipeIngredients))
             }
         }

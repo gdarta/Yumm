@@ -112,14 +112,23 @@ class ListViewModel @Inject constructor(
 
             is ListEvent.UpdateTitle -> {
                 _listUiState.update {
-                    it.copy(title = event.title)
+                    it.copy(titleError = null)
+                }
+                if (event.title.length < 50) {
+                    _listUiState.update {
+                        it.copy(title = event.title)
+                    }
+                } else {
+                    _listUiState.update {
+                        it.copy(titleError = "Title must be under 50 characters.")
+                    }
                 }
             }
 
             is ListEvent.AddItem -> {
                 _listUiState.update {
                     it.copy(
-                        list = it.list + lv.yumm.lists.data.ListItem(),
+                        list = it.list + ListItem(),
                         errorList = it.errorList + IngredientError()
                     )
                 }
@@ -128,12 +137,14 @@ class ListViewModel @Inject constructor(
             is ListEvent.UpdateItem -> {
                 val item = event.item
                 val updatedItems = _listUiState.value.list.toMutableList()
-                updatedItems[event.index] = lv.yumm.lists.data.ListItem(ingredient = item)
+                updatedItems[event.index] = ListItem(ingredient = item)
 
                 val updatedErrors = _listUiState.value.errorList.toMutableList()
                 // validating that input is not blank and that amount is a valid number
                 updatedErrors[event.index] = IngredientError(
-                    item.name.isBlank(), (item.amount <= 0f || item.amount.isNaN()), item.unit.isBlank()
+                    item.name.isBlank() || item.name.length > 50,
+                    (item.amount <= 0f || item.amount.isNaN()),
+                    item.unit.isBlank() || item.unit.length > 20
                 )
 
                 _listUiState.update {
@@ -187,8 +198,9 @@ class ListViewModel @Inject constructor(
                         val newList = combineIngredientLists(userList.list.map { it.ingredient }, event.ingredients)
                         storageService.updateList(userList.copy(list = newList.map { ListItem(false, it) } )) {
                             if (it == null) postMessage("List was updated")
+                            else postMessage("List was dismissed")
                         }
-                    }
+                    } ?: postMessage("Could not retrieve list")
                 }
             }
 
@@ -200,6 +212,7 @@ class ListViewModel @Inject constructor(
                     )
                     storageService.updateList(newUserList) {
                         if (it == null) postMessage("New list created")
+                        else postMessage("List was dismissed")
                     }
                 }
             }

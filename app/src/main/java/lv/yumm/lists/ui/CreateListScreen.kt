@@ -68,6 +68,10 @@ fun CreateListScreen (
                     },
                     textStyle = Typography.titleLarge,
                     label = { Text(text = "Title") },
+                    isError = uiState().titleError != null,
+                    supportingText = {
+                        if (uiState().titleError != null) Text(text = uiState().titleError ?: "")
+                    },
                     singleLine = true,
                     colors = recipeTextFieldColors(),
                     modifier = Modifier.fillMaxWidth()

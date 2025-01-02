@@ -13,8 +13,6 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.await
-import lv.yumm.login.service.AccountService
-import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Recipe
 import timber.log.Timber
 import javax.inject.Inject
@@ -195,11 +193,8 @@ class StorageServiceImpl @Inject constructor(
     override suspend fun deleteRecipe(recipe: Recipe): Throwable? {
         return try {
             Firebase.auth.currentUser?.let {
-                try {
-                    val photoStorageRef = storage.getReferenceFromUrl(recipe.imageUrl)
-                    photoStorageRef.delete().await()
-                } catch (e: Exception) {
-                    Timber.e("Error deleting image resource: ${e.message}")
+                deleteImageFromStorage(recipe.imageUrl) {
+                    Timber.e("Error deleting image resource: ${it?.message}")
                 }
                 userCollection.document(recipe.id).delete().addOnCompleteListener {
                     if (recipe.public) publicCollection.document(recipe.id).delete()
@@ -259,6 +254,9 @@ class StorageServiceImpl @Inject constructor(
         query.get().addOnSuccessListener { querySnapshot ->
             val batch = firestore.batch()
             for (document in querySnapshot.documents) {
+                deleteImageFromStorage(document.toObject<Recipe>(Recipe::class.java)?.imageUrl ?: "") {
+                    Timber.e("Error deleting image resource")
+                }
                 batch.delete(document.reference)
             }
 
@@ -272,6 +270,16 @@ class StorageServiceImpl @Inject constructor(
         }.addOnFailureListener { exception ->
             onResult(exception)
             Timber.e("Error querying documents: ${exception.message}")
+        }
+    }
+
+    private fun deleteImageFromStorage(imageUrl: String, onResult: (Throwable?) -> Unit) {
+        try {
+            val photoStorageRef = storage.getReferenceFromUrl(imageUrl)
+            photoStorageRef.delete()
+        } catch (e: Exception) {
+            onResult(e)
+            Timber.e("Error deleting image resource: ${e.message}")
         }
     }
 

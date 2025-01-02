@@ -10,6 +10,8 @@ data class ListUiState (
     val title: String = "",
     val updatedAt: Timestamp? = null,
     val list: List<ListItem> = emptyList(),
+
+    val titleError: String? = null,
     val errorList: List<IngredientError> = emptyList()
 ) {
     val hasError: Boolean = errorList.find { it.nameError || it.amountError || it.unitError } != null

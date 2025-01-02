@@ -8,6 +8,7 @@ import java.util.Locale
 
 data class UserList(
     val id: String = "",
+    val authorUID: String = "",
     val title: String = "",
     val updatedAt: Timestamp? = null,
     val list: List<ListItem> = emptyList()
