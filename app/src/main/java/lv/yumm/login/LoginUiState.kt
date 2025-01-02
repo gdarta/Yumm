@@ -8,6 +8,11 @@ data class LoginUiState(
     val confirmPassword: String = "",
     val displayName: String = "",
 
+    val newEmail: String = "",
+
+    val newPassword: String = "",
+    val newPasswordConfirm: String = "",
+
     val newEmailEmpty: Boolean = false,
     val newPasswordEmpty: Boolean = false,
     val newPasswordConfirmEmpty: Boolean = false,
@@ -21,7 +26,7 @@ data class LoginUiState(
     val verificationScreenState: VerificationScreenUiState? = null,
 ) {
     val hasError: Boolean =
-        emailEmpty || passwordEmpty || displayNameEmpty || newPasswordEmpty || newPasswordConfirmEmpty || (credentialError != null)
+        emailEmpty || passwordEmpty || displayNameEmpty || newPasswordEmpty || newPasswordConfirmEmpty || (credentialError != null) || newEmailEmpty || confirmPasswordError
 }
 
 data class VerificationScreenUiState(

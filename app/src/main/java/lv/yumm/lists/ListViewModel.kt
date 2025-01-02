@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import lv.yumm.BaseViewModel
+import lv.yumm.lists.data.ListItem
 import lv.yumm.lists.data.UserList
 import lv.yumm.lists.data.toUiState
 import lv.yumm.lists.data.toUserList
@@ -118,7 +119,7 @@ class ListViewModel @Inject constructor(
             is ListEvent.AddItem -> {
                 _listUiState.update {
                     it.copy(
-                        list = it.list + ListItem(),
+                        list = it.list + lv.yumm.lists.data.ListItem(),
                         errorList = it.errorList + IngredientError()
                     )
                 }
@@ -127,7 +128,7 @@ class ListViewModel @Inject constructor(
             is ListEvent.UpdateItem -> {
                 val item = event.item
                 val updatedItems = _listUiState.value.list.toMutableList()
-                updatedItems[event.index] = ListItem(ingredient = item)
+                updatedItems[event.index] = lv.yumm.lists.data.ListItem(ingredient = item)
 
                 val updatedErrors = _listUiState.value.errorList.toMutableList()
                 // validating that input is not blank and that amount is a valid number

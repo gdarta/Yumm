@@ -1,6 +1,7 @@
 package lv.yumm.recipes.ui
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -210,7 +211,11 @@ fun RecipeCard(recipe: RecipeCardUiState, modifier: Modifier, onClick: (String) 
                 Text(
                     text = recipe.title,
                     style = Typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 10.dp)
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .basicMarquee(3),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = recipe.description,

@@ -57,9 +57,6 @@ fun ActionAuthorizeScreen(
         onEvent(LoginEvent.ClearVerifyScreen())
     }
 
-    val newEmail = rememberSaveable { mutableStateOf("") }
-    val newPassword = rememberSaveable { mutableStateOf("") }
-    val newPasswordConfirm = rememberSaveable { mutableStateOf("") }
     if (currentUser.value != null && uiState().verificationScreenState == null) {
         Column(
             modifier = Modifier
@@ -86,18 +83,18 @@ fun ActionAuthorizeScreen(
                 )
                 if (actionType == EditProfileAction.PASSWORD) {
                     PasswordTextField(
-                        value = newPassword.value,
+                        value = uiState().newPassword,
                         onValueChange = {
-                            newPassword.value = it
+                            onEvent(LoginEvent.UpdateNewPassword(it))
                         },
                         label = "New password",
                         isError = uiState().newPasswordEmpty,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                     )
                     PasswordTextField(
-                        value = newPasswordConfirm.value,
+                        value = uiState().newPasswordConfirm,
                         onValueChange = {
-                            newPasswordConfirm.value = it
+                            onEvent(LoginEvent.UpdateNewPasswordConfirm(it))
                         },
                         label = "Confirm new password",
                         isError = uiState().newPasswordConfirmEmpty,
@@ -106,9 +103,9 @@ fun ActionAuthorizeScreen(
                 }
                 if (actionType == EditProfileAction.EMAIL) {
                     LoginTextField(
-                        value = newEmail.value,
+                        value = uiState().newEmail,
                         onValueChange = {
-                            newEmail.value = it
+                            onEvent(LoginEvent.UpdateNewEmail(it))
                         },
                         label = "New e-mail",
                         isError = uiState().newEmailEmpty,
@@ -120,7 +117,7 @@ fun ActionAuthorizeScreen(
             LoginButton(modifier = Modifier.padding(bottom = if (imeVisible) 5.dp else 50.dp),text = actionText) {
                 when (actionType) {
                     EditProfileAction.EMAIL -> {
-                        onEvent(LoginEvent.EditEmail(newEmail.value))
+                        onEvent(LoginEvent.EditEmail(uiState().newEmail))
                     }
 
                     EditProfileAction.DELETE -> {
@@ -130,8 +127,8 @@ fun ActionAuthorizeScreen(
                     EditProfileAction.PASSWORD -> {
                         onEvent(
                             LoginEvent.EditPassword(
-                                newPassword.value,
-                                newPasswordConfirm.value,
+                                uiState().newPassword,
+                                uiState().newPasswordConfirm,
                                 navigateToProfileScreen
                             )
                         )

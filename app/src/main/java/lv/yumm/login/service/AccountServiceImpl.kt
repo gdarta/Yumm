@@ -2,6 +2,8 @@ package lv.yumm.login.service
 
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
@@ -109,6 +111,7 @@ class AccountServiceImpl @Inject constructor(
 
         user?.reauthenticate(credential)
             ?.addOnCompleteListener {
+                _loading.value = false
                 onReAuthenticate(it.exception)
                 if (it.isSuccessful) {
                     recipes.deletePublicRecipesByUserId(user.uid) { error ->
@@ -119,7 +122,6 @@ class AccountServiceImpl @Inject constructor(
                                         if (listError == null) {
                                             user.delete().addOnCompleteListener {
                                                 _loading.value = false
-                                                Timber.d("Result for deleting user ${it.exception?.message}")
                                                 onResult(it.exception)
                                             }
                                         } else {
@@ -208,10 +210,16 @@ class AccountServiceImpl @Inject constructor(
             ?.addOnCompleteListener {
                 _loading.value = false
                 if (it.isSuccessful) {
-                    user.updatePassword(newPassword.filterNot { it.isWhitespace() })
-                        .addOnCompleteListener { error ->
-                            onResult(it.exception)
+                    try {
+                        user.updatePassword(newPassword.filterNot { it.isWhitespace() })
+                            .addOnCompleteListener { error ->
+                                onResult(it.exception)
+                            }
+                    } catch (e: Exception) {
+                        if (e is FirebaseAuthException) {
+                            onResult(e)
                         }
+                    }
                 } else {
                     onReAuthenticate(it.exception)
                 }

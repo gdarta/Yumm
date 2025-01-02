@@ -39,7 +39,9 @@
 -keepnames class kotlinx.serialization.** { *; }
 
 # Prevent obfuscation of application-specific serializable classes
--keep class your.package.name.** { *; }
+-keep class lv.yumm.recipes.data.** { *; }
+-keep class lv.yumm.lists.data.** { *; }
+-keep class lv.yumm.ui.** { *; }
 
 # Keep annotations
 -keepattributes *Annotation*

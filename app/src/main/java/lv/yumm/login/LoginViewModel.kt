@@ -1,6 +1,7 @@
 package lv.yumm.login
 
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -126,18 +127,24 @@ class LoginViewModel @Inject constructor(
                 }
             },
             onResult = {
-                reloadUser()
-                _loginUiState.update {
-                    it.copy(
-                        verificationScreenState = VerificationScreenUiState(
-                            email = email,
-                            resendEmail = {
-                                accountService.verifyBeforeUpdateEmail(email) {
-                                    postMessage("E-mail sent")
+                if (it == null) {
+                    reloadUser()
+                    _loginUiState.update {
+                        it.copy(
+                            verificationScreenState = VerificationScreenUiState(
+                                email = email,
+                                resendEmail = {
+                                    accountService.verifyBeforeUpdateEmail(email) {
+                                        postMessage("E-mail sent")
+                                    }
                                 }
-                            }
+                            )
                         )
-                    )
+                    }
+                } else {
+                    _loginUiState.update {
+                        it.copy(credentialError = "Invalid e-mail address")
+                    }
                 }
             }
         )
@@ -253,6 +260,33 @@ class LoginViewModel @Inject constructor(
                 }
             }
 
+            is LoginEvent.UpdateNewEmail -> {
+                clearErrors()
+                if (event.email.length <= 50) {
+                    _loginUiState.update {
+                        it.copy(newEmail = event.email)
+                    }
+                }
+            }
+
+            is LoginEvent.UpdateNewPassword -> {
+                clearErrors()
+                if (event.password.length <= 50) {
+                    _loginUiState.update {
+                        it.copy(newPassword = event.password)
+                    }
+                }
+            }
+
+            is LoginEvent.UpdateNewPasswordConfirm -> {
+                clearErrors()
+                if (event.password.length <= 50) {
+                    _loginUiState.update {
+                        it.copy(newPasswordConfirm = event.password)
+                    }
+                }
+            }
+
             is LoginEvent.LogIn -> {
                 if (!_loginUiState.value.hasError) {
                     authenticate { error ->
@@ -292,15 +326,21 @@ class LoginViewModel @Inject constructor(
                         if (error == null) {
                             _loginUiState.update { LoginUiState() }
                             postMessage("Account deleted")
+                        } else {
+                            postMessage("Deletion failed")
                         }
                     }
                 )
             }
 
             is LoginEvent.EditEmail -> {
-                if (event.email.isNotBlank()) {
+                if (!_loginUiState.value.hasError && isInputNotNull(
+                        email = _loginUiState.value.email,
+                        password = _loginUiState.value.password
+                    )
+                ) {
                     editEmail(event.email)
-                } else {
+                } else if (event.email.isBlank()) {
                     _loginUiState.update {
                         it.copy(newEmailEmpty = true)
                     }
@@ -322,7 +362,13 @@ class LoginViewModel @Inject constructor(
             }
 
             is LoginEvent.EditPassword -> {
-                if (isInputNotNull(newPassword = event.password, newPasswordConfirm = event.confirmPassword)) {
+                if (isInputNotNull(
+                        newPassword = event.password,
+                        newPasswordConfirm = event.confirmPassword,
+                        email = _loginUiState.value.email,
+                        password = _loginUiState.value.password
+                    )
+                ) {
                     if (event.password == event.confirmPassword) {
                         accountService.changePassword(
                             email = _loginUiState.value.email,
@@ -338,9 +384,15 @@ class LoginViewModel @Inject constructor(
                                 if (it == null) {
                                     postMessage("Password is updated")
                                     event.goBack()
+                                } else {
+                                    handleApiError(it as FirebaseAuthException)
                                 }
                             }
                         )
+                    } else {
+                        _loginUiState.update {
+                            it.copy(credentialError = "Password confirmation does not match")
+                        }
                     }
                 }
             }

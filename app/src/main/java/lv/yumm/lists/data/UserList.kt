@@ -1,9 +1,7 @@
 package lv.yumm.lists.data
 
 import com.google.firebase.Timestamp
-import lv.yumm.lists.ListItem
 import lv.yumm.lists.ListUiState
-import lv.yumm.recipes.data.Ingredient
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

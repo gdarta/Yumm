@@ -1,7 +1,7 @@
 package lv.yumm.lists
 
 import com.google.firebase.Timestamp
-import lv.yumm.recipes.data.Ingredient
+import lv.yumm.lists.data.ListItem
 
 data class ListUiState (
     val isLoading: Boolean = false,
@@ -21,7 +21,3 @@ data class IngredientError(
     val unitError: Boolean = false,
 )
 
-data class ListItem (
-    val checked: Boolean = false,
-    val ingredient: Ingredient = Ingredient()
-)

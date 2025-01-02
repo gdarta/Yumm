@@ -6,6 +6,10 @@ sealed class LoginEvent {
     class UpdateConfirmPassword(val password: String): LoginEvent()
     class UpdateDisplayName(val name: String): LoginEvent()
 
+    class UpdateNewEmail(val email: String): LoginEvent()
+    class UpdateNewPassword(val password: String): LoginEvent()
+    class UpdateNewPasswordConfirm(val password: String): LoginEvent()
+
     class LogIn(): LoginEvent()
     class SignUp(): LoginEvent()
     class SignOut(): LoginEvent()
