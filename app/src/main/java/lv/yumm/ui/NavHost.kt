@@ -142,8 +142,6 @@ val showBottomBarList = listOf(
 val showBackButtonList = listOf(
     ViewRecipe::class.qualifiedName,
     CreateRecipe::class.qualifiedName,
-    EditIngredients::class.qualifiedName,
-    EditDirections::class.qualifiedName,
     ActionAuthorizeScreen::class.qualifiedName + "/{infoText}/{actionText}/{event}",
     CreateListScreen::class.qualifiedName,
     ViewListScreen::class.qualifiedName,

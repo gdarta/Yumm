@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,7 +55,7 @@ fun ViewListScreen(
                 ) {
                     onEvent(ListEvent.CheckItem(index, !item.checked))
                 }) {
-                    IngredientText(item.ingredient)
+                    IngredientText(item.ingredient, color = if (item.checked) Color.Black.copy(alpha = .3f) else MaterialTheme.colorScheme.onBackground)
                     Checkbox(
                         checked = item.checked,
                         onCheckedChange = { onEvent(ListEvent.CheckItem(index, it)) })

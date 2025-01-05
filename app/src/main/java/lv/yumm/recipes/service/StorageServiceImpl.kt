@@ -1,4 +1,4 @@
-package lv.yumm.service
+package lv.yumm.recipes.service
 
 import android.net.Uri
 import androidx.core.net.toUri
@@ -156,19 +156,19 @@ class StorageServiceImpl @Inject constructor(
                     // if new image, get download url
                     if (error == null) {
                         updatedRecipe = updatedRecipe.copy(imageUrl = uri.toString())
-                        userCollection.document(recipe.id).set(updatedRecipe)
-                            .addOnCompleteListener {
-                                onResult(it.exception)
-                                if (it.exception != null) {
-                                    Timber.e("Error updating recipe with id: ${recipe.id}, ${it.exception?.message}")
-                                } else if (recipe.public) {
-                                    publishRecipe(updatedRecipe) {
-                                        if (it != null) Timber.e("Error publishing recipe with id: ${recipe.id}, ${it.message}")
-                                        onResult(it)
-                                    }
+                    }
+                    userCollection.document(recipe.id).set(updatedRecipe)
+                        .addOnCompleteListener {
+                            onResult(it.exception)
+                            if (it.exception != null) {
+                                Timber.e("Error updating recipe with id: ${recipe.id}, ${it.exception?.message}")
+                            } else if (recipe.public) {
+                                publishRecipe(updatedRecipe) {
+                                    if (it != null) Timber.e("Error publishing recipe with id: ${recipe.id}, ${it.message}")
+                                    onResult(it)
                                 }
                             }
-                    }
+                        }
                 }
             } else {
                 // if not new image, set new recipe

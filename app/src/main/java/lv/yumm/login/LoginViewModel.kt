@@ -1,7 +1,6 @@
 package lv.yumm.login
 
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -15,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import lv.yumm.BaseViewModel
 import lv.yumm.login.service.AccountService
-import lv.yumm.service.StorageService
+import lv.yumm.recipes.service.StorageService
 import timber.log.Timber
 import javax.inject.Inject
 

@@ -1,4 +1,4 @@
-package lv.yumm.service
+package lv.yumm.recipes.service
 
 import android.net.Uri
 import kotlinx.coroutines.flow.Flow

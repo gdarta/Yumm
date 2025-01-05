@@ -19,7 +19,6 @@ import lv.yumm.login.service.AccountService
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.isEmpty
-import lv.yumm.service.StorageService
 import javax.inject.Inject
 
 @HiltViewModel

@@ -3,7 +3,6 @@ package lv.yumm.login.service
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
@@ -12,8 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import lv.yumm.lists.service.ListService
-import lv.yumm.service.StorageService
-import timber.log.Timber
+import lv.yumm.recipes.service.StorageService
 import javax.inject.Inject
 import kotlin.text.isWhitespace
 

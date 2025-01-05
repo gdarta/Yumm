@@ -18,12 +18,12 @@ data class RecipeUiState (
 
     val imageUrl: String = "",
     val category: RecipeType? = null,
-    val title: String = "c",
+    val title: String = "",
     val description: String = "",
     val ingredients: List<Ingredient> = emptyList(),
     val directions: List<String> = emptyList(),
-    val difficulty: Float = 3f,
-    val duration: Long = 10,
+    val difficulty: Float = 0f,
+    val duration: Long = 0,
     val portions: Int = 1,
 
     val ingredientErrorList: List<IngredientError> = emptyList(),

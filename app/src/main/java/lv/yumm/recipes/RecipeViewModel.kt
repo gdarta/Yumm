@@ -1,8 +1,6 @@
 package lv.yumm.recipes
 
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,10 +17,10 @@ import lv.yumm.login.service.AccountService
 import lv.yumm.login.service.AccountServiceImpl.Companion.EMPTY_USER_ID
 import lv.yumm.recipes.data.Ingredient
 import lv.yumm.recipes.data.Recipe
+import lv.yumm.recipes.data.hasEmpty
 import lv.yumm.recipes.data.isEmpty
-import lv.yumm.service.StorageService
+import lv.yumm.recipes.service.StorageService
 import lv.yumm.ui.state.ConfirmationDialogUiState
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -76,7 +74,6 @@ class RecipeViewModel @Inject constructor(
                 started = SharingStarted.Lazily,
                 initialValue = emptyList(),
             ).collectLatest { recipes ->
-                Timber.d("Collected recipes $recipes")
                 updateUiRecipeLists(recipes)
             }
         }
@@ -121,7 +118,7 @@ class RecipeViewModel @Inject constructor(
     }
 
     fun updateUserSearchPhrase(phrase: String) {
-        _searchPhraseUser.value = phrase
+        if (phrase.length <= 50) _searchPhraseUser.value = phrase
     }
 
     suspend fun processSearchQueryForUserRecipeStream() : Flow<List<Recipe>> {
@@ -136,7 +133,7 @@ class RecipeViewModel @Inject constructor(
     }
 
     fun updateSearchPhrase(phrase: String) {
-        _searchPhrasePublic.value = phrase
+        if (phrase.length <= 50) _searchPhrasePublic.value = phrase
     }
 
     suspend fun processSearchQueryForPublicRecipeStream() : Flow<List<Recipe>> {
@@ -150,11 +147,12 @@ class RecipeViewModel @Inject constructor(
                 storageService.insertRecipe(recipeState.toRecipe()) {
                     if (it != null) {
                         postMessage("Error adding recipe")
-                    }
+                    } else postMessage("Recipe saved")
                 }
             } else {
                 storageService.updateRecipe(recipeState.toRecipe()) {
                     if (it != null) postMessage("Error updating recipe")
+                    else postMessage("Recipe updated")
                 }
             }
             storageService.refreshUserRecipes(currentUserId.value).collectLatest { recipes ->
@@ -194,7 +192,7 @@ class RecipeViewModel @Inject constructor(
             }
             if (!_recipeUiState.value.editScreenHasError) {
                 insertNewOrUpdate(public)
-                navigateBack()
+                if (!_recipeUiState.value.isLoading) navigateBack()
             }
         }
     }
@@ -231,7 +229,9 @@ class RecipeViewModel @Inject constructor(
                 val updatedErrors = _recipeUiState.value.ingredientErrorList.toMutableList()
                 // validating that input is not blank and that amount is a valid number
                 updatedErrors[event.index] = IngredientError(
-                    ingredient.name.isBlank(), (ingredient.amount <= 0f || ingredient.amount.isNaN()), ingredient.unit.isBlank()
+                    ingredient.name.isBlank() || ingredient.name.length > 50,
+                    (ingredient.amount <= 0f || ingredient.amount.isNaN()),
+                    ingredient.unit.isBlank() || ingredient.unit.length > 20
                 )
                 _recipeUiState.update {
                     it.copy(ingredients = updatedIngredients, ingredientErrorList = updatedErrors)
@@ -253,7 +253,7 @@ class RecipeViewModel @Inject constructor(
             }
             is RecipeEvent.UpdateDirection -> {
                 val updatedDirections = _recipeUiState.value.directions.toMutableList()
-                updatedDirections[event.index] = event.direction
+                if (event.direction.length <= 240) updatedDirections[event.index] = event.direction
                 _recipeUiState.update {
                     it.copy(directions = updatedDirections)
                 }
@@ -410,7 +410,7 @@ class RecipeViewModel @Inject constructor(
             }
 
             is RecipeEvent.ValidateIngredients -> {
-                val ingredients = _recipeUiState.value.ingredients.filterNot { it.isEmpty() }
+                val ingredients = _recipeUiState.value.ingredients.filterNot { it.isEmpty() || it.hasEmpty() }
                 val errorList =
                     _recipeUiState.value.ingredientErrorList.filterIndexed { index, item -> !_recipeUiState.value.ingredients[index].isEmpty() }
                 _recipeUiState.update {

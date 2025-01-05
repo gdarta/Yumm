@@ -15,8 +15,8 @@ import lv.yumm.lists.service.ListService
 import lv.yumm.lists.service.ListServiceImpl
 import lv.yumm.login.service.AccountService
 import lv.yumm.login.service.AccountServiceImpl
-import lv.yumm.service.StorageService
-import lv.yumm.service.StorageServiceImpl
+import lv.yumm.recipes.service.StorageService
+import lv.yumm.recipes.service.StorageServiceImpl
 
 @Module
 @InstallIn(ViewModelComponent::class)
