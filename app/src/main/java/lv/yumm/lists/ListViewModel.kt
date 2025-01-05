@@ -205,12 +205,10 @@ class ListViewModel @Inject constructor(
 
             is ListEvent.CreateListFromIngredients -> {
                 viewModelScope.launch {
-                    println("In create list from ingredients")
                     val newUserList = UserList(
                         title = event.title,
                         list = event.ingredients.map { ListItem(false, it) }
                     )
-                    println("Calling update list")
                     storageService.updateList(newUserList) {
                         if (it == null) postMessage("New list created")
                         else postMessage("List was dismissed")

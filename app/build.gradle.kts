@@ -102,7 +102,6 @@ dependencies {
     androidTestImplementation(libs.room.testing)
     testImplementation (libs.mockito.core)
     testImplementation (libs.turbine)
-    testImplementation (libs.testcoroutinerule)
     ksp(libs.room.compiler)
     implementation(libs.hilt.android.core)
     implementation(libs.hilt.android.testing)

@@ -17,9 +17,8 @@ import okhttp3.internal.toImmutableList
 class FakeListService @Inject constructor(
     private val firestore: FirebaseFirestore
 ): ListService {
-
-    val userListDatabase = MutableStateFlow(listOf<UserList>(
-        UserList(
+    companion object {
+        val LIST_ID_1 = UserList(
             id = "1",
             authorUID = "user",
             title = "test1",
@@ -49,7 +48,11 @@ class FakeListService @Inject constructor(
                     )
                 )
             )
-        ),
+        )
+    }
+
+    val userListDatabase = MutableStateFlow(listOf<UserList>(
+        LIST_ID_1,
         UserList(
             id = "2",
             authorUID = "user",
@@ -122,7 +125,7 @@ class FakeListService @Inject constructor(
     }
 
     override suspend fun getList(id: String): UserList? {
-        return UserList()
+        return userListDatabase.value.find { it.id == id }
     }
 
     override suspend fun updateList(list: UserList, onResult: (Throwable?) -> Unit) {
@@ -132,10 +135,8 @@ class FakeListService @Inject constructor(
             val indexToUpdate = userListDatabase.value.indexOf(elementToUpdate)
             userListMutable[indexToUpdate] = list
         } else { // if is not found, add new element
-            println("adding element")
             userListMutable.add(list.copy(id = "4"))
         }
-        println("List: $userListMutable")
         userListDatabase.value = (userListMutable.toImmutableList())
     }
 
