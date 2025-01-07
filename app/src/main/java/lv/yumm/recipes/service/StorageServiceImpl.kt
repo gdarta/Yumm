@@ -65,6 +65,7 @@ class StorageServiceImpl @Inject constructor(
 
     override suspend fun searchUserRecipes(searchPhrase: String): Flow<List<Recipe>> {
         val searchQuery = userCollection
+            .whereEqualTo("authorUID", Firebase.auth.currentUser?.uid)
             .whereArrayContains("keywords", searchPhrase.lowercase())
             .orderBy("updatedAt", Query.Direction.DESCENDING)
 
@@ -196,9 +197,12 @@ class StorageServiceImpl @Inject constructor(
                 deleteImageFromStorage(recipe.imageUrl) {
                     Timber.e("Error deleting image resource: ${it?.message}")
                 }
-                userCollection.document(recipe.id).delete().addOnCompleteListener {
-                    if (recipe.public) publicCollection.document(recipe.id).delete()
-                }.await()
+                userCollection.document(recipe.id).delete().await()
+                if (recipe.public) {
+                    publicCollection.document(recipe.id).delete().addOnCompleteListener {
+                        Timber.d("Completed deleting public recipe: ${it.exception?.message}")
+                    }.await()
+                }
                 null
             } ?: throw Exception(MISSING_AUTH)
         } catch (e: Exception) {
